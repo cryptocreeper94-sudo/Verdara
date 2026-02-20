@@ -1,0 +1,126 @@
+import { useLocation, Link } from "wouter";
+import { useTheme } from "./theme-provider";
+import {
+  Home, ScanSearch, Map, CalendarDays, Store, User,
+  Sun, Moon, TreePine, Menu
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { useState } from "react";
+
+const navItems = [
+  { path: "/", label: "Home", icon: Home },
+  { path: "/identify", label: "Identify", icon: ScanSearch },
+  { path: "/trails", label: "Trails", icon: Map },
+  { path: "/planner", label: "Planner", icon: CalendarDays },
+  { path: "/marketplace", label: "Market", icon: Store },
+  { path: "/dashboard", label: "Profile", icon: User },
+];
+
+export function AppLayout({ children }: { children: React.ReactNode }) {
+  const [location] = useLocation();
+  const { theme, toggleTheme } = useTheme();
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  return (
+    <div className="flex h-screen w-full bg-background overflow-hidden">
+      <aside className={cn(
+        "hidden lg:flex flex-col border-r border-sidebar-border bg-sidebar transition-all duration-300",
+        sidebarOpen ? "w-[240px]" : "w-[68px]"
+      )}>
+        <div className={cn("flex items-center gap-3 p-4 border-b border-sidebar-border", !sidebarOpen && "justify-center")}>
+          <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center flex-shrink-0">
+            <TreePine className="w-5 h-5 text-white" />
+          </div>
+          {sidebarOpen && (
+            <span className="text-lg font-bold text-sidebar-foreground tracking-tight">Verdara</span>
+          )}
+        </div>
+
+        <nav className="flex-1 p-3 space-y-1">
+          {navItems.map((item) => {
+            const isActive = location === item.path;
+            return (
+              <Link key={item.path} href={item.path}>
+                <div
+                  data-testid={`nav-${item.label.toLowerCase()}`}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer hover-elevate",
+                    isActive
+                      ? "bg-emerald-500/15 text-emerald-400"
+                      : "text-sidebar-foreground/70",
+                    !sidebarOpen && "justify-center px-2"
+                  )}
+                >
+                  <item.icon className={cn("w-5 h-5 flex-shrink-0", isActive && "text-emerald-400")} />
+                  {sidebarOpen && <span>{item.label}</span>}
+                </div>
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className={cn("p-3 border-t border-sidebar-border flex gap-2", !sidebarOpen ? "flex-col items-center" : "items-center")}>
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={toggleTheme}
+            className="text-sidebar-foreground/70"
+            data-testid="button-theme-toggle"
+          >
+            {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="text-sidebar-foreground/70"
+            data-testid="button-sidebar-toggle"
+          >
+            <Menu className="w-4 h-4" />
+          </Button>
+        </div>
+      </aside>
+
+      <div className="flex flex-col flex-1 min-w-0">
+        <header className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 z-50">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-emerald-500 flex items-center justify-center">
+              <TreePine className="w-4 h-4 text-white" />
+            </div>
+            <span className="text-base font-bold text-foreground">Verdara</span>
+          </div>
+          <Button size="icon" variant="ghost" onClick={toggleTheme} data-testid="button-theme-toggle-mobile">
+            {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </Button>
+        </header>
+
+        <main className="flex-1 overflow-y-auto pb-20 lg:pb-0">
+          {children}
+        </main>
+
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-t border-border">
+          <div className="flex items-center justify-around py-2 px-1 safe-area-bottom">
+            {navItems.map((item) => {
+              const isActive = location === item.path;
+              return (
+                <Link key={item.path} href={item.path}>
+                  <div
+                    data-testid={`mobile-nav-${item.label.toLowerCase()}`}
+                    className={cn(
+                      "flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors cursor-pointer min-w-[44px] min-h-[44px] justify-center",
+                      isActive ? "text-emerald-500" : "text-muted-foreground"
+                    )}
+                  >
+                    <item.icon className="w-5 h-5" />
+                    <span className="text-[10px] font-medium">{item.label}</span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
+      </div>
+    </div>
+  );
+}
