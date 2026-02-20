@@ -41,6 +41,7 @@ import Catalog from "@/pages/catalog";
 import CatalogDetail from "@/pages/catalog-detail";
 import DeveloperPortal from "@/pages/developer-portal";
 import Vault from "@/pages/vault";
+import Pricing from "@/pages/pricing";
 import NotFound from "@/pages/not-found";
 import { Loader2, TreePine } from "lucide-react";
 import { useState } from "react";
@@ -136,6 +137,7 @@ function AppContent() {
         <Route path="/caves" component={Caves} />
         <Route path="/prairie" component={Prairie} />
         <Route path="/foraging" component={Foraging} />
+        <Route path="/pricing" component={Pricing} />
 
         <Route path="/identify">
           <AuthGate><Identify /></AuthGate>

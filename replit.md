@@ -43,7 +43,7 @@ Verdara is built as part of the DarkWave Trust Layer (DWTL) ecosystem, functioni
 - **TrustShield:** Integration for marketplace vendor verification badges using blockchain.
 - **Signal (SIG) Payments:** Acceptance of the native cryptocurrency for marketplace transactions.
 - **GarageBot API:** Integrated — server proxy at /api/garagebot/* forwards requests to garagebot.io/api/ecosystem/v1 with Trust Layer JWT auth. Equipment list, details, maintenance alerts, create/update. Equipment tab in Arborist Pro module.
-- **DW-STAMP:** Blockchain certification for activities like trail completions or species identifications.
+- **DW-STAMP:** Blockchain certification stamped on all major events: marketplace listings, trip plans, arborist invoices, campground bookings, reviews, Stripe checkouts, species IDs, TrustVault uploads/projects. Uses stampToChain() helper from server/ecosystem.ts (async, non-blocking).
 - **TrustVault:** Integrated — server proxy at /api/trustvault/* forwards requests to trustvault.replit.app/api/studio with Trust Layer JWT auth. Media gallery page at /vault with upload, browse, embedded editors (image/video/audio), project creation (highlight reels), and webhook receiver at /api/trustvault/webhook. Species identification photos can be saved directly to TrustVault from the identify page. Supports presigned URL upload flow (upload → PUT → confirm).
 - **TLID Identity:** Support for .tlid domain names as user identities.
 - **Credits System:** Acceptance of Trust Layer credits for AI identification services.
@@ -55,6 +55,18 @@ Verdara is built as part of the DarkWave Trust Layer (DWTL) ecosystem, functioni
 - Target: 5,000+ outdoor locations, 500+ wild plants, comprehensive coverage of all geographic environments.
 - All category pages display a "Living Catalog" banner indicating daily updates.
 - Service worker cache version must be bumped when replacing images (currently v3).
+
+**Subscription Tiers (Stripe):**
+- Free Explorer (level 0): Free — browse catalog, basic trails, community, 3 AI IDs/month
+- Outdoor Explorer (level 1): $19.99/yr — unlimited AI ID, trip planner, price compare, wild edibles, TrustVault
+- Craftsman Pro (level 2): $29.99/yr — marketplace selling, DW-STAMP certs, priority support
+- Arborist Starter (level 3): $49/mo — up to 25 clients, job scheduling, invoicing, GarageBot
+- Arborist Business (level 4): $99/mo — unlimited clients, teams, TrustShield badge
+- Arborist Enterprise (level 5): $199/mo — white-label, API access, dedicated support
+- Pricing page at /pricing with tier comparison cards and Stripe Checkout integration
+- Feature gating via requireTier() middleware on server routes (marketplace selling = Craftsman Pro+, arborist tools = Arborist Starter+)
+- Stripe Products created with real Price IDs (not inline price_data)
+- Webhook handles checkout.session.completed, subscription.deleted, subscription.updated
 
 ## External Dependencies
 - **Stripe:** For payment processing (Stripe Checkout) and subscription management (webhook for tier updates).

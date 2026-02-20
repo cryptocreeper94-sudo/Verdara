@@ -10,6 +10,39 @@ import { registerGarageBotRoutes } from "./garagebot";
 import { registerEcosystemRoutes, stampToChain } from "./ecosystem";
 import Stripe from "stripe";
 import { openai } from "./replit_integrations/image/client";
+import type { Request, Response, NextFunction } from "express";
+
+const TIER_LEVELS: Record<string, number> = {
+  "Free Explorer": 0,
+  "Outdoor Explorer": 1,
+  "Craftsman Pro": 2,
+  "Arborist Starter": 3,
+  "Arborist Business": 4,
+  "Arborist Enterprise": 5,
+};
+
+function getUserTierLevel(tier: string | null | undefined): number {
+  return TIER_LEVELS[tier || "Free Explorer"] ?? 0;
+}
+
+function requireTier(minTierName: string) {
+  const minLevel = TIER_LEVELS[minTierName] ?? 0;
+  return async (req: Request, res: Response, next: NextFunction) => {
+    if (!req.userId) return res.status(401).json({ message: "Authentication required" });
+    const user = await storage.getUser(req.userId);
+    if (!user) return res.status(401).json({ message: "User not found" });
+    const userLevel = getUserTierLevel(user.tier);
+    if (userLevel < minLevel) {
+      return res.status(403).json({
+        message: "Upgrade required",
+        requiredTier: minTierName,
+        currentTier: user.tier || "Free Explorer",
+        upgradeUrl: "/pricing",
+      });
+    }
+    next();
+  };
+}
 
 export async function registerRoutes(
   httpServer: Server,
@@ -124,7 +157,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/marketplace", requireAuth, async (req, res) => {
+  app.post("/api/marketplace", requireAuth, requireTier("Craftsman Pro"), async (req, res) => {
     try {
       const user = await storage.getUser(req.userId!);
       if (!user) return res.status(404).json({ message: "User not found" });
@@ -340,7 +373,7 @@ export async function registerRoutes(
   });
 
   // Arborist Client routes
-  app.get("/api/arborist/clients", requireAuth, async (req, res) => {
+  app.get("/api/arborist/clients", requireAuth, requireTier("Arborist Starter"), async (req, res) => {
     try {
       const clients = await storage.getArboristClients(req.userId!);
       res.json(clients);
@@ -350,7 +383,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/arborist/clients", requireAuth, async (req, res) => {
+  app.post("/api/arborist/clients", requireAuth, requireTier("Arborist Starter"), async (req, res) => {
     try {
       const parsed = insertArboristClientSchema.safeParse({ ...req.body, userId: req.userId! });
       if (!parsed.success) return res.status(400).json({ message: "Invalid client data", errors: parsed.error.flatten().fieldErrors });
@@ -391,7 +424,7 @@ export async function registerRoutes(
   });
 
   // Arborist Job routes
-  app.get("/api/arborist/jobs", requireAuth, async (req, res) => {
+  app.get("/api/arborist/jobs", requireAuth, requireTier("Arborist Starter"), async (req, res) => {
     try {
       const jobs = await storage.getArboristJobs(req.userId!);
       res.json(jobs);
@@ -401,7 +434,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/arborist/jobs", requireAuth, async (req, res) => {
+  app.post("/api/arborist/jobs", requireAuth, requireTier("Arborist Starter"), async (req, res) => {
     try {
       const parsed = insertArboristJobSchema.safeParse({ ...req.body, userId: req.userId!, status: "scheduled" });
       if (!parsed.success) return res.status(400).json({ message: "Invalid job data", errors: parsed.error.flatten().fieldErrors });
@@ -442,7 +475,7 @@ export async function registerRoutes(
   });
 
   // Arborist Invoice routes
-  app.get("/api/arborist/invoices", requireAuth, async (req, res) => {
+  app.get("/api/arborist/invoices", requireAuth, requireTier("Arborist Starter"), async (req, res) => {
     try {
       const invoices = await storage.getArboristInvoices(req.userId!);
       res.json(invoices);
@@ -452,7 +485,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/arborist/invoices", requireAuth, async (req, res) => {
+  app.post("/api/arborist/invoices", requireAuth, requireTier("Arborist Starter"), async (req, res) => {
     try {
       const { clientId, jobId, items, dueDate, notes, tax } = req.body;
       if (!items || !Array.isArray(items) || items.length === 0) {
@@ -733,19 +766,50 @@ export async function registerRoutes(
     }
   });
 
-  // Stripe subscription route
+  const VERDARA_TIERS: Record<string, { name: string; stripePriceId: string; level: number }> = {
+    "outdoor_explorer": { name: "Outdoor Explorer", stripePriceId: "price_1T2ymgRq977vVehdFj13YFrM", level: 1 },
+    "craftsman_pro": { name: "Craftsman Pro", stripePriceId: "price_1T2ymjRq977vVehdYvCEHsT1", level: 2 },
+    "arborist_starter": { name: "Arborist Starter", stripePriceId: "price_1T2ymoRq977vVehd6sTm7m47", level: 3 },
+    "arborist_business": { name: "Arborist Business", stripePriceId: "price_1T2ymrRq977vVehdTfQivxy4", level: 4 },
+    "arborist_enterprise": { name: "Arborist Enterprise", stripePriceId: "price_1T2ymvRq977vVehd74qr6jbS", level: 5 },
+  };
+
+  app.get("/api/subscriptions/tiers", (_req, res) => {
+    const tiers = [
+      {
+        key: "free_explorer", name: "Free Explorer", price: 0, interval: null, level: 0,
+        features: ["Browse outdoor catalog", "Basic trail info", "Community access", "3 AI identifications/month"],
+      },
+      {
+        key: "outdoor_explorer", name: "Outdoor Explorer", price: 19.99, interval: "year", level: 1,
+        features: ["Unlimited AI identification", "Trip planner", "Gear price compare", "Wild edibles guide", "TrustVault storage", "All catalog features"],
+      },
+      {
+        key: "craftsman_pro", name: "Craftsman Pro", price: 29.99, interval: "year", level: 2,
+        features: ["Wood marketplace selling", "Advanced trip planning", "DW-STAMP certifications", "Priority support", "All Explorer features"],
+      },
+      {
+        key: "arborist_starter", name: "Arborist Starter", price: 49, interval: "month", level: 3,
+        features: ["Up to 25 clients", "Job scheduling", "Invoicing", "GarageBot equipment tracking", "All Craftsman features"],
+      },
+      {
+        key: "arborist_business", name: "Arborist Business", price: 99, interval: "month", level: 4,
+        features: ["Unlimited clients", "Team management", "Advanced reporting", "TrustShield badge", "Priority GarageBot alerts", "All Starter features"],
+      },
+      {
+        key: "arborist_enterprise", name: "Arborist Enterprise", price: 199, interval: "month", level: 5,
+        features: ["White-label branding", "API access", "Dedicated support", "Custom integrations", "Multi-location management", "All Business features"],
+        popular: false,
+      },
+    ];
+    res.json(tiers);
+  });
+
   app.post("/api/subscriptions/create-checkout", requireAuth, async (req, res) => {
     try {
       if (!stripe) return res.status(503).json({ message: "Payment processing is not configured" });
       const { tier } = req.body;
-      const tierConfig: Record<string, { name: string; priceInCents: number; interval: "month" | "year" }> = {
-        "outdoor_explorer": { name: "Outdoor Explorer", priceInCents: 1999, interval: "year" },
-        "craftsman_pro": { name: "Craftsman Pro", priceInCents: 2999, interval: "year" },
-        "arborist_starter": { name: "Arborist Pro - Starter", priceInCents: 4900, interval: "month" },
-        "arborist_business": { name: "Arborist Pro - Business", priceInCents: 9900, interval: "month" },
-        "arborist_enterprise": { name: "Arborist Pro - Enterprise", priceInCents: 19900, interval: "month" },
-      };
-      const config = tierConfig[tier];
+      const config = VERDARA_TIERS[tier];
       if (!config) return res.status(400).json({ message: "Invalid subscription tier" });
 
       const host = req.headers.host || "localhost:5000";
@@ -754,18 +818,10 @@ export async function registerRoutes(
 
       const session = await stripe.checkout.sessions.create({
         mode: "subscription",
-        line_items: [{
-          price_data: {
-            currency: "usd",
-            product_data: { name: `Verdara ${config.name}` },
-            unit_amount: config.priceInCents,
-            recurring: { interval: config.interval },
-          },
-          quantity: 1,
-        }],
+        line_items: [{ price: config.stripePriceId, quantity: 1 }],
         metadata: { userId: req.userId!.toString(), tier: config.name },
-        success_url: `${baseUrl}/dashboard?subscription=success`,
-        cancel_url: `${baseUrl}/dashboard?subscription=cancelled`,
+        success_url: `${baseUrl}/pricing?subscription=success`,
+        cancel_url: `${baseUrl}/pricing?subscription=cancelled`,
       });
       res.json({ url: session.url });
     } catch (error) {
