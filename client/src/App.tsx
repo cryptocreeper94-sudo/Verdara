@@ -12,6 +12,8 @@ import Planner from "@/pages/planner";
 import Marketplace from "@/pages/marketplace";
 import Dashboard from "@/pages/dashboard";
 import Track from "@/pages/track";
+import Explore from "@/pages/explore";
+import Admin from "@/pages/admin";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -24,6 +26,8 @@ function Router() {
       <Route path="/marketplace" component={Marketplace} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/track/:id" component={Track} />
+      <Route path="/explore" component={Explore} />
+      <Route path="/admin" component={Admin} />
       <Route component={NotFound} />
     </Switch>
   );

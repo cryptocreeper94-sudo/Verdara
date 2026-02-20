@@ -2,17 +2,27 @@ import { useLocation, Link } from "wouter";
 import { useTheme } from "./theme-provider";
 import {
   Home, ScanSearch, Map, CalendarDays, Store, User,
-  Sun, Moon, TreePine, Menu
+  Sun, Moon, TreePine, Menu, Compass, Gauge
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 
-const navItems = [
+const sidebarNav = [
   { path: "/", label: "Home", icon: Home },
+  { path: "/explore", label: "Explore", icon: Compass },
   { path: "/identify", label: "Identify", icon: ScanSearch },
   { path: "/trails", label: "Trails", icon: Map },
   { path: "/planner", label: "Planner", icon: CalendarDays },
+  { path: "/marketplace", label: "Market", icon: Store },
+  { path: "/dashboard", label: "Profile", icon: User },
+  { path: "/admin", label: "Admin", icon: Gauge },
+];
+
+const mobileNav = [
+  { path: "/", label: "Home", icon: Home },
+  { path: "/explore", label: "Explore", icon: Compass },
+  { path: "/trails", label: "Trails", icon: Map },
   { path: "/marketplace", label: "Market", icon: Store },
   { path: "/dashboard", label: "Profile", icon: User },
 ];
@@ -38,8 +48,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         <nav className="flex-1 p-3 space-y-1">
-          {navItems.map((item) => {
+          {sidebarNav.map((item) => {
             const isActive = location === item.path;
+            const isAdmin = item.path === "/admin";
             return (
               <Link key={item.path} href={item.path}>
                 <div
@@ -47,12 +58,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   className={cn(
                     "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer hover-elevate",
                     isActive
-                      ? "bg-emerald-500/15 text-emerald-400"
+                      ? isAdmin ? "bg-amber-500/15 text-amber-400" : "bg-emerald-500/15 text-emerald-400"
                       : "text-sidebar-foreground/70",
                     !sidebarOpen && "justify-center px-2"
                   )}
                 >
-                  <item.icon className={cn("w-5 h-5 flex-shrink-0", isActive && "text-emerald-400")} />
+                  <item.icon className={cn("w-5 h-5 flex-shrink-0", isActive && (isAdmin ? "text-amber-400" : "text-emerald-400"))} />
                   {sidebarOpen && <span>{item.label}</span>}
                 </div>
               </Link>
@@ -101,7 +112,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
         <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-t border-border">
           <div className="flex items-center justify-around py-2 px-1 safe-area-bottom">
-            {navItems.map((item) => {
+            {mobileNav.map((item) => {
               const isActive = location === item.path;
               return (
                 <Link key={item.path} href={item.path}>
