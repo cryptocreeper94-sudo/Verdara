@@ -42,7 +42,7 @@ Verdara is built as part of the DarkWave Trust Layer (DWTL) ecosystem, functioni
 - **SSO:** Trust Layer JWT SSO integrated — shared JWT_SECRET across ecosystem apps (HS256), cross-app identity via chat_users.trust_layer_id. Endpoints: /api/chat/auth/register, /api/chat/auth/login, /api/chat/auth/me.
 - **TrustShield:** Integration for marketplace vendor verification badges using blockchain.
 - **Signal (SIG) Payments:** Acceptance of the native cryptocurrency for marketplace transactions.
-- **GarageBot API:** Connection for motorized equipment maintenance tracking.
+- **GarageBot API:** Integrated — server proxy at /api/garagebot/* forwards requests to garagebot.io/api/ecosystem/v1 with Trust Layer JWT auth. Equipment list, details, maintenance alerts, create/update. Equipment tab in Arborist Pro module.
 - **DW-STAMP:** Blockchain certification for activities like trail completions or species identifications.
 - **Trust Vault:** Signal wallet integration for in-app purchases.
 - **TLID Identity:** Support for .tlid domain names as user identities.

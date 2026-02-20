@@ -4,6 +4,7 @@ import crypto from "crypto";
 import { storage } from "./storage";
 import { registerSchema, loginSchema } from "@shared/schema";
 import { sendVerificationEmail } from "./email";
+import { generateTrustLayerIdPublic } from "./trustlayer-sso";
 
 const SALT_ROUNDS = 12;
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
@@ -60,6 +61,7 @@ export function registerAuthRoutes(app: Express) {
       const verificationToken = generateToken();
       const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
+      const trustLayerId = generateTrustLayerIdPublic();
       const user = await storage.createUser({
         firstName,
         lastName,
@@ -68,6 +70,7 @@ export function registerAuthRoutes(app: Express) {
         verificationToken,
         verificationExpires,
         emailVerified: false,
+        trustLayerId,
       });
 
       await sendVerificationEmail(email, verificationToken, firstName);

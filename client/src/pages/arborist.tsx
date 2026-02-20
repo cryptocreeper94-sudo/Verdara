@@ -2,7 +2,8 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Users, Briefcase, FileText, Plus, Trash2, Search, X, Loader2,
-  Phone, Mail, MapPin, Calendar, DollarSign, TreePine, ArrowLeft, Home
+  Phone, Mail, MapPin, Calendar, DollarSign, TreePine, ArrowLeft, Home,
+  Wrench, AlertTriangle, Clock, ChevronRight, Fuel, Cog
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -91,6 +92,9 @@ export default function Arborist() {
           <TabsTrigger value="invoices" className="gap-1.5" data-testid="tab-invoices">
             <FileText className="w-4 h-4" /> Invoices
           </TabsTrigger>
+          <TabsTrigger value="equipment" className="gap-1.5" data-testid="tab-equipment">
+            <Wrench className="w-4 h-4" /> Equipment
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="clients">
@@ -101,6 +105,9 @@ export default function Arborist() {
         </TabsContent>
         <TabsContent value="invoices">
           <InvoicesTab invoices={invoices} clients={clients} isLoading={invoicesLoading} />
+        </TabsContent>
+        <TabsContent value="equipment">
+          <EquipmentTab />
         </TabsContent>
       </Tabs>
     </div>
@@ -812,6 +819,360 @@ function InvoicesTab({ invoices, clients, isLoading }: { invoices: ArboristInvoi
                     </div>
                   )}
                 </div>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
+interface GarageBotEquipment {
+  id: string;
+  vin: string | null;
+  year: number;
+  make: string;
+  model: string;
+  trim: string | null;
+  vehicleType: string;
+  engineType: string | null;
+  engineSize: string | null;
+  fuelType: string | null;
+  transmission: string | null;
+  drivetrain: string | null;
+  bodyStyle: string | null;
+  currentMileage: number | null;
+  isPrimary: boolean;
+  imageUrl: string | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface MaintenanceAlert {
+  id: string;
+  vehicleId: string;
+  taskName: string;
+  nextDueDate: string | null;
+  nextDueMileage: number | null;
+  priority: string;
+}
+
+const vehicleTypeLabels: Record<string, string> = {
+  car: "Car", truck: "Truck", motorcycle: "Moto", boat: "Boat", atv: "ATV",
+  equipment: "Equip", snowmobile: "Sled", rv: "RV",
+};
+
+function EquipmentTab() {
+  const { toast } = useToast();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedEquipment, setSelectedEquipment] = useState<string | null>(null);
+  const [newYear, setNewYear] = useState("");
+  const [newMake, setNewMake] = useState("");
+  const [newModel, setNewModel] = useState("");
+  const [newType, setNewType] = useState("equipment");
+  const [newEngine, setNewEngine] = useState("");
+  const [newEngineSize, setNewEngineSize] = useState("");
+  const [newNotes, setNewNotes] = useState("");
+
+  const { data: equipmentData, isLoading } = useQuery<{ success: boolean; equipment: GarageBotEquipment[] }>({
+    queryKey: ["/api/garagebot/equipment"],
+  });
+  const equipment = equipmentData?.equipment || [];
+
+  const { data: alertsData } = useQuery<{ success: boolean; alerts: { overdueCount: number; upcomingCount: number; overdue: MaintenanceAlert[]; upcoming: MaintenanceAlert[] } }>({
+    queryKey: ["/api/garagebot/maintenance-alerts"],
+  });
+  const alerts = alertsData?.alerts;
+
+  const { data: detailData } = useQuery<{ success: boolean; equipment: GarageBotEquipment; serviceHistory: any[]; maintenanceSchedule: any[]; reminders: any[] }>({
+    queryKey: ["/api/garagebot/equipment", selectedEquipment],
+    enabled: !!selectedEquipment,
+  });
+
+  const createEquipment = useMutation({
+    mutationFn: async (data: Record<string, unknown>) => {
+      const res = await apiRequest("POST", "/api/garagebot/equipment", data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/garagebot/equipment"] });
+      setDialogOpen(false);
+      setNewYear(""); setNewMake(""); setNewModel(""); setNewType("equipment");
+      setNewEngine(""); setNewEngineSize(""); setNewNotes("");
+      toast({ title: "Equipment added", description: "Registered in GarageBot successfully." });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to add equipment to GarageBot.", variant: "destructive" });
+    },
+  });
+
+  const handleSubmit = () => {
+    if (!newYear || !newMake.trim() || !newModel.trim()) return;
+    createEquipment.mutate({
+      year: parseInt(newYear),
+      make: newMake.trim(),
+      model: newModel.trim(),
+      vehicleType: newType,
+      engineType: newEngine || undefined,
+      engineSize: newEngineSize || undefined,
+      notes: newNotes || undefined,
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+      </div>
+    );
+  }
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      {alerts && (alerts.overdueCount > 0 || alerts.upcomingCount > 0) && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          {alerts.overdueCount > 0 && (
+            <Card className="p-4 border-red-500/30 bg-red-500/5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-red-500/15 flex items-center justify-center">
+                  <AlertTriangle className="w-5 h-5 text-red-500" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-red-500" data-testid="text-overdue-count">{alerts.overdueCount} Overdue</p>
+                  <p className="text-xs text-muted-foreground">Maintenance items past due</p>
+                </div>
+              </div>
+              {alerts.overdue.slice(0, 3).map((a) => (
+                <div key={a.id} className="mt-2 text-xs text-red-400 flex items-center gap-2">
+                  <Clock className="w-3 h-3" /> {a.taskName}
+                  {a.nextDueDate && <span className="text-muted-foreground">{"\u2014"} {new Date(a.nextDueDate).toLocaleDateString()}</span>}
+                </div>
+              ))}
+            </Card>
+          )}
+          {alerts.upcomingCount > 0 && (
+            <Card className="p-4 border-amber-500/30 bg-amber-500/5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-amber-500" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-amber-500" data-testid="text-upcoming-count">{alerts.upcomingCount} Upcoming</p>
+                  <p className="text-xs text-muted-foreground">Due within 30 days</p>
+                </div>
+              </div>
+              {alerts.upcoming.slice(0, 3).map((a) => (
+                <div key={a.id} className="mt-2 text-xs text-amber-400 flex items-center gap-2">
+                  <Clock className="w-3 h-3" /> {a.taskName}
+                  {a.nextDueDate && <span className="text-muted-foreground">{"\u2014"} {new Date(a.nextDueDate).toLocaleDateString()}</span>}
+                </div>
+              ))}
+            </Card>
+          )}
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-center gap-3 mb-6">
+        <div className="flex items-center gap-2 flex-1">
+          <Cog className="w-5 h-5 text-emerald-500" />
+          <span className="text-sm text-muted-foreground">
+            {equipment.length} piece{equipment.length !== 1 ? "s" : ""} tracked via{" "}
+            <a href="https://garagebot.io" target="_blank" rel="noopener noreferrer" className="text-emerald-500 hover:underline">GarageBot</a>
+          </span>
+        </div>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-emerald-500 text-white gap-1.5" data-testid="button-add-equipment">
+              <Plus className="w-4 h-4" /> Add Equipment
+            </Button>
+          </DialogTrigger>
+          <DialogContent data-testid="dialog-add-equipment">
+            <DialogHeader>
+              <DialogTitle>Register Equipment</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 mt-2">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Year *</Label>
+                  <Input type="number" value={newYear} onChange={(e) => setNewYear(e.target.value)} placeholder="2024" data-testid="input-equipment-year" />
+                </div>
+                <div>
+                  <Label>Type</Label>
+                  <Select value={newType} onValueChange={setNewType}>
+                    <SelectTrigger data-testid="select-equipment-type"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="equipment">Equipment</SelectItem>
+                      <SelectItem value="car">Car</SelectItem>
+                      <SelectItem value="truck">Truck</SelectItem>
+                      <SelectItem value="motorcycle">Motorcycle</SelectItem>
+                      <SelectItem value="boat">Boat</SelectItem>
+                      <SelectItem value="atv">ATV</SelectItem>
+                      <SelectItem value="snowmobile">Snowmobile</SelectItem>
+                      <SelectItem value="rv">RV</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div>
+                <Label>Make *</Label>
+                <Input value={newMake} onChange={(e) => setNewMake(e.target.value)} placeholder="Stihl, Honda, Mercury..." data-testid="input-equipment-make" />
+              </div>
+              <div>
+                <Label>Model *</Label>
+                <Input value={newModel} onChange={(e) => setNewModel(e.target.value)} placeholder="MS 500i, CRF450R..." data-testid="input-equipment-model" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Engine Type</Label>
+                  <Input value={newEngine} onChange={(e) => setNewEngine(e.target.value)} placeholder="2-stroke, v8..." data-testid="input-equipment-engine" />
+                </div>
+                <div>
+                  <Label>Engine Size</Label>
+                  <Input value={newEngineSize} onChange={(e) => setNewEngineSize(e.target.value)} placeholder="79.2cc, 5.0L..." data-testid="input-equipment-engine-size" />
+                </div>
+              </div>
+              <div>
+                <Label>Notes</Label>
+                <Textarea value={newNotes} onChange={(e) => setNewNotes(e.target.value)} placeholder="Usage notes..." data-testid="input-equipment-notes" />
+              </div>
+              <div className="flex items-center gap-3 pt-2">
+                <Button
+                  className="bg-emerald-500 text-white gap-1.5"
+                  onClick={handleSubmit}
+                  disabled={createEquipment.isPending || !newYear || !newMake.trim() || !newModel.trim()}
+                  data-testid="button-submit-equipment"
+                >
+                  {createEquipment.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                  Register
+                </Button>
+                <DialogClose asChild>
+                  <Button variant="outline">Cancel</Button>
+                </DialogClose>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {equipment.length === 0 ? (
+        <div className="text-center py-20">
+          <Wrench className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-foreground mb-2">No equipment tracked</h3>
+          <p className="text-sm text-muted-foreground">Register your chainsaws, vehicles, and outdoor power equipment</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {equipment.map((item, i) => (
+            <motion.div
+              key={item.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05 }}
+            >
+              <Card
+                className="p-4 cursor-pointer hover:border-emerald-500/40 transition-colors"
+                onClick={() => setSelectedEquipment(selectedEquipment === item.id ? null : item.id)}
+                data-testid={`card-equipment-${item.id}`}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                      <Wrench className="w-4 h-4 text-emerald-500" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-foreground text-sm" data-testid={`text-equipment-name-${item.id}`}>
+                        {item.year} {item.make} {item.model}
+                      </h4>
+                      <p className="text-xs text-muted-foreground capitalize">{item.vehicleType}</p>
+                    </div>
+                  </div>
+                  <ChevronRight className={`w-4 h-4 text-muted-foreground transition-transform ${selectedEquipment === item.id ? "rotate-90" : ""}`} />
+                </div>
+                <div className="flex flex-wrap gap-2 text-xs">
+                  {item.engineType && (
+                    <Badge variant="secondary" className="gap-1">
+                      <Cog className="w-3 h-3" /> {item.engineType}
+                    </Badge>
+                  )}
+                  {item.engineSize && (
+                    <Badge variant="secondary">{item.engineSize}</Badge>
+                  )}
+                  {item.fuelType && (
+                    <Badge variant="secondary" className="gap-1">
+                      <Fuel className="w-3 h-3" /> {item.fuelType}
+                    </Badge>
+                  )}
+                  {item.currentMileage != null && (
+                    <Badge variant="secondary">{item.currentMileage.toLocaleString()} mi/hrs</Badge>
+                  )}
+                </div>
+                {item.notes && (
+                  <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{item.notes}</p>
+                )}
+
+                <AnimatePresence>
+                  {selectedEquipment === item.id && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="border-t border-border mt-3 pt-3 space-y-3">
+                        {(!detailData || detailData.equipment?.id !== item.id) ? (
+                          <div className="flex items-center justify-center py-4">
+                            <Loader2 className="w-5 h-5 animate-spin text-emerald-500" />
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            {detailData.maintenanceSchedule.length > 0 && (
+                              <div>
+                                <p className="text-xs font-semibold text-foreground mb-1.5">Maintenance Schedule</p>
+                                {detailData.maintenanceSchedule.map((m: any) => (
+                                  <div key={m.id} className="flex items-center justify-between text-xs py-1">
+                                    <div className="flex items-center gap-2">
+                                      <div className={`w-1.5 h-1.5 rounded-full ${m.status === "overdue" ? "bg-red-500" : m.status === "upcoming" ? "bg-amber-500" : "bg-emerald-500"}`} />
+                                      <span className="text-muted-foreground">{m.taskName}</span>
+                                    </div>
+                                    {m.nextDueDate && <span className="text-muted-foreground">{new Date(m.nextDueDate).toLocaleDateString()}</span>}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            {detailData.serviceHistory.length > 0 && (
+                              <div>
+                                <p className="text-xs font-semibold text-foreground mb-1.5">Recent Service</p>
+                                {detailData.serviceHistory.slice(0, 3).map((s: any) => (
+                                  <div key={s.id} className="flex items-center justify-between text-xs py-1">
+                                    <span className="text-muted-foreground">{s.serviceType}</span>
+                                    <div className="flex items-center gap-2">
+                                      {s.totalCost && <span className="text-emerald-500">${s.totalCost}</span>}
+                                      <span className="text-muted-foreground">{new Date(s.serviceDate).toLocaleDateString()}</span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            {detailData.reminders.length > 0 && (
+                              <div>
+                                <p className="text-xs font-semibold text-foreground mb-1.5">Reminders</p>
+                                {detailData.reminders.filter((r: any) => !r.isCompleted).map((r: any) => (
+                                  <div key={r.id} className="flex items-center gap-2 text-xs py-1">
+                                    <AlertTriangle className="w-3 h-3 text-amber-500" />
+                                    <span className="text-muted-foreground">{r.serviceType}</span>
+                                    {r.dueDate && <span className="text-muted-foreground ml-auto">{new Date(r.dueDate).toLocaleDateString()}</span>}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </Card>
             </motion.div>
           ))}

@@ -21,6 +21,7 @@ export const users = pgTable("users", {
   speciesIdentified: integer("species_identified").default(0),
   conservationDonated: real("conservation_donated").default(0),
   equipmentTracked: integer("equipment_tracked").default(0),
+  trustLayerId: text("trust_layer_id").unique(),
   memberSince: timestamp("member_since").defaultNow(),
 });
 

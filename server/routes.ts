@@ -6,6 +6,7 @@ import { registerChatAuthRoutes } from "./trustlayer-sso";
 import { setupChatWebSocket } from "./chat-ws";
 import { seedChatData } from "./seedChat";
 import { insertTripPlanSchema, insertMarketplaceListingSchema, insertActivityLogSchema, insertArboristClientSchema, insertArboristJobSchema, insertArboristInvoiceSchema, insertCampgroundBookingSchema, insertCatalogLocationSchema, insertLocationSubmissionSchema, insertReviewSchema } from "@shared/schema";
+import { registerGarageBotRoutes } from "./garagebot";
 import Stripe from "stripe";
 import { openai } from "./replit_integrations/image/client";
 
@@ -15,6 +16,7 @@ export async function registerRoutes(
 ): Promise<Server> {
   registerAuthRoutes(app);
   registerChatAuthRoutes(app);
+  registerGarageBotRoutes(app);
   setupChatWebSocket(httpServer);
   seedChatData().catch(console.error);
 

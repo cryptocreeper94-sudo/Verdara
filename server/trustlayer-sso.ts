@@ -14,6 +14,10 @@ function getJwtSecret(): string {
   return secret;
 }
 
+export function generateTrustLayerIdPublic(): string {
+  return generateTrustLayerId();
+}
+
 function generateTrustLayerId(): string {
   const timestamp = Date.now().toString(36);
   const random = Array.from({ length: 8 }, () =>

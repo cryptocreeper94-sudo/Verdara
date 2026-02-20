@@ -30,6 +30,8 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, data: Partial<InsertUser>): Promise<User | undefined>;
 
+  updateUserTrustLayerId(id: number, trustLayerId: string): Promise<void>;
+
   createSession(userId: number, token: string, expiresAt: Date): Promise<Session>;
   getSessionByToken(token: string): Promise<Session | undefined>;
   deleteSession(token: string): Promise<void>;
@@ -146,6 +148,10 @@ export class DatabaseStorage implements IStorage {
   async updateUser(id: number, data: Partial<InsertUser>): Promise<User | undefined> {
     const [user] = await db.update(users).set(data).where(eq(users.id, id)).returning();
     return user;
+  }
+
+  async updateUserTrustLayerId(id: number, trustLayerId: string): Promise<void> {
+    await db.update(users).set({ trustLayerId }).where(eq(users.id, id));
   }
 
   async createSession(userId: number, token: string, expiresAt: Date): Promise<Session> {
