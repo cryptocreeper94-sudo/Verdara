@@ -1,11 +1,12 @@
 import { motion } from "framer-motion";
-import { Search, ScanSearch, ChevronRight, Star, TrendingUp, Users, TreePine, Leaf } from "lucide-react";
+import { Search, ScanSearch, ChevronRight, Star, TrendingUp, Users, TreePine, Leaf, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { WeatherWidget } from "@/components/weather-widget";
-import { activityCategories, featuredTrails } from "@/lib/mock-data";
+import { activityCategories } from "@/lib/mock-data";
 import { useRef, useEffect, useState } from "react";
 import { Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 
 function AnimatedCounter({ target, label, suffix = "" }: { target: number; label: string; suffix?: string }) {
   const [count, setCount] = useState(0);
@@ -53,6 +54,8 @@ const difficultyColors: Record<string, string> = {
 
 export default function Home() {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { data, isLoading } = useQuery({ queryKey: ['/api/trails/featured'] });
+  const trails = (data || []) as any[];
 
   return (
     <div className="min-h-screen">
@@ -176,7 +179,12 @@ export default function Home() {
           className="flex gap-5 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
-          {featuredTrails.map((trail, i) => (
+          {isLoading ? (
+            <div className="flex items-center justify-center min-w-[280px]">
+              <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+            </div>
+          ) : null}
+          {trails.map((trail: any, i: number) => (
             <motion.div
               key={trail.id}
               initial={{ opacity: 0, x: 20 }}

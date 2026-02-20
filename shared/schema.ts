@@ -8,17 +8,28 @@ import { z } from "zod";
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  replitId: text("replit_id").unique(),
-  username: text("username").notNull().unique(),
-  displayName: text("display_name"),
-  email: text("email"),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
   avatarUrl: text("avatar_url"),
+  emailVerified: boolean("email_verified").default(false),
+  verificationToken: text("verification_token"),
+  verificationExpires: timestamp("verification_expires"),
   tier: text("tier").default("Free Explorer"),
   trailsCompleted: integer("trails_completed").default(0),
   speciesIdentified: integer("species_identified").default(0),
   conservationDonated: real("conservation_donated").default(0),
   equipmentTracked: integer("equipment_tracked").default(0),
   memberSince: timestamp("member_since").defaultNow(),
+});
+
+export const sessions = pgTable("sessions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const trails = pgTable("trails", {
@@ -104,6 +115,23 @@ export const activityLog = pgTable("activity_log", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const passwordSchema = z.string()
+  .min(8, "Password must be at least 8 characters")
+  .regex(/[A-Z]/, "Password must contain at least 1 capital letter")
+  .regex(/[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/~`]/, "Password must contain at least 1 special character");
+
+export const registerSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  email: z.string().email("Valid email is required"),
+  password: passwordSchema,
+});
+
+export const loginSchema = z.object({
+  email: z.string().email("Valid email is required"),
+  password: z.string().min(1, "Password is required"),
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, memberSince: true });
 export const insertTrailSchema = createInsertSchema(trails).omit({ id: true });
 export const insertIdentificationSchema = createInsertSchema(identifications).omit({ id: true, createdAt: true });
@@ -126,3 +154,4 @@ export type InsertCampground = z.infer<typeof insertCampgroundSchema>;
 export type Campground = typeof campgrounds.$inferSelect;
 export type InsertActivityLog = z.infer<typeof insertActivityLogSchema>;
 export type ActivityLog = typeof activityLog.$inferSelect;
+export type Session = typeof sessions.$inferSelect;

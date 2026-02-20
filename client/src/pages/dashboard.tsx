@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { userProfile, userActivities, featuredTrails } from "@/lib/mock-data";
+import { userActivities } from "@/lib/mock-data";
+import { useAuth } from "@/hooks/use-auth";
+import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from "recharts";
 
@@ -41,6 +43,12 @@ const activityColors: Record<string, string> = {
 };
 
 export default function Dashboard() {
+  const { user } = useAuth();
+  const { data: trailsData } = useQuery({ queryKey: ['/api/trails/featured'] });
+  const featuredTrails = (trailsData || []) as any[];
+  const fullName = user ? `${user.firstName} ${user.lastName}` : "Guest";
+  const initials = user ? `${user.firstName[0]}${user.lastName[0]}` : "G";
+
   return (
     <div className="max-w-6xl mx-auto px-5 md:px-10 py-8 md:py-12">
       <motion.div
@@ -52,16 +60,14 @@ export default function Dashboard() {
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-5">
             <Avatar className="w-16 h-16 border-2 border-emerald-500/30">
-              <AvatarImage src={userProfile.avatar} alt={userProfile.name} />
-              <AvatarFallback className="bg-emerald-500/20 text-emerald-500 text-lg font-bold">AT</AvatarFallback>
+              <AvatarFallback className="bg-emerald-500/20 text-emerald-500 text-lg font-bold">{initials}</AvatarFallback>
             </Avatar>
             <div>
-              <h1 className="text-xl font-bold text-foreground">{userProfile.name}</h1>
+              <h1 className="text-xl font-bold text-foreground" data-testid="text-user-name">{fullName}</h1>
               <div className="flex items-center gap-2.5 mt-1.5">
-                <Badge className="bg-emerald-500/15 text-emerald-500">{userProfile.tier}</Badge>
-                <span className="text-xs text-muted-foreground">{userProfile.tierPrice}</span>
+                <Badge className="bg-emerald-500/15 text-emerald-500">{user?.tier || "Explorer"}</Badge>
               </div>
-              <p className="text-xs text-muted-foreground mt-1.5">Member since {userProfile.memberSince}</p>
+              <p className="text-xs text-muted-foreground mt-1.5">{user?.email}</p>
             </div>
           </div>
           <Button variant="outline" size="icon" data-testid="button-settings">
@@ -72,10 +78,10 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 mb-8">
         {[
-          { label: "Trails Completed", value: userProfile.trailsCompleted, icon: TreePine, color: "text-emerald-500", bg: "bg-emerald-500/10" },
-          { label: "Species Identified", value: userProfile.speciesIdentified, icon: ScanSearch, color: "text-amber-500", bg: "bg-amber-500/10" },
-          { label: "Conservation", value: `$${userProfile.conservationDonated}`, icon: DollarSign, color: "text-green-500", bg: "bg-green-500/10" },
-          { label: "Equipment Tracked", value: userProfile.equipmentTracked, icon: Wrench, color: "text-slate-500", bg: "bg-slate-500/10" },
+          { label: "Trails Completed", value: user?.trailsCompleted || 0, icon: TreePine, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+          { label: "Species Identified", value: user?.speciesIdentified || 0, icon: ScanSearch, color: "text-amber-500", bg: "bg-amber-500/10" },
+          { label: "Conservation", value: `$${user?.conservationDonated || 0}`, icon: DollarSign, color: "text-green-500", bg: "bg-green-500/10" },
+          { label: "Equipment Tracked", value: user?.equipmentTracked || 0, icon: Wrench, color: "text-slate-500", bg: "bg-slate-500/10" },
         ].map((stat, i) => (
           <motion.div
             key={stat.label}

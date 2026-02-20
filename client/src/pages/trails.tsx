@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Search, SlidersHorizontal, Star, Heart, MapPin, ArrowUpDown, X, ChevronDown, Navigation } from "lucide-react";
+import { Search, SlidersHorizontal, Star, Heart, MapPin, ArrowUpDown, X, ChevronDown, Navigation, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { allTrails } from "@/lib/mock-data";
+import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { Link } from "wouter";
 
@@ -21,6 +21,8 @@ const difficultyColors: Record<string, string> = {
 };
 
 export default function Trails() {
+  const { data, isLoading } = useQuery({ queryKey: ['/api/trails'] });
+  const allTrails = (data || []) as any[];
   const [showFilters, setShowFilters] = useState(false);
   const [selectedDifficulties, setSelectedDifficulties] = useState<string[]>([]);
   const [distanceRange, setDistanceRange] = useState([20]);
@@ -59,6 +61,14 @@ export default function Trails() {
       }
       return b.reviews - a.reviews;
     });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">

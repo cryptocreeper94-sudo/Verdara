@@ -6,18 +6,24 @@ import {
   type TripPlan, type InsertTripPlan,
   type Campground, type InsertCampground,
   type ActivityLog, type InsertActivityLog,
+  type Session,
   users, trails, identifications, marketplaceListings,
-  tripPlans, campgrounds, activityLog
+  tripPlans, campgrounds, activityLog, sessions
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, ilike, or } from "drizzle-orm";
+import { eq, desc, ilike, or, lt } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
-  getUserByReplitId(replitId: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByVerificationToken(token: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, data: Partial<InsertUser>): Promise<User | undefined>;
+
+  createSession(userId: number, token: string, expiresAt: Date): Promise<Session>;
+  getSessionByToken(token: string): Promise<Session | undefined>;
+  deleteSession(token: string): Promise<void>;
+  deleteExpiredSessions(): Promise<void>;
 
   getTrails(): Promise<Trail[]>;
   getTrail(id: number): Promise<Trail | undefined>;
@@ -52,24 +58,45 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async getUserByReplitId(replitId: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.replitId, replitId));
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email.toLowerCase()));
     return user;
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
+  async getUserByVerificationToken(token: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.verificationToken, token));
     return user;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db.insert(users).values(insertUser).returning();
+    const [user] = await db.insert(users).values({
+      ...insertUser,
+      email: insertUser.email.toLowerCase(),
+    }).returning();
     return user;
   }
 
   async updateUser(id: number, data: Partial<InsertUser>): Promise<User | undefined> {
     const [user] = await db.update(users).set(data).where(eq(users.id, id)).returning();
     return user;
+  }
+
+  async createSession(userId: number, token: string, expiresAt: Date): Promise<Session> {
+    const [session] = await db.insert(sessions).values({ userId, token, expiresAt }).returning();
+    return session;
+  }
+
+  async getSessionByToken(token: string): Promise<Session | undefined> {
+    const [session] = await db.select().from(sessions).where(eq(sessions.token, token));
+    return session;
+  }
+
+  async deleteSession(token: string): Promise<void> {
+    await db.delete(sessions).where(eq(sessions.token, token));
+  }
+
+  async deleteExpiredSessions(): Promise<void> {
+    await db.delete(sessions).where(lt(sessions.expiresAt, new Date()));
   }
 
   async getTrails(): Promise<Trail[]> {
@@ -147,12 +174,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createTripPlan(plan: InsertTripPlan): Promise<TripPlan> {
-    const [created] = await db.insert(tripPlans).values(plan).returning();
+    const [created] = await db.insert(tripPlans).values(plan as any).returning();
     return created;
   }
 
   async updateTripPlan(id: number, data: Partial<InsertTripPlan>): Promise<TripPlan | undefined> {
-    const [updated] = await db.update(tripPlans).set(data).where(eq(tripPlans.id, id)).returning();
+    const [updated] = await db.update(tripPlans).set(data as any).where(eq(tripPlans.id, id)).returning();
     return updated;
   }
 

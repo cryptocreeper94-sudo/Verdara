@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { tripWaypoints, gearCategories, campgrounds, weeklyForecast } from "@/lib/mock-data";
+import { tripWaypoints, gearCategories, weeklyForecast } from "@/lib/mock-data";
+import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { Link } from "wouter";
 
@@ -16,6 +17,8 @@ const weatherIcons: Record<string, typeof Sun> = {
 };
 
 export default function Planner() {
+  const { data: campgroundsData } = useQuery({ queryKey: ['/api/campgrounds'] });
+  const campgrounds = (campgroundsData || []) as any[];
   return (
     <div className="max-w-6xl mx-auto px-5 md:px-10 py-8 md:py-12">
       <div className="lg:hidden flex items-center gap-2 mb-6">

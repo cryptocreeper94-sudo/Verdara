@@ -4,18 +4,34 @@
 Verdara is a comprehensive AI-powered outdoor recreation super-app by DarkWave Studios. It combines nature identification, outdoor activities suite, arborist business management, wood economy marketplace, trip planning, and more. Full 138-feature roadmap documented in attached_assets/.
 
 ## Current State
-Phase 1: Visual Mockup - 9 navigable screens with full design, mock data, and stock images. Transitioning to Phase 2.
+Phase 2: Core Infrastructure - PostgreSQL database active, custom email/password auth with Resend verification, API routes serving real data, frontend connected via React Query. Auth page gates unauthenticated users.
 
 ## Tech Stack
-- Frontend: React 18 + TypeScript, Vite, Tailwind CSS, Shadcn UI, Framer Motion, Wouter routing
-- Backend: Express.js + TypeScript (minimal for mockup phase)
-- Database: PostgreSQL with Drizzle ORM (not yet active)
+- Frontend: React 18 + TypeScript, Vite, Tailwind CSS, Shadcn UI, Framer Motion, Wouter routing, TanStack React Query
+- Backend: Express.js + TypeScript, bcrypt password hashing, cookie-based sessions
+- Database: PostgreSQL with Drizzle ORM (active)
+- Email: Resend for transactional emails (verification)
+- Auth: Custom email/password (NOT Replit Auth), session tokens, httpOnly secure cookies
 
 ## Project Structure
-- `client/src/pages/` - 9 screens: home, explore, identify, trails, track, planner, marketplace, dashboard, admin
+- `client/src/pages/` - 9 screens + auth page: home, explore, identify, trails, track, planner, marketplace, dashboard, admin, auth
 - `client/src/components/` - Custom components: glass-card, bento-grid, trust-badge, weather-widget, theme-provider, app-layout
-- `client/src/lib/mock-data.ts` - All mock data for the visual prototype
+- `client/src/hooks/use-auth.ts` - Auth context hook with login/register/logout mutations
+- `client/src/lib/mock-data.ts` - Remaining mock data (activity categories, gear lists, weather forecasts)
 - `client/public/images/` - Stock photography for all cards and sections (cat-*.jpg for category images)
+- `server/auth.ts` - Auth routes: register, login, logout, verify email, resend verification
+- `server/email.ts` - Resend email integration for verification emails
+- `server/storage.ts` - PostgreSQL storage layer with all CRUD operations
+- `server/seed.ts` - Database seeding script with trails, campgrounds, marketplace listings
+- `shared/schema.ts` - Drizzle ORM schema: users, sessions, trails, campgrounds, marketplaceListings, tripPlans, identifications, activityLog
+
+## Authentication
+- Custom email/password auth (NOT Replit Auth)
+- Password requirements: 8+ chars, 1 capital letter, 1 special character (ecosystem-wide standard)
+- Registration captures: first name, last name, email, password
+- Resend email verification with 24-hour token expiry
+- Session tokens stored in httpOnly secure cookies (sameSite: strict)
+- SSO connection to Trust Layer ecosystem planned for future
 
 ## Design System
 - Color palette: Emerald (#10b981), Slate (#64748b), Amber (#f59e0b), Forest Dark (#065f46)

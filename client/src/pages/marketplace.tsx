@@ -1,23 +1,25 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Search, SlidersHorizontal, MessageSquare, HandCoins, ShieldCheck, X, ArrowUpDown } from "lucide-react";
+import { Search, SlidersHorizontal, MessageSquare, HandCoins, ShieldCheck, X, ArrowUpDown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TrustBadge, TrustScore } from "@/components/trust-badge";
-import { woodListings } from "@/lib/mock-data";
+import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 
 export default function Marketplace() {
+  const { data, isLoading } = useQuery({ queryKey: ['/api/marketplace'] });
+  const woodListings = (data || []) as any[];
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("relevance");
   const [speciesFilter, setSpeciesFilter] = useState("all");
 
-  const species = [...new Set(woodListings.map(l => l.species))];
+  const species = Array.from(new Set(woodListings.map((l: any) => l.species)));
 
   const filtered = woodListings
     .filter(l => {
-      if (searchQuery && !l.species.toLowerCase().includes(searchQuery.toLowerCase()) && !l.seller.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+      if (searchQuery && !l.species.toLowerCase().includes(searchQuery.toLowerCase()) && !l.sellerName?.toLowerCase().includes(searchQuery.toLowerCase())) return false;
       if (speciesFilter !== "all" && l.species !== speciesFilter) return false;
       return true;
     })
@@ -27,6 +29,14 @@ export default function Marketplace() {
       if (sortBy === "trust") return b.trustScore - a.trustScore;
       return 0;
     });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-5 md:px-10 py-8 md:py-12">
@@ -128,7 +138,7 @@ export default function Marketplace() {
                   </div>
                   <div className="flex justify-between gap-3">
                     <span>Seller</span>
-                    <span className="text-foreground font-medium">{listing.seller}</span>
+                    <span className="text-foreground font-medium">{listing.sellerName}</span>
                   </div>
                   <div className="flex justify-between gap-3">
                     <span>Location</span>
