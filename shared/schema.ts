@@ -180,27 +180,6 @@ export const arboristInvoices = pgTable("arborist_invoices", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const equipment = pgTable("equipment", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
-  name: text("name").notNull(),
-  type: text("type").notNull(),
-  brand: text("brand"),
-  model: text("model"),
-  year: integer("year"),
-  serialNumber: text("serial_number"),
-  purchaseDate: text("purchase_date"),
-  purchasePrice: real("purchase_price"),
-  hours: real("hours").default(0),
-  status: text("status").default("operational"),
-  lastServiceDate: text("last_service_date"),
-  nextServiceDue: text("next_service_due"),
-  fuelType: text("fuel_type"),
-  notes: text("notes"),
-  image: text("image"),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
 export const campgroundBookings = pgTable("campground_bookings", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
@@ -243,7 +222,6 @@ export const insertActivityLocationSchema = createInsertSchema(activityLocations
 export const insertArboristClientSchema = createInsertSchema(arboristClients).omit({ id: true, createdAt: true });
 export const insertArboristJobSchema = createInsertSchema(arboristJobs).omit({ id: true, createdAt: true });
 export const insertArboristInvoiceSchema = createInsertSchema(arboristInvoices).omit({ id: true, createdAt: true });
-export const insertEquipmentSchema = createInsertSchema(equipment).omit({ id: true, createdAt: true });
 export const insertCampgroundBookingSchema = createInsertSchema(campgroundBookings).omit({ id: true, createdAt: true });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -269,7 +247,5 @@ export type InsertArboristJob = z.infer<typeof insertArboristJobSchema>;
 export type ArboristJob = typeof arboristJobs.$inferSelect;
 export type InsertArboristInvoice = z.infer<typeof insertArboristInvoiceSchema>;
 export type ArboristInvoice = typeof arboristInvoices.$inferSelect;
-export type InsertEquipment = z.infer<typeof insertEquipmentSchema>;
-export type Equipment = typeof equipment.$inferSelect;
 export type InsertCampgroundBooking = z.infer<typeof insertCampgroundBookingSchema>;
 export type CampgroundBooking = typeof campgroundBookings.$inferSelect;

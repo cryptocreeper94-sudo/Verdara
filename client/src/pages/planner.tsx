@@ -1,13 +1,16 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CalendarDays, GripVertical, Clock, MapPin, Plus, Share2, Sun, Cloud, CloudRain, CloudSun, Star, ArrowLeft, Home, Trash2, Loader2, X } from "lucide-react";
+import { CalendarDays, GripVertical, Clock, MapPin, Plus, Share2, Sun, Cloud, CloudRain, CloudSun, Star, ArrowLeft, Home, Trash2, Loader2, X, Users, Tent, Ban } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { gearCategories, weeklyForecast } from "@/lib/mock-data";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient as qc } from "@/lib/queryClient";
 import { cn } from "@/lib/utils";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
@@ -46,11 +49,97 @@ export default function Planner() {
   const [wpTime, setWpTime] = useState("");
   const [wpDuration, setWpDuration] = useState("");
 
+  const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
+  const [bookingCampground, setBookingCampground] = useState<any | null>(null);
+  const [bookingCheckIn, setBookingCheckIn] = useState("");
+  const [bookingCheckOut, setBookingCheckOut] = useState("");
+  const [bookingGuests, setBookingGuests] = useState(1);
+  const [bookingSiteType, setBookingSiteType] = useState("tent");
+  const [bookingNotes, setBookingNotes] = useState("");
+
   const { data: tripsData, isLoading: tripsLoading } = useQuery({ queryKey: ['/api/user/trips'] });
   const trips = (tripsData || []) as TripPlan[];
 
   const { data: campgroundsData } = useQuery({ queryKey: ['/api/campgrounds'] });
   const campgrounds = (campgroundsData || []) as any[];
+
+  const { data: bookingsData, isLoading: bookingsLoading } = useQuery({ queryKey: ['/api/bookings'] });
+  const bookings = (bookingsData || []) as any[];
+
+  const bookingNights = useMemo(() => {
+    if (!bookingCheckIn || !bookingCheckOut) return 0;
+    const start = new Date(bookingCheckIn);
+    const end = new Date(bookingCheckOut);
+    const diff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+    return diff > 0 ? diff : 0;
+  }, [bookingCheckIn, bookingCheckOut]);
+
+  const bookingTotalPrice = useMemo(() => {
+    if (!bookingCampground || bookingNights <= 0) return 0;
+    return bookingCampground.price * bookingNights;
+  }, [bookingCampground, bookingNights]);
+
+  const openBookingDialog = (cg: any) => {
+    setBookingCampground(cg);
+    setBookingCheckIn("");
+    setBookingCheckOut("");
+    setBookingGuests(1);
+    setBookingSiteType("tent");
+    setBookingNotes("");
+    setBookingDialogOpen(true);
+  };
+
+  const createBooking = useMutation({
+    mutationFn: async (data: any) => {
+      const res = await apiRequest("POST", "/api/bookings", data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/bookings'] });
+      setBookingDialogOpen(false);
+      toast({ title: "Booking confirmed", description: "Your campground reservation has been saved." });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to create booking.", variant: "destructive" });
+    },
+  });
+
+  const cancelBooking = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("PATCH", `/api/bookings/${id}`, { status: "cancelled" });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/bookings'] });
+      toast({ title: "Booking cancelled", description: "Your reservation has been cancelled." });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to cancel booking.", variant: "destructive" });
+    },
+  });
+
+  const handleConfirmBooking = () => {
+    if (!bookingCampground || !bookingCheckIn || !bookingCheckOut || bookingNights <= 0) return;
+    createBooking.mutate({
+      userId: user?.id,
+      campgroundId: bookingCampground.id,
+      checkIn: bookingCheckIn,
+      checkOut: bookingCheckOut,
+      guests: bookingGuests,
+      siteType: bookingSiteType,
+      totalPrice: bookingTotalPrice,
+      notes: bookingNotes || null,
+    });
+  };
+
+  const statusBadgeClass = (status: string) => {
+    switch (status) {
+      case "confirmed": return "bg-emerald-500/15 text-emerald-600 border-emerald-500/30";
+      case "cancelled": return "bg-red-500/15 text-red-600 border-red-500/30";
+      case "completed": return "bg-slate-500/15 text-slate-600 border-slate-500/30";
+      default: return "";
+    }
+  };
 
   const createTrip = useMutation({
     mutationFn: async (data: any) => {
@@ -490,8 +579,8 @@ export default function Planner() {
                               <Badge variant="outline" className="text-[10px] px-1.5 py-0">+{cg.amenities.length - 3}</Badge>
                             )}
                           </div>
-                          <Button className="w-full bg-emerald-500 text-white text-xs" data-testid={`button-reserve-${cg.id}`}>
-                            Reserve Site
+                          <Button className="w-full bg-emerald-500 text-white text-xs" onClick={() => openBookingDialog(cg)} data-testid={`button-reserve-${cg.id}`}>
+                            Book
                           </Button>
                         </div>
                       </div>
@@ -502,7 +591,174 @@ export default function Planner() {
             </div>
           </motion.div>
         )}
+        {user && (
+          <motion.div
+            key="my-bookings"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-10"
+            data-testid="my-bookings-section"
+          >
+            <h2 className="text-lg font-semibold text-foreground mb-5 flex items-center gap-2">
+              <Tent className="w-5 h-5 text-emerald-500" /> My Bookings
+            </h2>
+            {bookingsLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-6 h-6 animate-spin text-emerald-500" />
+              </div>
+            ) : bookings.length === 0 ? (
+              <div className="text-center py-12">
+                <Tent className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground">No bookings yet. Reserve a campground to get started.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {bookings.map((b: any, i: number) => {
+                  const cg = campgrounds.find((c: any) => c.id === b.campgroundId);
+                  return (
+                    <motion.div
+                      key={b.id}
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                    >
+                      <Card className="overflow-visible" data-testid={`card-booking-${b.id}`}>
+                        <CardContent className="p-5">
+                          <div className="flex items-start justify-between gap-3 mb-3">
+                            <h4 className="text-sm font-semibold text-foreground">{cg?.name || `Campground #${b.campgroundId}`}</h4>
+                            <Badge variant="outline" className={cn("text-[10px] capitalize", statusBadgeClass(b.status))} data-testid={`badge-status-${b.id}`}>
+                              {b.status}
+                            </Badge>
+                          </div>
+                          <div className="space-y-1.5 text-xs text-muted-foreground mb-3">
+                            <div className="flex items-center gap-1.5">
+                              <CalendarDays className="w-3 h-3" />
+                              <span>{b.checkIn} to {b.checkOut}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <Users className="w-3 h-3" />
+                              <span>{b.guests} guest{b.guests > 1 ? "s" : ""} &middot; {b.siteType}</span>
+                            </div>
+                            {b.totalPrice != null && (
+                              <div className="text-sm font-bold text-emerald-500">${Number(b.totalPrice).toFixed(2)}</div>
+                            )}
+                          </div>
+                          {b.status === "confirmed" && (
+                            <Button
+                              variant="outline"
+                              className="w-full text-xs text-red-500 border-red-500/30 gap-1.5"
+                              onClick={() => cancelBooking.mutate(b.id)}
+                              disabled={cancelBooking.isPending}
+                              data-testid={`button-cancel-booking-${b.id}`}
+                            >
+                              {cancelBooking.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Ban className="w-3 h-3" />}
+                              Cancel Booking
+                            </Button>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
+          </motion.div>
+        )}
       </AnimatePresence>
+
+      <Dialog open={bookingDialogOpen} onOpenChange={setBookingDialogOpen}>
+        <DialogContent className="sm:max-w-md" data-testid="dialog-booking">
+          <DialogHeader>
+            <DialogTitle className="text-foreground">Book Campground</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              {bookingCampground?.name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1.5 block">Check-in Date</label>
+              <input
+                type="date"
+                value={bookingCheckIn}
+                onChange={e => setBookingCheckIn(e.target.value)}
+                className="w-full bg-background border border-border rounded-lg px-4 py-2.5 text-sm text-foreground outline-none focus:border-emerald-500"
+                data-testid="input-booking-checkin"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1.5 block">Check-out Date</label>
+              <input
+                type="date"
+                value={bookingCheckOut}
+                onChange={e => setBookingCheckOut(e.target.value)}
+                min={bookingCheckIn || undefined}
+                className="w-full bg-background border border-border rounded-lg px-4 py-2.5 text-sm text-foreground outline-none focus:border-emerald-500"
+                data-testid="input-booking-checkout"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1.5 block">Number of Guests</label>
+              <input
+                type="number"
+                min={1}
+                max={10}
+                value={bookingGuests}
+                onChange={e => setBookingGuests(Math.min(10, Math.max(1, parseInt(e.target.value) || 1)))}
+                className="w-full bg-background border border-border rounded-lg px-4 py-2.5 text-sm text-foreground outline-none focus:border-emerald-500"
+                data-testid="input-booking-guests"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1.5 block">Site Type</label>
+              <Select value={bookingSiteType} onValueChange={setBookingSiteType}>
+                <SelectTrigger data-testid="select-booking-sitetype">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="tent">Tent</SelectItem>
+                  <SelectItem value="rv">RV</SelectItem>
+                  <SelectItem value="cabin">Cabin</SelectItem>
+                  <SelectItem value="group">Group</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1.5 block">Notes (optional)</label>
+              <textarea
+                value={bookingNotes}
+                onChange={e => setBookingNotes(e.target.value)}
+                placeholder="Any special requests..."
+                rows={2}
+                className="w-full bg-background border border-border rounded-lg px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-emerald-500 resize-none"
+                data-testid="input-booking-notes"
+              />
+            </div>
+
+            {bookingNights > 0 && bookingCampground && (
+              <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-4" data-testid="booking-price-summary">
+                <div className="flex items-center justify-between gap-3 text-sm">
+                  <span className="text-muted-foreground">
+                    ${bookingCampground.price}/night &times; {bookingNights} night{bookingNights > 1 ? "s" : ""}
+                  </span>
+                  <span className="text-lg font-bold text-emerald-500" data-testid="text-booking-total">
+                    ${bookingTotalPrice.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <Button
+              className="w-full bg-emerald-500 text-white gap-2"
+              onClick={handleConfirmBooking}
+              disabled={createBooking.isPending || !bookingCheckIn || !bookingCheckOut || bookingNights <= 0}
+              data-testid="button-confirm-booking"
+            >
+              {createBooking.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Tent className="w-4 h-4" />}
+              Confirm Booking
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

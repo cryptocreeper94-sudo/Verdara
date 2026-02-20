@@ -4,7 +4,7 @@
 Verdara is a comprehensive AI-powered outdoor recreation super-app by DarkWave Studios. It combines nature identification, outdoor activities suite, arborist business management, wood economy marketplace, trip planning, and more. Full 138-feature roadmap documented in attached_assets/.
 
 ## Current State
-Phase 6: Full 138-Feature Roadmap Complete - All 18 categories now have dedicated pages with database-backed content. Activity discovery pages (fishing, hunting, climbing, public lands, MTB, camping, e-mobility, winter sports, water sports, charters), arborist business dashboard, survival hub, conservation directory, price compare tool, plus core features (trip planner, marketplace with Stripe, GPS tracker, AI identification).
+Phase 7: Feature Completion - All 18 categories with dedicated pages, Stripe subscription webhook for tier updates, Price Compare with affiliate retailer links, DarkWave Weather with live Open-Meteo API data, campground booking system with reservation UI, PWA offline caching via service worker. Affiliate program research document at attached_assets/affiliate-programs.md. GarageBot is an external product (NOT built into Verdara) - will connect via API later.
 
 ## Tech Stack
 - Frontend: React 18 + TypeScript, Vite, Tailwind CSS, Shadcn UI, Framer Motion, Wouter routing, TanStack React Query

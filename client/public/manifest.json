@@ -1,0 +1,10 @@
+{
+  "name": "Verdara",
+  "short_name": "Verdara",
+  "description": "AI-powered outdoor recreation super-app",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#065f46",
+  "theme_color": "#10b981",
+  "icons": []
+}

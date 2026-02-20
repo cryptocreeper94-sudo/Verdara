@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { type Server } from "http";
 import { storage } from "./storage";
 import { registerAuthRoutes, requireAuth } from "./auth";
-import { insertTripPlanSchema, insertMarketplaceListingSchema, insertActivityLogSchema, insertArboristClientSchema, insertArboristJobSchema, insertArboristInvoiceSchema, insertEquipmentSchema, insertCampgroundBookingSchema } from "@shared/schema";
+import { insertTripPlanSchema, insertMarketplaceListingSchema, insertActivityLogSchema, insertArboristClientSchema, insertArboristJobSchema, insertArboristInvoiceSchema, insertCampgroundBookingSchema } from "@shared/schema";
 import Stripe from "stripe";
 
 export async function registerRoutes(
@@ -477,56 +477,6 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error deleting arborist invoice:", error);
       res.status(500).json({ message: "Failed to delete invoice" });
-    }
-  });
-
-  // Equipment routes (GarageBot)
-  app.get("/api/equipment", requireAuth, async (req, res) => {
-    try {
-      const items = await storage.getEquipment(req.userId!);
-      res.json(items);
-    } catch (error) {
-      console.error("Error fetching equipment:", error);
-      res.status(500).json({ message: "Failed to fetch equipment" });
-    }
-  });
-
-  app.post("/api/equipment", requireAuth, async (req, res) => {
-    try {
-      const parsed = insertEquipmentSchema.safeParse({ ...req.body, userId: req.userId! });
-      if (!parsed.success) return res.status(400).json({ message: "Invalid equipment data", errors: parsed.error.flatten().fieldErrors });
-      const item = await storage.createEquipment(parsed.data);
-      res.status(201).json(item);
-    } catch (error) {
-      console.error("Error creating equipment:", error);
-      res.status(500).json({ message: "Failed to create equipment" });
-    }
-  });
-
-  app.patch("/api/equipment/:id", requireAuth, async (req, res) => {
-    try {
-      const id = parseInt(req.params.id as string);
-      if (isNaN(id)) return res.status(400).json({ message: "Invalid equipment ID" });
-      const existing = await storage.getEquipmentItem(id);
-      if (!existing || existing.userId !== req.userId!) return res.status(404).json({ message: "Equipment not found" });
-      const updated = await storage.updateEquipment(id, req.body);
-      res.json(updated);
-    } catch (error) {
-      console.error("Error updating equipment:", error);
-      res.status(500).json({ message: "Failed to update equipment" });
-    }
-  });
-
-  app.delete("/api/equipment/:id", requireAuth, async (req, res) => {
-    try {
-      const id = parseInt(req.params.id as string);
-      if (isNaN(id)) return res.status(400).json({ message: "Invalid equipment ID" });
-      const deleted = await storage.deleteEquipment(id, req.userId!);
-      if (!deleted) return res.status(404).json({ message: "Equipment not found or unauthorized" });
-      res.json({ message: "Equipment deleted" });
-    } catch (error) {
-      console.error("Error deleting equipment:", error);
-      res.status(500).json({ message: "Failed to delete equipment" });
     }
   });
 
