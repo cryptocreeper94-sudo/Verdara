@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Search, SlidersHorizontal, Star, Heart, MapPin, ArrowUpDown, X, ChevronDown } from "lucide-react";
+import { Search, SlidersHorizontal, Star, Heart, MapPin, ArrowUpDown, X, ChevronDown, Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -8,6 +8,7 @@ import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { allTrails } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
+import { Link } from "wouter";
 
 const difficulties = ["Easy", "Moderate", "Difficult", "Expert"];
 const features = ["Dog-Friendly", "Camping", "Waterfalls", "Lake Views", "Summit", "Wildflowers"];
@@ -201,7 +202,7 @@ export default function Trails() {
                   </div>
                 </div>
                 <div className="p-4">
-                  <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center justify-between gap-3 mb-3">
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       <span>{trail.distance}</span>
                       <span className="text-border">|</span>
@@ -213,6 +214,11 @@ export default function Trails() {
                       <span className="text-xs text-muted-foreground">({trail.reviews.toLocaleString()})</span>
                     </div>
                   </div>
+                  <Link href={`/track/${trail.id}`}>
+                    <Button className="w-full bg-emerald-500 text-white gap-2 text-xs" data-testid={`button-track-${trail.id}`}>
+                      <Navigation className="w-3.5 h-3.5" /> Start GPS Tracking
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </motion.div>

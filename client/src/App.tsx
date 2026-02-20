@@ -11,6 +11,7 @@ import Trails from "@/pages/trails";
 import Planner from "@/pages/planner";
 import Marketplace from "@/pages/marketplace";
 import Dashboard from "@/pages/dashboard";
+import Track from "@/pages/track";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -22,6 +23,7 @@ function Router() {
       <Route path="/planner" component={Planner} />
       <Route path="/marketplace" component={Marketplace} />
       <Route path="/dashboard" component={Dashboard} />
+      <Route path="/track/:id" component={Track} />
       <Route component={NotFound} />
     </Switch>
   );
