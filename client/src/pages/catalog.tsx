@@ -222,7 +222,7 @@ export default function Catalog() {
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
-                data-testid="input-search"
+                data-testid="input-catalog-search"
               />
               {searchQuery && (
                 <button onClick={() => setSearchQuery("")} data-testid="button-clear-search">

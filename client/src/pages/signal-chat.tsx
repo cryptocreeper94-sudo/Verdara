@@ -142,7 +142,7 @@ function AuthScreen({ onAuth }: { onAuth: (token: string, user: ChatUser) => voi
       >
         <div className="mb-6 flex items-center gap-2">
           <Link href="/explore">
-            <Button variant="ghost" size="icon" className="text-white/60 hover:text-white" data-testid="button-back-explore">
+            <Button variant="ghost" size="icon" className="text-white/60" data-testid="button-back-explore">
               <ArrowLeft className="w-5 h-5" />
             </Button>
           </Link>
@@ -190,7 +190,7 @@ function AuthScreen({ onAuth }: { onAuth: (token: string, user: ChatUser) => voi
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Enter username"
                 className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
-                data-testid="input-username"
+                data-testid="input-chat-username"
               />
             </div>
 
@@ -204,7 +204,7 @@ function AuthScreen({ onAuth }: { onAuth: (token: string, user: ChatUser) => voi
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="your@email.com"
                     className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
-                    data-testid="input-email"
+                    data-testid="input-chat-email"
                   />
                 </div>
                 <div>
@@ -214,7 +214,7 @@ function AuthScreen({ onAuth }: { onAuth: (token: string, user: ChatUser) => voi
                     onChange={(e) => setDisplayName(e.target.value)}
                     placeholder="Your display name"
                     className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
-                    data-testid="input-display-name"
+                    data-testid="input-chat-display-name"
                   />
                 </div>
               </>
@@ -229,12 +229,13 @@ function AuthScreen({ onAuth }: { onAuth: (token: string, user: ChatUser) => voi
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder={mode === "register" ? "Min 8 chars, 1 capital, 1 special" : "Enter password"}
                   className="bg-white/5 border-white/10 text-white placeholder:text-white/30 pr-10"
-                  data-testid="input-password"
+                  data-testid="input-chat-password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60"
+                  data-testid="button-toggle-password"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -243,7 +244,7 @@ function AuthScreen({ onAuth }: { onAuth: (token: string, user: ChatUser) => voi
 
             <Button
               type="submit"
-              className="w-full bg-emerald-500 hover:bg-emerald-600 text-white"
+              className="w-full bg-emerald-500 text-white"
               disabled={loading}
               data-testid="button-auth-submit"
             >
@@ -277,7 +278,7 @@ function MessageBubble({ msg, currentUserId, onReply }: { msg: ChatMessage; curr
           <span className="text-xs font-semibold text-white/80">{msg.username}</span>
           {msg.role === "bot" && <Badge variant="outline" className="text-[10px] py-0 px-1 border-emerald-500/30 text-emerald-400">BOT</Badge>}
           <span className="text-[10px] text-white/30">{formatTime(msg.createdAt)}</span>
-          <button onClick={() => onReply(msg)} className="opacity-0 group-hover:opacity-100 text-white/30 hover:text-white/60 transition-opacity">
+          <button onClick={() => onReply(msg)} className="opacity-0 group-hover:opacity-100 text-white/30 hover:text-white/60 transition-opacity" data-testid={`button-reply-${msg.id}`}>
             <Reply className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -472,7 +473,7 @@ export default function SignalChatPage() {
             <div className="p-4 border-b border-white/5">
               <div className="flex items-center gap-2 mb-3">
                 <Link href="/explore">
-                  <Button variant="ghost" size="icon" className="text-white/40 hover:text-white h-7 w-7" data-testid="button-back">
+                  <Button variant="ghost" size="icon" className="text-white/40" data-testid="button-back">
                     <ArrowLeft className="w-4 h-4" />
                   </Button>
                 </Link>
@@ -600,7 +601,7 @@ export default function SignalChatPage() {
               <span className="text-xs text-emerald-400 font-semibold">{replyTo.username}</span>
               <p className="text-xs text-white/40 truncate">{replyTo.content}</p>
             </div>
-            <button onClick={() => setReplyTo(null)} className="text-white/30 hover:text-white">
+            <button onClick={() => setReplyTo(null)} className="text-white/30 hover:text-white" data-testid="button-cancel-reply">
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -615,12 +616,12 @@ export default function SignalChatPage() {
               className="flex-1 bg-white/5 border-white/10 text-white placeholder:text-white/30"
               maxLength={2000}
               disabled={!connected}
-              data-testid="input-message"
+              data-testid="input-chat-message"
             />
             <Button
               type="submit"
               size="icon"
-              className="bg-emerald-500 hover:bg-emerald-600 text-white shrink-0"
+              className="bg-emerald-500 text-white shrink-0"
               disabled={!inputValue.trim() || !connected}
               data-testid="button-send"
             >

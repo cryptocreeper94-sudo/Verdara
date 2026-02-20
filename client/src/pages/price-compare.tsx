@@ -213,7 +213,7 @@ export default function PriceCompare() {
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
-              data-testid="input-price-compare-search"
+              data-testid="input-price-search"
             />
             {searchQuery && (
               <button onClick={() => setSearchQuery("")} data-testid="button-clear-search">

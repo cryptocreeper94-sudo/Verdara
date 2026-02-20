@@ -255,7 +255,7 @@ export default function Marketplace() {
           >
             <div className="flex items-center justify-between gap-3 mb-5">
               <h2 className="text-lg font-semibold text-foreground">Create New Listing</h2>
-              <Button size="icon" variant="ghost" onClick={() => { setShowCreateForm(false); resetForm(); }}>
+              <Button size="icon" variant="ghost" onClick={() => { setShowCreateForm(false); resetForm(); }} data-testid="button-close-create-form">
                 <X className="w-4 h-4" />
               </Button>
             </div>
@@ -338,7 +338,7 @@ export default function Marketplace() {
                 {createListing.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                 List for Sale
               </Button>
-              <Button variant="outline" onClick={() => { setShowCreateForm(false); resetForm(); }}>Cancel</Button>
+              <Button variant="outline" onClick={() => { setShowCreateForm(false); resetForm(); }} data-testid="button-cancel-create-listing">Cancel</Button>
             </div>
           </motion.div>
         )}
@@ -351,7 +351,7 @@ export default function Marketplace() {
               <Package className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-foreground mb-2">No listings yet</h3>
               <p className="text-sm text-muted-foreground mb-6">Start selling your wood products on the marketplace</p>
-              <Button className="bg-emerald-500 text-white gap-2" onClick={() => setShowCreateForm(true)}>
+              <Button className="bg-emerald-500 text-white gap-2" onClick={() => setShowCreateForm(true)} data-testid="button-create-listing-empty">
                 <Plus className="w-4 h-4" /> Create Listing
               </Button>
             </div>
@@ -423,7 +423,7 @@ export default function Marketplace() {
                 data-testid="input-marketplace-search"
               />
               {searchQuery && (
-                <button onClick={() => setSearchQuery("")}>
+                <button onClick={() => setSearchQuery("")} data-testid="button-clear-search">
                   <X className="w-4 h-4 text-muted-foreground" />
                 </button>
               )}

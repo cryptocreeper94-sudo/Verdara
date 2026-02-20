@@ -185,7 +185,7 @@ export default function Vault() {
           <Button
             variant="outline"
             size="sm"
-            className="border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+            className="border-emerald-500/30 text-emerald-400"
             onClick={() => document.getElementById("vault-upload")?.click()}
             disabled={uploadMutation.isPending}
             data-testid="button-vault-upload"
@@ -261,7 +261,7 @@ export default function Vault() {
                 className={cn(
                   "text-xs capitalize",
                   activeCategory === cat
-                    ? "bg-emerald-500 hover:bg-emerald-600 text-white"
+                    ? "bg-emerald-500 text-white"
                     : "border-card-border text-muted-foreground"
                 )}
                 onClick={() => { setActiveCategory(cat); setPage(1); }}
@@ -301,7 +301,7 @@ export default function Vault() {
         <Button
           variant="outline"
           size="sm"
-          className="border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 text-xs"
+          className="border-emerald-500/30 text-emerald-400 text-xs"
           onClick={() => embedEditorMutation.mutate({ editorType: "image" })}
           disabled={embedEditorMutation.isPending}
           data-testid="button-open-image-editor"
@@ -312,7 +312,7 @@ export default function Vault() {
         <Button
           variant="outline"
           size="sm"
-          className="border-purple-500/30 text-purple-400 hover:bg-purple-500/10 text-xs"
+          className="border-purple-500/30 text-purple-400 text-xs"
           onClick={() => embedEditorMutation.mutate({ editorType: "video" })}
           disabled={embedEditorMutation.isPending}
           data-testid="button-open-video-editor"
@@ -323,7 +323,7 @@ export default function Vault() {
         <Button
           variant="outline"
           size="sm"
-          className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10 text-xs"
+          className="border-amber-500/30 text-amber-400 text-xs"
           onClick={() =>
             createProjectMutation.mutate({
               title: "Verdara Trail Highlight Reel",
@@ -390,7 +390,7 @@ export default function Vault() {
                         )}
                         <div className="absolute bottom-0 left-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
                           <div className="flex gap-1">
-                            <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-white/80">
+                            <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-white/80" data-testid={`button-view-media-${item.id}`}>
                               <Eye className="w-3.5 h-3.5" />
                             </Button>
                             <Button
@@ -401,6 +401,7 @@ export default function Vault() {
                                 e.stopPropagation();
                                 embedEditorMutation.mutate({ editorType: item.category, mediaId: item.id });
                               }}
+                              data-testid={`button-edit-media-grid-${item.id}`}
                             >
                               <Pencil className="w-3.5 h-3.5" />
                             </Button>
@@ -510,7 +511,7 @@ export default function Vault() {
             Upload nature photos, trail videos, and species identification images to your secure TrustVault storage.
           </p>
           <Button
-            className="bg-emerald-500 hover:bg-emerald-600 text-white"
+            className="bg-emerald-500 text-white"
             onClick={() => document.getElementById("vault-upload")?.click()}
             data-testid="button-vault-upload-empty"
           >
@@ -587,7 +588,7 @@ export default function Vault() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+                    className="border-emerald-500/30 text-emerald-400"
                     onClick={() => {
                       embedEditorMutation.mutate({ editorType: selectedMedia.category, mediaId: selectedMedia.id });
                       setSelectedMedia(null);

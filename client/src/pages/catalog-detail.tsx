@@ -277,7 +277,6 @@ function ReviewsSection({ locationId }: { locationId: number }) {
                     data-testid="textarea-review-content"
                   />
                   <Button
-                    className="bg-emerald-500 text-white"
                     onClick={handleSubmitReview}
                     disabled={submitReview.isPending || reviewRating === 0 || !reviewTitle.trim() || !reviewContent.trim()}
                     data-testid="button-submit-review"
@@ -342,7 +341,7 @@ export default function CatalogDetail() {
         <h2 className="text-xl font-bold text-foreground">Location not found</h2>
         <p className="text-sm text-muted-foreground">The location you're looking for doesn't exist or has been removed.</p>
         <Link href="/catalog" data-testid="link-back-catalog-404">
-          <Button variant="outline">
+          <Button variant="outline" data-testid="button-back-catalog-404">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Catalog
           </Button>
@@ -661,7 +660,7 @@ export default function CatalogDetail() {
                 <div className="space-y-2.5">
                   {location.bookingUrl && (
                     <a href={location.bookingUrl} target="_blank" rel="noopener noreferrer" className="block">
-                      <Button className="w-full bg-emerald-600 hover:bg-emerald-600 text-white" data-testid="button-book-now">
+                      <Button className="w-full" data-testid="button-book-now">
                         Book Now
                         <ExternalLink className="w-3.5 h-3.5 ml-2" />
                       </Button>

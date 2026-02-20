@@ -200,7 +200,7 @@ function ClientsTab({ clients, isLoading }: { clients: ArboristClient[]; isLoadi
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
-            data-testid="input-search-clients"
+            data-testid="input-arborist-search"
           />
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -245,7 +245,7 @@ function ClientsTab({ clients, isLoading }: { clients: ArboristClient[]; isLoadi
                   Add Client
                 </Button>
                 <DialogClose asChild>
-                  <Button variant="outline">Cancel</Button>
+                  <Button variant="outline" data-testid="button-cancel-client">Cancel</Button>
                 </DialogClose>
               </div>
             </div>
@@ -452,7 +452,7 @@ function JobsTab({ jobs, clients, isLoading }: { jobs: ArboristJob[]; clients: A
                   Add Job
                 </Button>
                 <DialogClose asChild>
-                  <Button variant="outline">Cancel</Button>
+                  <Button variant="outline" data-testid="button-cancel-job">Cancel</Button>
                 </DialogClose>
               </div>
             </div>
@@ -757,7 +757,7 @@ function InvoicesTab({ invoices, clients, isLoading }: { invoices: ArboristInvoi
                   Create Invoice
                 </Button>
                 <DialogClose asChild>
-                  <Button variant="outline">Cancel</Button>
+                  <Button variant="outline" data-testid="button-cancel-invoice">Cancel</Button>
                 </DialogClose>
               </div>
             </div>
@@ -1048,7 +1048,7 @@ function EquipmentTab() {
                   Register
                 </Button>
                 <DialogClose asChild>
-                  <Button variant="outline">Cancel</Button>
+                  <Button variant="outline" data-testid="button-cancel-equipment">Cancel</Button>
                 </DialogClose>
               </div>
             </div>

@@ -327,10 +327,10 @@ export default function Identify() {
                   />
                 )}
                 <div className="absolute top-4 right-4 flex gap-2">
-                  <Button size="icon" variant="ghost" className="bg-black/30 backdrop-blur-md text-white">
+                  <Button size="icon" variant="ghost" className="bg-black/30 backdrop-blur-md text-white" data-testid="button-rotate-image">
                     <RotateCw className="w-4 h-4" />
                   </Button>
-                  <Button size="icon" variant="ghost" className="bg-black/30 backdrop-blur-md text-white">
+                  <Button size="icon" variant="ghost" className="bg-black/30 backdrop-blur-md text-white" data-testid="button-crop-image">
                     <Crop className="w-4 h-4" />
                   </Button>
                 </div>
@@ -464,7 +464,7 @@ export default function Identify() {
                         <Button
                           onClick={() => vaultSaveMutation.mutate()}
                           disabled={vaultSaveMutation.isPending}
-                          className="bg-purple-600 hover:bg-purple-700 text-white gap-2 flex-shrink-0"
+                          className="bg-purple-600 text-white gap-2 flex-shrink-0"
                           data-testid="button-save-trustvault"
                         >
                           {vaultSaveMutation.isPending ? (

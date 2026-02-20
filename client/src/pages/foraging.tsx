@@ -600,7 +600,7 @@ export default function Foraging() {
                                   onClick={(e) => e.stopPropagation()}
                                   data-testid={`link-vedasolus-${plant.name.toLowerCase().replace(/\s+/g, "-")}`}
                                 >
-                                  <Button variant="outline" size="sm" className="border-purple-500/30 text-purple-400">
+                                  <Button variant="outline" size="sm" className="border-purple-500/30 text-purple-400" data-testid={`button-vedasolus-${plant.name.toLowerCase().replace(/\s+/g, "-")}`}>
                                     <Pill className="w-3.5 h-3.5 mr-1.5" />
                                     View on VedaSolus
                                     <ExternalLink className="w-3 h-3 ml-1.5" />

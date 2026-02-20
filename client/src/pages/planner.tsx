@@ -286,7 +286,7 @@ export default function Planner() {
           >
             <div className="flex items-center justify-between gap-3 mb-5">
               <h2 className="text-lg font-semibold text-foreground">Create New Trip</h2>
-              <Button size="icon" variant="ghost" onClick={() => setShowCreateForm(false)}>
+              <Button size="icon" variant="ghost" onClick={() => setShowCreateForm(false)} data-testid="button-close-create-form">
                 <X className="w-4 h-4" />
               </Button>
             </div>
@@ -310,7 +310,7 @@ export default function Planner() {
                   placeholder="Describe your adventure..."
                   rows={3}
                   className="w-full bg-background border border-border rounded-lg px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-emerald-500 resize-none"
-                  data-testid="input-trip-description"
+                  data-testid="textarea-trip-description"
                 />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -340,7 +340,7 @@ export default function Planner() {
                   {createTrip.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                   Create Trip
                 </Button>
-                <Button variant="outline" onClick={() => setShowCreateForm(false)}>Cancel</Button>
+                <Button variant="outline" onClick={() => setShowCreateForm(false)} data-testid="button-cancel-create-trip">Cancel</Button>
               </div>
             </div>
           </motion.div>
@@ -447,7 +447,7 @@ export default function Planner() {
                         <Button className="bg-emerald-500 text-white text-xs gap-1" onClick={addWaypoint} disabled={!wpName.trim()} data-testid="button-save-waypoint">
                           <Plus className="w-3 h-3" /> Add
                         </Button>
-                        <Button variant="ghost" className="text-xs" onClick={() => setAddingWaypoint(false)}>Cancel</Button>
+                        <Button variant="ghost" className="text-xs" onClick={() => setAddingWaypoint(false)} data-testid="button-cancel-waypoint">Cancel</Button>
                       </div>
                     </div>
                   )}
@@ -730,7 +730,7 @@ export default function Planner() {
                 placeholder="Any special requests..."
                 rows={2}
                 className="w-full bg-background border border-border rounded-lg px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-emerald-500 resize-none"
-                data-testid="input-booking-notes"
+                data-testid="textarea-notes"
               />
             </div>
 

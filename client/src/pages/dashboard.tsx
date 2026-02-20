@@ -208,7 +208,7 @@ export default function Dashboard() {
               value={tlidSearch}
               onChange={(e) => setTlidSearch(e.target.value)}
               className="text-sm"
-              data-testid="input-tlid-search"
+              data-testid="input-dashboard-search"
             />
             <Button variant="outline" size="icon" disabled={tlidSearch.length < 2} data-testid="button-tlid-search">
               <Search className="w-4 h-4" />
@@ -352,7 +352,7 @@ export default function Dashboard() {
           <h3 className="text-sm font-semibold text-foreground mb-5">Saved Collections</h3>
           <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="trails">
-              <AccordionTrigger className="text-sm font-medium">
+              <AccordionTrigger className="text-sm font-medium" data-testid="accordion-favorite-trails">
                 <div className="flex items-center gap-2.5">
                   <Heart className="w-4 h-4 text-red-400" />
                   Favorite Trails
@@ -377,7 +377,7 @@ export default function Dashboard() {
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="listings">
-              <AccordionTrigger className="text-sm font-medium">
+              <AccordionTrigger className="text-sm font-medium" data-testid="accordion-marketplace-listings">
                 <div className="flex items-center gap-2.5">
                   <Store className="w-4 h-4 text-slate-500" />
                   My Marketplace Listings
@@ -406,7 +406,7 @@ export default function Dashboard() {
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="trips">
-              <AccordionTrigger className="text-sm font-medium">
+              <AccordionTrigger className="text-sm font-medium" data-testid="accordion-trip-plans">
                 <div className="flex items-center gap-2.5">
                   <MapPin className="w-4 h-4 text-emerald-500" />
                   Trip Plans

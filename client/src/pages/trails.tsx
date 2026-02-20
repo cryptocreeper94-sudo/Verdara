@@ -127,7 +127,7 @@ export default function Trails() {
               data-testid="input-trail-search"
             />
             {searchQuery && (
-              <button onClick={() => setSearchQuery("")}>
+              <button onClick={() => setSearchQuery("")} data-testid="button-clear-search">
                 <X className="w-4 h-4 text-muted-foreground" />
               </button>
             )}

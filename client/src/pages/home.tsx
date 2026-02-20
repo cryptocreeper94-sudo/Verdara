@@ -97,7 +97,7 @@ export default function Home() {
                 type="text"
                 placeholder="Search trails, species, or activities..."
                 className="flex-1 bg-transparent text-white placeholder:text-white/50 outline-none text-sm"
-                data-testid="input-hero-search"
+                data-testid="input-home-search"
               />
               <Link href="/identify">
                 <Button className="bg-emerald-500 text-white gap-1.5" data-testid="button-ai-identify">
