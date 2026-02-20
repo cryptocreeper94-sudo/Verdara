@@ -39,6 +39,27 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/stats", async (req, res) => {
+    try {
+      const [trails, campgrounds, listings, activities] = await Promise.all([
+        storage.getTrails(),
+        storage.getCampgrounds(),
+        storage.getMarketplaceListings(),
+        storage.getActivityLocations(),
+      ]);
+      res.json({
+        trails: trails.length,
+        campgrounds: campgrounds.length,
+        listings: listings.length,
+        activityLocations: activities.length,
+        totalFeatures: 138,
+      });
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+      res.status(500).json({ message: "Failed to fetch stats" });
+    }
+  });
+
   app.get("/api/trails/search", async (req, res) => {
     try {
       const query = req.query.q as string;

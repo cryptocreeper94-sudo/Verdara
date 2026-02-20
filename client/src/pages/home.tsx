@@ -56,6 +56,8 @@ export default function Home() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { data, isLoading } = useQuery({ queryKey: ['/api/trails/featured'] });
   const trails = (data || []) as any[];
+  const { data: stats } = useQuery({ queryKey: ['/api/stats'] });
+  const appStats = stats as { trails: number; campgrounds: number; listings: number; activityLocations: number; totalFeatures: number } | undefined;
 
   return (
     <div className="min-h-screen">
@@ -112,9 +114,9 @@ export default function Home() {
             transition={{ duration: 0.6, delay: 0.5 }}
             className="flex items-start justify-center gap-6 sm:gap-10 md:gap-16 mt-12"
           >
-            <AnimatedCounter target={12847} label="Trails Mapped" />
-            <AnimatedCounter target={45230} label="Species in DB" />
-            <AnimatedCounter target={186} label="Gear Items Tracked" />
+            <AnimatedCounter target={appStats?.trails ?? 0} label="Trails in Database" />
+            <AnimatedCounter target={appStats?.activityLocations ?? 0} label="Activity Locations" />
+            <AnimatedCounter target={appStats?.totalFeatures ?? 138} label="App Features" />
           </motion.div>
         </div>
       </section>
@@ -249,20 +251,20 @@ export default function Home() {
           <div className="rounded-2xl bg-card border border-card-border p-6 flex flex-col justify-center">
             <div className="flex items-center gap-2.5 mb-4">
               <Leaf className="w-5 h-5 text-emerald-500" />
-              <h3 className="text-sm font-semibold text-foreground">Conservation Impact</h3>
+              <h3 className="text-sm font-semibold text-foreground">Platform Stats</h3>
             </div>
             <div className="space-y-3.5">
               <div className="flex items-center justify-between gap-4">
-                <span className="text-sm text-muted-foreground">Trees planted this month</span>
-                <span className="text-sm font-bold text-emerald-500">2,847</span>
+                <span className="text-sm text-muted-foreground">Trails in database</span>
+                <span className="text-sm font-bold text-emerald-500">{appStats?.trails ?? 0}</span>
               </div>
               <div className="flex items-center justify-between gap-4">
-                <span className="text-sm text-muted-foreground">Community donations</span>
-                <span className="text-sm font-bold text-emerald-500">$48,320</span>
+                <span className="text-sm text-muted-foreground">Campgrounds listed</span>
+                <span className="text-sm font-bold text-emerald-500">{appStats?.campgrounds ?? 0}</span>
               </div>
               <div className="flex items-center justify-between gap-4">
-                <span className="text-sm text-muted-foreground">Acres preserved</span>
-                <span className="text-sm font-bold text-emerald-500">1,205</span>
+                <span className="text-sm text-muted-foreground">Marketplace listings</span>
+                <span className="text-sm font-bold text-emerald-500">{appStats?.listings ?? 0}</span>
               </div>
             </div>
           </div>
