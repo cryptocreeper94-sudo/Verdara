@@ -4,7 +4,8 @@ import {
   TreePine, ScanSearch, Mountain, Tent, Fish, Target, MapPinned,
   Zap, Snowflake, Waves, Bike, Axe, ShoppingBag, Anchor, ShieldAlert,
   Heart, DollarSign, Compass, ChevronRight, Star, Shield, ArrowRight,
-  Leaf, Lock, Navigation, Flame, Eye, Users, Globe, Award
+  Leaf, Lock, Navigation, Flame, Eye, Users, Globe, Award,
+  Shell, Sun, Droplets, Wheat
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -88,6 +89,11 @@ const activityHighlights = [
   { icon: Zap, label: "E-Mobility", image: "/images/cat-emobility.jpg" },
   { icon: Axe, label: "Arborist Pro", image: "/images/cat-arborist.jpg" },
   { icon: Anchor, label: "Charters", image: "/images/cat-charters.jpg" },
+  { icon: Shell, label: "Coastal & Beach", image: "/images/cat-coastal.jpg" },
+  { icon: Sun, label: "Desert & Canyon", image: "/images/cat-desert.jpg" },
+  { icon: Droplets, label: "Wetlands", image: "/images/cat-wetlands.jpg" },
+  { icon: Mountain, label: "Caves", image: "/images/cat-caves.jpg" },
+  { icon: Wheat, label: "Prairie", image: "/images/cat-prairie.jpg" },
   { icon: ShieldAlert, label: "Survival", image: "/images/cat-survival.jpg" },
   { icon: Heart, label: "Conservation", image: "/images/cat-conservation.jpg" },
 ];

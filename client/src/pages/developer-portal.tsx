@@ -42,7 +42,7 @@ const roadmapPhases: RoadmapPhase[] = [
     status: "completed",
     features: [
       "Custom auth with email verification",
-      "18 activity category pages",
+      "23 activity category pages",
       "AI Nature Identification engine",
       "GPS Trail Tracker with live positioning",
       "Trip Planner with gear checklists",
@@ -66,10 +66,11 @@ const roadmapPhases: RoadmapPhase[] = [
     title: "Data & Discovery",
     status: "completed",
     features: [
-      "Nationwide location catalog (125+ locations, 41 states)",
+      "Nationwide location catalog (160+ locations, 41 states)",
       "Proximity search by zip code",
       "Species database (fish, wildlife, game)",
-      "Activity location seeding (56 locations, 10 types)",
+      "Activity location seeding (90+ locations, 15 types)",
+      "Complete geographic coverage (mountains to coastlines to caves)",
     ],
   },
   {
@@ -237,9 +238,9 @@ const topPartners: TopPartner[] = [
 ];
 
 const platformStats = [
-  { label: "Features", value: "138", icon: Layers },
-  { label: "Categories", value: "18", icon: Target },
-  { label: "Locations", value: "125+", icon: Map },
+  { label: "Features", value: "172", icon: Layers },
+  { label: "Categories", value: "23", icon: Target },
+  { label: "Locations", value: "160+", icon: Map },
   { label: "States", value: "41", icon: Globe },
   { label: "Affiliate Partners", value: "62+", icon: Network },
   { label: "Affiliate Networks", value: "7", icon: ShieldCheck },

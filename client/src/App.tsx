@@ -29,6 +29,11 @@ import Emobility from "@/pages/emobility";
 import Winter from "@/pages/winter";
 import Watersports from "@/pages/watersports";
 import Charters from "@/pages/charters";
+import Coastal from "@/pages/coastal";
+import Desert from "@/pages/desert";
+import Wetlands from "@/pages/wetlands";
+import Caves from "@/pages/caves";
+import Prairie from "@/pages/prairie";
 import PriceCompare from "@/pages/price-compare";
 import Catalog from "@/pages/catalog";
 import CatalogDetail from "@/pages/catalog-detail";
@@ -118,6 +123,11 @@ function AppContent() {
         <Route path="/winter" component={Winter} />
         <Route path="/watersports" component={Watersports} />
         <Route path="/charters" component={Charters} />
+        <Route path="/coastal" component={Coastal} />
+        <Route path="/desert" component={Desert} />
+        <Route path="/wetlands" component={Wetlands} />
+        <Route path="/caves" component={Caves} />
+        <Route path="/prairie" component={Prairie} />
 
         <Route path="/identify">
           <AuthGate><Identify /></AuthGate>
