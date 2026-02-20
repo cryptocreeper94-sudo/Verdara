@@ -10,10 +10,13 @@ import {
   type ArboristClient, type InsertArboristClient,
   type ArboristJob, type InsertArboristJob,
   type ArboristInvoice, type InsertArboristInvoice,
+  type Equipment, type InsertEquipment,
+  type CampgroundBooking, type InsertCampgroundBooking,
   type Session,
   users, trails, identifications, marketplaceListings,
   tripPlans, campgrounds, activityLog, sessions,
-  activityLocations, arboristClients, arboristJobs, arboristInvoices
+  activityLocations, arboristClients, arboristJobs, arboristInvoices,
+  equipment, campgroundBookings
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, ilike, or, lt, and, count, sql } from "drizzle-orm";
@@ -86,6 +89,19 @@ export interface IStorage {
   createArboristInvoice(invoice: InsertArboristInvoice): Promise<ArboristInvoice>;
   updateArboristInvoice(id: number, data: Partial<InsertArboristInvoice>): Promise<ArboristInvoice | undefined>;
   deleteArboristInvoice(id: number, userId: number): Promise<boolean>;
+
+  updateUserTier(userId: number, tier: string): Promise<User | undefined>;
+
+  getEquipment(userId: number): Promise<Equipment[]>;
+  getEquipmentItem(id: number): Promise<Equipment | undefined>;
+  createEquipment(data: InsertEquipment): Promise<Equipment>;
+  updateEquipment(id: number, data: Partial<InsertEquipment>): Promise<Equipment | undefined>;
+  deleteEquipment(id: number, userId: number): Promise<boolean>;
+
+  getCampgroundBookings(userId: number): Promise<CampgroundBooking[]>;
+  createCampgroundBooking(data: InsertCampgroundBooking): Promise<CampgroundBooking>;
+  updateCampgroundBooking(id: number, data: Partial<InsertCampgroundBooking>): Promise<CampgroundBooking | undefined>;
+  deleteCampgroundBooking(id: number, userId: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -395,6 +411,54 @@ export class DatabaseStorage implements IStorage {
 
   async deleteArboristInvoice(id: number, userId: number): Promise<boolean> {
     const result = await db.delete(arboristInvoices).where(and(eq(arboristInvoices.id, id), eq(arboristInvoices.userId, userId)));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async updateUserTier(userId: number, tier: string): Promise<User | undefined> {
+    const [user] = await db.update(users).set({ tier }).where(eq(users.id, userId)).returning();
+    return user;
+  }
+
+  async getEquipment(userId: number): Promise<Equipment[]> {
+    return db.select().from(equipment).where(eq(equipment.userId, userId)).orderBy(desc(equipment.createdAt));
+  }
+
+  async getEquipmentItem(id: number): Promise<Equipment | undefined> {
+    const [item] = await db.select().from(equipment).where(eq(equipment.id, id));
+    return item;
+  }
+
+  async createEquipment(data: InsertEquipment): Promise<Equipment> {
+    const [created] = await db.insert(equipment).values(data as any).returning();
+    return created;
+  }
+
+  async updateEquipment(id: number, data: Partial<InsertEquipment>): Promise<Equipment | undefined> {
+    const [updated] = await db.update(equipment).set(data as any).where(eq(equipment.id, id)).returning();
+    return updated;
+  }
+
+  async deleteEquipment(id: number, userId: number): Promise<boolean> {
+    const result = await db.delete(equipment).where(and(eq(equipment.id, id), eq(equipment.userId, userId)));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async getCampgroundBookings(userId: number): Promise<CampgroundBooking[]> {
+    return db.select().from(campgroundBookings).where(eq(campgroundBookings.userId, userId)).orderBy(desc(campgroundBookings.createdAt));
+  }
+
+  async createCampgroundBooking(data: InsertCampgroundBooking): Promise<CampgroundBooking> {
+    const [created] = await db.insert(campgroundBookings).values(data as any).returning();
+    return created;
+  }
+
+  async updateCampgroundBooking(id: number, data: Partial<InsertCampgroundBooking>): Promise<CampgroundBooking | undefined> {
+    const [updated] = await db.update(campgroundBookings).set(data as any).where(eq(campgroundBookings.id, id)).returning();
+    return updated;
+  }
+
+  async deleteCampgroundBooking(id: number, userId: number): Promise<boolean> {
+    const result = await db.delete(campgroundBookings).where(and(eq(campgroundBookings.id, id), eq(campgroundBookings.userId, userId)));
     return (result.rowCount ?? 0) > 0;
   }
 }

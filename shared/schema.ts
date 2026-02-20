@@ -180,6 +180,41 @@ export const arboristInvoices = pgTable("arborist_invoices", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const equipment = pgTable("equipment", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  name: text("name").notNull(),
+  type: text("type").notNull(),
+  brand: text("brand"),
+  model: text("model"),
+  year: integer("year"),
+  serialNumber: text("serial_number"),
+  purchaseDate: text("purchase_date"),
+  purchasePrice: real("purchase_price"),
+  hours: real("hours").default(0),
+  status: text("status").default("operational"),
+  lastServiceDate: text("last_service_date"),
+  nextServiceDue: text("next_service_due"),
+  fuelType: text("fuel_type"),
+  notes: text("notes"),
+  image: text("image"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const campgroundBookings = pgTable("campground_bookings", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  campgroundId: integer("campground_id").references(() => campgrounds.id),
+  checkIn: text("check_in").notNull(),
+  checkOut: text("check_out").notNull(),
+  guests: integer("guests").default(1),
+  siteType: text("site_type").default("tent"),
+  status: text("status").default("confirmed"),
+  totalPrice: real("total_price"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const passwordSchema = z.string()
   .min(8, "Password must be at least 8 characters")
   .regex(/[A-Z]/, "Password must contain at least 1 capital letter")
@@ -208,6 +243,8 @@ export const insertActivityLocationSchema = createInsertSchema(activityLocations
 export const insertArboristClientSchema = createInsertSchema(arboristClients).omit({ id: true, createdAt: true });
 export const insertArboristJobSchema = createInsertSchema(arboristJobs).omit({ id: true, createdAt: true });
 export const insertArboristInvoiceSchema = createInsertSchema(arboristInvoices).omit({ id: true, createdAt: true });
+export const insertEquipmentSchema = createInsertSchema(equipment).omit({ id: true, createdAt: true });
+export const insertCampgroundBookingSchema = createInsertSchema(campgroundBookings).omit({ id: true, createdAt: true });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -232,3 +269,7 @@ export type InsertArboristJob = z.infer<typeof insertArboristJobSchema>;
 export type ArboristJob = typeof arboristJobs.$inferSelect;
 export type InsertArboristInvoice = z.infer<typeof insertArboristInvoiceSchema>;
 export type ArboristInvoice = typeof arboristInvoices.$inferSelect;
+export type InsertEquipment = z.infer<typeof insertEquipmentSchema>;
+export type Equipment = typeof equipment.$inferSelect;
+export type InsertCampgroundBooking = z.infer<typeof insertCampgroundBookingSchema>;
+export type CampgroundBooking = typeof campgroundBookings.$inferSelect;

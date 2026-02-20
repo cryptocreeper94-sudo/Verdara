@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { type Server } from "http";
 import { storage } from "./storage";
 import { registerAuthRoutes, requireAuth } from "./auth";
-import { insertTripPlanSchema, insertMarketplaceListingSchema, insertActivityLogSchema, insertArboristClientSchema, insertArboristJobSchema, insertArboristInvoiceSchema } from "@shared/schema";
+import { insertTripPlanSchema, insertMarketplaceListingSchema, insertActivityLogSchema, insertArboristClientSchema, insertArboristJobSchema, insertArboristInvoiceSchema, insertEquipmentSchema, insertCampgroundBookingSchema } from "@shared/schema";
 import Stripe from "stripe";
 
 export async function registerRoutes(
@@ -134,7 +134,7 @@ export async function registerRoutes(
 
   app.delete("/api/marketplace/:id", requireAuth, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseInt(req.params.id as string);
       if (isNaN(id)) return res.status(400).json({ message: "Invalid listing ID" });
       const deleted = await storage.deleteMarketplaceListing(id, req.userId!);
       if (!deleted) return res.status(404).json({ message: "Listing not found or unauthorized" });
@@ -209,7 +209,7 @@ export async function registerRoutes(
 
   app.patch("/api/user/trips/:id", requireAuth, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseInt(req.params.id as string);
       if (isNaN(id)) return res.status(400).json({ message: "Invalid trip ID" });
       const existing = await storage.getTripPlan(id);
       if (!existing || existing.userId !== req.userId!) {
@@ -225,7 +225,7 @@ export async function registerRoutes(
 
   app.delete("/api/user/trips/:id", requireAuth, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseInt(req.params.id as string);
       if (isNaN(id)) return res.status(400).json({ message: "Invalid trip ID" });
       const deleted = await storage.deleteTripPlan(id, req.userId!);
       if (!deleted) return res.status(404).json({ message: "Trip not found or unauthorized" });
@@ -324,7 +324,7 @@ export async function registerRoutes(
 
   app.patch("/api/arborist/clients/:id", requireAuth, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseInt(req.params.id as string);
       if (isNaN(id)) return res.status(400).json({ message: "Invalid client ID" });
       const existing = await storage.getArboristClient(id);
       if (!existing || existing.userId !== req.userId!) return res.status(404).json({ message: "Client not found" });
@@ -339,7 +339,7 @@ export async function registerRoutes(
 
   app.delete("/api/arborist/clients/:id", requireAuth, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseInt(req.params.id as string);
       if (isNaN(id)) return res.status(400).json({ message: "Invalid client ID" });
       const deleted = await storage.deleteArboristClient(id, req.userId!);
       if (!deleted) return res.status(404).json({ message: "Client not found or unauthorized" });
@@ -375,7 +375,7 @@ export async function registerRoutes(
 
   app.patch("/api/arborist/jobs/:id", requireAuth, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseInt(req.params.id as string);
       if (isNaN(id)) return res.status(400).json({ message: "Invalid job ID" });
       const existing = await storage.getArboristJob(id);
       if (!existing || existing.userId !== req.userId!) return res.status(404).json({ message: "Job not found" });
@@ -390,7 +390,7 @@ export async function registerRoutes(
 
   app.delete("/api/arborist/jobs/:id", requireAuth, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseInt(req.params.id as string);
       if (isNaN(id)) return res.status(400).json({ message: "Invalid job ID" });
       const deleted = await storage.deleteArboristJob(id, req.userId!);
       if (!deleted) return res.status(404).json({ message: "Job not found or unauthorized" });
@@ -454,7 +454,7 @@ export async function registerRoutes(
 
   app.patch("/api/arborist/invoices/:id", requireAuth, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseInt(req.params.id as string);
       if (isNaN(id)) return res.status(400).json({ message: "Invalid invoice ID" });
       const existing = await storage.getArboristInvoice(id);
       if (!existing || existing.userId !== req.userId!) return res.status(404).json({ message: "Invoice not found" });
@@ -469,7 +469,7 @@ export async function registerRoutes(
 
   app.delete("/api/arborist/invoices/:id", requireAuth, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseInt(req.params.id as string);
       if (isNaN(id)) return res.status(400).json({ message: "Invalid invoice ID" });
       const deleted = await storage.deleteArboristInvoice(id, req.userId!);
       if (!deleted) return res.status(404).json({ message: "Invoice not found or unauthorized" });
@@ -477,6 +477,107 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error deleting arborist invoice:", error);
       res.status(500).json({ message: "Failed to delete invoice" });
+    }
+  });
+
+  // Equipment routes (GarageBot)
+  app.get("/api/equipment", requireAuth, async (req, res) => {
+    try {
+      const items = await storage.getEquipment(req.userId!);
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching equipment:", error);
+      res.status(500).json({ message: "Failed to fetch equipment" });
+    }
+  });
+
+  app.post("/api/equipment", requireAuth, async (req, res) => {
+    try {
+      const parsed = insertEquipmentSchema.safeParse({ ...req.body, userId: req.userId! });
+      if (!parsed.success) return res.status(400).json({ message: "Invalid equipment data", errors: parsed.error.flatten().fieldErrors });
+      const item = await storage.createEquipment(parsed.data);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error creating equipment:", error);
+      res.status(500).json({ message: "Failed to create equipment" });
+    }
+  });
+
+  app.patch("/api/equipment/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid equipment ID" });
+      const existing = await storage.getEquipmentItem(id);
+      if (!existing || existing.userId !== req.userId!) return res.status(404).json({ message: "Equipment not found" });
+      const updated = await storage.updateEquipment(id, req.body);
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating equipment:", error);
+      res.status(500).json({ message: "Failed to update equipment" });
+    }
+  });
+
+  app.delete("/api/equipment/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid equipment ID" });
+      const deleted = await storage.deleteEquipment(id, req.userId!);
+      if (!deleted) return res.status(404).json({ message: "Equipment not found or unauthorized" });
+      res.json({ message: "Equipment deleted" });
+    } catch (error) {
+      console.error("Error deleting equipment:", error);
+      res.status(500).json({ message: "Failed to delete equipment" });
+    }
+  });
+
+  // Campground Booking routes
+  app.get("/api/bookings", requireAuth, async (req, res) => {
+    try {
+      const bookings = await storage.getCampgroundBookings(req.userId!);
+      res.json(bookings);
+    } catch (error) {
+      console.error("Error fetching bookings:", error);
+      res.status(500).json({ message: "Failed to fetch bookings" });
+    }
+  });
+
+  app.post("/api/bookings", requireAuth, async (req, res) => {
+    try {
+      const parsed = insertCampgroundBookingSchema.safeParse({ ...req.body, userId: req.userId! });
+      if (!parsed.success) return res.status(400).json({ message: "Invalid booking data", errors: parsed.error.flatten().fieldErrors });
+      const booking = await storage.createCampgroundBooking(parsed.data);
+      res.status(201).json(booking);
+    } catch (error) {
+      console.error("Error creating booking:", error);
+      res.status(500).json({ message: "Failed to create booking" });
+    }
+  });
+
+  app.patch("/api/bookings/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid booking ID" });
+      const bookings = await storage.getCampgroundBookings(req.userId!);
+      const existing = bookings.find(b => b.id === id);
+      if (!existing) return res.status(404).json({ message: "Booking not found" });
+      const updated = await storage.updateCampgroundBooking(id, req.body);
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating booking:", error);
+      res.status(500).json({ message: "Failed to update booking" });
+    }
+  });
+
+  app.delete("/api/bookings/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid booking ID" });
+      const deleted = await storage.deleteCampgroundBooking(id, req.userId!);
+      if (!deleted) return res.status(404).json({ message: "Booking not found or unauthorized" });
+      res.json({ message: "Booking deleted" });
+    } catch (error) {
+      console.error("Error deleting booking:", error);
+      res.status(500).json({ message: "Failed to delete booking" });
     }
   });
 
@@ -528,6 +629,90 @@ export async function registerRoutes(
   const stripe = process.env.STRIPE_SECRET_KEY
     ? new Stripe(process.env.STRIPE_SECRET_KEY)
     : null;
+
+  // Stripe webhook endpoint - no auth middleware since Stripe sends directly
+  app.post("/api/webhooks/stripe", async (req, res) => {
+    if (!stripe) {
+      return res.status(503).json({ message: "Stripe is not configured" });
+    }
+
+    const sig = req.headers["stripe-signature"] as string;
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    let event: Stripe.Event;
+
+    try {
+      if (webhookSecret && sig) {
+        event = stripe.webhooks.constructEvent(
+          req.rawBody as Buffer,
+          sig,
+          webhookSecret
+        );
+      } else {
+        // TODO: Configure STRIPE_WEBHOOK_SECRET for production signature verification
+        event = req.body as Stripe.Event;
+      }
+    } catch (err: any) {
+      console.error("Webhook signature verification failed:", err.message);
+      return res.status(400).json({ message: `Webhook Error: ${err.message}` });
+    }
+
+    try {
+      switch (event.type) {
+        case "checkout.session.completed": {
+          const session = event.data.object as Stripe.Checkout.Session;
+          const userId = session.metadata?.userId;
+          const tier = session.metadata?.tier;
+          if (userId && tier) {
+            await storage.updateUserTier(parseInt(userId), tier);
+            console.log(`Updated user ${userId} tier to ${tier}`);
+          }
+          break;
+        }
+        case "customer.subscription.deleted": {
+          const subscription = event.data.object as Stripe.Subscription;
+          const customerIdDel = subscription.customer as string;
+          if (customerIdDel) {
+            const sessions = await stripe.checkout.sessions.list({
+              customer: customerIdDel,
+              limit: 1,
+            });
+            const lastSession = sessions.data[0];
+            const userId = lastSession?.metadata?.userId;
+            if (userId) {
+              await storage.updateUserTier(parseInt(userId), "Free Explorer");
+              console.log(`Reset user ${userId} tier to Free Explorer (subscription deleted)`);
+            }
+          }
+          break;
+        }
+        case "customer.subscription.updated": {
+          const subscription = event.data.object as Stripe.Subscription;
+          const customerIdUpd = subscription.customer as string;
+          if (customerIdUpd) {
+            const sessions = await stripe.checkout.sessions.list({
+              customer: customerIdUpd,
+              limit: 1,
+            });
+            const lastSession = sessions.data[0];
+            const userId = lastSession?.metadata?.userId;
+            const tier = lastSession?.metadata?.tier;
+            if (userId && tier) {
+              await storage.updateUserTier(parseInt(userId), tier);
+              console.log(`Updated user ${userId} tier to ${tier} (subscription updated)`);
+            }
+          }
+          break;
+        }
+        default:
+          console.log(`Unhandled webhook event type: ${event.type}`);
+      }
+
+      res.json({ received: true });
+    } catch (error) {
+      console.error("Error processing webhook event:", error);
+      res.status(500).json({ message: "Webhook processing failed" });
+    }
+  });
 
   app.post("/api/checkout/create-session", requireAuth, async (req, res) => {
     try {
@@ -590,7 +775,7 @@ export async function registerRoutes(
         return res.status(503).json({ message: "Payment processing is not configured" });
       }
 
-      const session = await stripe.checkout.sessions.retrieve(req.params.sessionId);
+      const session = await stripe.checkout.sessions.retrieve(req.params.sessionId as string);
       res.json({
         status: session.payment_status,
         customerEmail: session.customer_details?.email,
