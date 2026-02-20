@@ -119,7 +119,7 @@ export default function Landing({ onGetStarted }: LandingProps) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background" data-testid="page-landing">
+    <div className="min-h-screen bg-slate-950 dark" data-testid="page-landing">
       <nav className="fixed top-0 left-0 right-0 z-50 px-5 md:px-10 py-4 bg-black/20 backdrop-blur-xl border-b border-white/5">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
@@ -225,7 +225,7 @@ export default function Landing({ onGetStarted }: LandingProps) {
         </motion.div>
       </section>
 
-      <section id="features" className="py-20 md:py-28 px-5 md:px-10" data-testid="landing-features">
+      <section id="features" className="py-20 md:py-28 px-5 md:px-10 bg-slate-950" data-testid="landing-features">
         <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -235,10 +235,10 @@ export default function Landing({ onGetStarted }: LandingProps) {
             className="text-center mb-16"
           >
             <Badge className="bg-emerald-500/20 text-emerald-400 mb-4">Core Features</Badge>
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
               Everything You Need Outdoors
             </h2>
-            <p className="text-muted-foreground max-w-lg mx-auto">
+            <p className="text-white/60 max-w-lg mx-auto">
               From AI-powered species identification to blockchain-verified marketplace transactions.
             </p>
           </motion.div>
@@ -267,8 +267,8 @@ export default function Landing({ onGetStarted }: LandingProps) {
                   </div>
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-4">{feature.title}</h3>
-                  <p className="text-muted-foreground leading-relaxed text-base">{feature.desc}</p>
+                  <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">{feature.title}</h3>
+                  <p className="text-white/60 leading-relaxed text-base">{feature.desc}</p>
                 </div>
               </motion.div>
             ))}
@@ -276,7 +276,7 @@ export default function Landing({ onGetStarted }: LandingProps) {
         </div>
       </section>
 
-      <section className="py-20 md:py-28 px-5 md:px-10 bg-card/50" data-testid="landing-activities">
+      <section className="py-20 md:py-28 px-5 md:px-10 bg-slate-900/50" data-testid="landing-activities">
         <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -286,10 +286,10 @@ export default function Landing({ onGetStarted }: LandingProps) {
             className="text-center mb-14"
           >
             <Badge className="bg-amber-500/20 text-amber-400 mb-4">18 Activity Categories</Badge>
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
               Your Outdoor World
             </h2>
-            <p className="text-muted-foreground max-w-lg mx-auto">
+            <p className="text-white/60 max-w-lg mx-auto">
               From hiking and fishing to arborist tools and survival training. Every outdoor pursuit, one platform.
             </p>
           </motion.div>
@@ -329,7 +329,7 @@ export default function Landing({ onGetStarted }: LandingProps) {
         </div>
       </section>
 
-      <section className="py-20 md:py-28 px-5 md:px-10" data-testid="landing-ecosystem">
+      <section className="py-20 md:py-28 px-5 md:px-10 bg-slate-950" data-testid="landing-ecosystem">
         <div className="max-w-5xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -339,10 +339,10 @@ export default function Landing({ onGetStarted }: LandingProps) {
             className="text-center mb-14"
           >
             <Badge className="bg-slate-500/20 text-slate-400 mb-4">Trust Layer Ecosystem</Badge>
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
               Built on Blockchain Trust
             </h2>
-            <p className="text-muted-foreground max-w-lg mx-auto">
+            <p className="text-white/60 max-w-lg mx-auto">
               Part of the DarkWave Trust Layer ecosystem. 27+ interconnected apps with verified identity, blockchain security, and Signal wallet integration.
             </p>
           </motion.div>
@@ -368,15 +368,15 @@ export default function Landing({ onGetStarted }: LandingProps) {
                 <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center mb-4">
                   <item.icon className="w-5 h-5 text-emerald-400" />
                 </div>
-                <h3 className="text-sm font-semibold text-foreground mb-2">{item.title}</h3>
-                <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+                <h3 className="text-sm font-semibold text-white mb-2">{item.title}</h3>
+                <p className="text-xs text-white/50 leading-relaxed">{item.desc}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="py-20 md:py-28 px-5 md:px-10" data-testid="landing-cta">
+      <section className="py-20 md:py-28 px-5 md:px-10 bg-slate-950" data-testid="landing-cta">
         <div className="max-w-4xl mx-auto">
           <div className="relative rounded-3xl overflow-hidden">
             <img src="/images/hero-landscape.jpg" alt="Join Verdara" className="w-full h-72 md:h-96 object-cover" />
@@ -413,10 +413,10 @@ export default function Landing({ onGetStarted }: LandingProps) {
             <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center">
               <TreePine className="w-4 h-4 text-white" />
             </div>
-            <span className="text-sm font-semibold text-foreground">Verdara</span>
-            <span className="text-xs text-muted-foreground">by DarkWave Studios</span>
+            <span className="text-sm font-semibold text-white">Verdara</span>
+            <span className="text-xs text-white/50">by DarkWave Studios</span>
           </div>
-          <div className="text-xs text-muted-foreground">
+          <div className="text-xs text-white/50">
             Part of the DarkWave Trust Layer Ecosystem
           </div>
         </div>
