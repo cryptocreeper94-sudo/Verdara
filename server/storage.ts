@@ -11,14 +11,16 @@ import {
   type ArboristJob, type InsertArboristJob,
   type ArboristInvoice, type InsertArboristInvoice,
   type CampgroundBooking, type InsertCampgroundBooking,
+  type CatalogLocation, type InsertCatalogLocation,
+  type LocationSubmission, type InsertLocationSubmission,
   type Session,
   users, trails, identifications, marketplaceListings,
   tripPlans, campgrounds, activityLog, sessions,
   activityLocations, arboristClients, arboristJobs, arboristInvoices,
-  campgroundBookings
+  campgroundBookings, catalogLocations, locationSubmissions
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, ilike, or, lt, and, count, sql } from "drizzle-orm";
+import { eq, desc, ilike, or, lt, and, count, sql, asc } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -95,6 +97,21 @@ export interface IStorage {
   createCampgroundBooking(data: InsertCampgroundBooking): Promise<CampgroundBooking>;
   updateCampgroundBooking(id: number, data: Partial<InsertCampgroundBooking>): Promise<CampgroundBooking | undefined>;
   deleteCampgroundBooking(id: number, userId: number): Promise<boolean>;
+
+  getCatalogLocations(filters?: { type?: string; state?: string; activity?: string; species?: string; featured?: boolean; limit?: number; offset?: number }): Promise<CatalogLocation[]>;
+  getCatalogLocation(id: number): Promise<CatalogLocation | undefined>;
+  getCatalogLocationBySlug(slug: string): Promise<CatalogLocation | undefined>;
+  searchCatalogLocations(query: string, type?: string, state?: string): Promise<CatalogLocation[]>;
+  searchCatalogByProximity(lat: number, lng: number, radiusMiles: number, type?: string, limit?: number): Promise<(CatalogLocation & { distanceMiles: number })[]>;
+  createCatalogLocation(location: InsertCatalogLocation): Promise<CatalogLocation>;
+  updateCatalogLocation(id: number, data: Partial<InsertCatalogLocation>): Promise<CatalogLocation | undefined>;
+  deleteCatalogLocation(id: number): Promise<boolean>;
+  getCatalogLocationCount(type?: string): Promise<number>;
+  getCatalogLocationsBySource(source: string): Promise<CatalogLocation[]>;
+
+  getLocationSubmissions(status?: string): Promise<LocationSubmission[]>;
+  createLocationSubmission(submission: InsertLocationSubmission): Promise<LocationSubmission>;
+  updateLocationSubmission(id: number, data: Partial<InsertLocationSubmission>): Promise<LocationSubmission | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -429,6 +446,157 @@ export class DatabaseStorage implements IStorage {
   async deleteCampgroundBooking(id: number, userId: number): Promise<boolean> {
     const result = await db.delete(campgroundBookings).where(and(eq(campgroundBookings.id, id), eq(campgroundBookings.userId, userId)));
     return (result.rowCount ?? 0) > 0;
+  }
+
+  async getCatalogLocations(filters?: { type?: string; state?: string; activity?: string; species?: string; featured?: boolean; limit?: number; offset?: number }): Promise<CatalogLocation[]> {
+    const conditions = [];
+    if (filters?.type) conditions.push(eq(catalogLocations.type, filters.type));
+    if (filters?.state) conditions.push(eq(catalogLocations.state, filters.state));
+    if (filters?.featured) conditions.push(eq(catalogLocations.isFeatured, true));
+    if (filters?.activity) conditions.push(sql`${filters.activity} = ANY(${catalogLocations.activities})`);
+    if (filters?.species) conditions.push(sql`${filters.species} = ANY(${catalogLocations.species})`);
+    const query = db.select().from(catalogLocations);
+    if (conditions.length > 0) {
+      return query.where(and(...conditions)).limit(filters?.limit ?? 100).offset(filters?.offset ?? 0).orderBy(desc(catalogLocations.isFeatured), asc(catalogLocations.name));
+    }
+    return query.limit(filters?.limit ?? 100).offset(filters?.offset ?? 0).orderBy(desc(catalogLocations.isFeatured), asc(catalogLocations.name));
+  }
+
+  async getCatalogLocation(id: number): Promise<CatalogLocation | undefined> {
+    const [loc] = await db.select().from(catalogLocations).where(eq(catalogLocations.id, id));
+    return loc;
+  }
+
+  async getCatalogLocationBySlug(slug: string): Promise<CatalogLocation | undefined> {
+    const [loc] = await db.select().from(catalogLocations).where(eq(catalogLocations.slug, slug));
+    return loc;
+  }
+
+  async searchCatalogLocations(query: string, type?: string, state?: string): Promise<CatalogLocation[]> {
+    const searchConditions = or(
+      ilike(catalogLocations.name, `%${query}%`),
+      ilike(catalogLocations.city, `%${query}%`),
+      ilike(catalogLocations.state, `%${query}%`),
+      ilike(catalogLocations.description, `%${query}%`)
+    );
+    const conditions = [searchConditions!];
+    if (type) conditions.push(eq(catalogLocations.type, type));
+    if (state) conditions.push(eq(catalogLocations.state, state));
+    return db.select().from(catalogLocations).where(and(...conditions)).limit(50).orderBy(desc(catalogLocations.isFeatured), asc(catalogLocations.name));
+  }
+
+  async searchCatalogByProximity(lat: number, lng: number, radiusMiles: number, type?: string, limit: number = 50): Promise<(CatalogLocation & { distanceMiles: number })[]> {
+    const latRad = lat * Math.PI / 180;
+    const lngRad = lng * Math.PI / 180;
+    const distanceExpr = sql`(3959 * acos(
+      cos(${latRad}) * cos(${catalogLocations.lat} * 3.14159265359 / 180) *
+      cos((${catalogLocations.lng} * 3.14159265359 / 180) - ${lngRad}) +
+      sin(${latRad}) * sin(${catalogLocations.lat} * 3.14159265359 / 180)
+    ))`;
+
+    const latDelta = radiusMiles / 69.0;
+    const lngDelta = radiusMiles / (69.0 * Math.cos(latRad));
+
+    const conditions = [
+      sql`${catalogLocations.lat} IS NOT NULL`,
+      sql`${catalogLocations.lng} IS NOT NULL`,
+      sql`${catalogLocations.lat} BETWEEN ${lat - latDelta} AND ${lat + latDelta}`,
+      sql`${catalogLocations.lng} BETWEEN ${lng - lngDelta} AND ${lng + lngDelta}`,
+      sql`${distanceExpr} < ${radiusMiles}`,
+    ];
+    if (type) conditions.push(eq(catalogLocations.type, type));
+
+    const results = await db.select({
+      id: catalogLocations.id,
+      name: catalogLocations.name,
+      slug: catalogLocations.slug,
+      type: catalogLocations.type,
+      description: catalogLocations.description,
+      editorialSummary: catalogLocations.editorialSummary,
+      address: catalogLocations.address,
+      city: catalogLocations.city,
+      state: catalogLocations.state,
+      zipCode: catalogLocations.zipCode,
+      lat: catalogLocations.lat,
+      lng: catalogLocations.lng,
+      activities: catalogLocations.activities,
+      species: catalogLocations.species,
+      gameTypes: catalogLocations.gameTypes,
+      amenities: catalogLocations.amenities,
+      seasons: catalogLocations.seasons,
+      tags: catalogLocations.tags,
+      difficulty: catalogLocations.difficulty,
+      regulations: catalogLocations.regulations,
+      website: catalogLocations.website,
+      phone: catalogLocations.phone,
+      bookingUrl: catalogLocations.bookingUrl,
+      permitUrl: catalogLocations.permitUrl,
+      imageUrl: catalogLocations.imageUrl,
+      photos: catalogLocations.photos,
+      rating: catalogLocations.rating,
+      reviews: catalogLocations.reviews,
+      priceRange: catalogLocations.priceRange,
+      providerType: catalogLocations.providerType,
+      jurisdiction: catalogLocations.jurisdiction,
+      source: catalogLocations.source,
+      sourceId: catalogLocations.sourceId,
+      isFeatured: catalogLocations.isFeatured,
+      isVerified: catalogLocations.isVerified,
+      metadata: catalogLocations.metadata,
+      createdAt: catalogLocations.createdAt,
+      updatedAt: catalogLocations.updatedAt,
+      distanceMiles: sql<number>`${distanceExpr}`.as("distance_miles"),
+    }).from(catalogLocations)
+      .where(and(...conditions))
+      .orderBy(sql`${distanceExpr}`)
+      .limit(limit);
+
+    return results as (CatalogLocation & { distanceMiles: number })[];
+  }
+
+  async createCatalogLocation(location: InsertCatalogLocation): Promise<CatalogLocation> {
+    const [created] = await db.insert(catalogLocations).values(location as any).returning();
+    return created;
+  }
+
+  async updateCatalogLocation(id: number, data: Partial<InsertCatalogLocation>): Promise<CatalogLocation | undefined> {
+    const [updated] = await db.update(catalogLocations).set({ ...data as any, updatedAt: new Date() }).where(eq(catalogLocations.id, id)).returning();
+    return updated;
+  }
+
+  async deleteCatalogLocation(id: number): Promise<boolean> {
+    const result = await db.delete(catalogLocations).where(eq(catalogLocations.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async getCatalogLocationCount(type?: string): Promise<number> {
+    if (type) {
+      const [result] = await db.select({ count: count() }).from(catalogLocations).where(eq(catalogLocations.type, type));
+      return result?.count ?? 0;
+    }
+    const [result] = await db.select({ count: count() }).from(catalogLocations);
+    return result?.count ?? 0;
+  }
+
+  async getCatalogLocationsBySource(source: string): Promise<CatalogLocation[]> {
+    return db.select().from(catalogLocations).where(eq(catalogLocations.source, source));
+  }
+
+  async getLocationSubmissions(status?: string): Promise<LocationSubmission[]> {
+    if (status) {
+      return db.select().from(locationSubmissions).where(eq(locationSubmissions.status, status)).orderBy(desc(locationSubmissions.createdAt));
+    }
+    return db.select().from(locationSubmissions).orderBy(desc(locationSubmissions.createdAt));
+  }
+
+  async createLocationSubmission(submission: InsertLocationSubmission): Promise<LocationSubmission> {
+    const [created] = await db.insert(locationSubmissions).values(submission as any).returning();
+    return created;
+  }
+
+  async updateLocationSubmission(id: number, data: Partial<InsertLocationSubmission>): Promise<LocationSubmission | undefined> {
+    const [updated] = await db.update(locationSubmissions).set(data as any).where(eq(locationSubmissions.id, id)).returning();
+    return updated;
   }
 }
 

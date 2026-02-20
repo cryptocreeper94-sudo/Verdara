@@ -1368,8 +1368,11 @@ async function seedActivityLocations() {
   console.log("Activity locations seeded successfully!");
 }
 
+import { seedCatalogLocations } from "./catalog-seed";
+
 seed()
   .then(() => seedActivityLocations())
+  .then(() => seedCatalogLocations())
   .then(() => process.exit(0))
   .catch((err) => {
     console.error("Seed error:", err);

@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { type Server } from "http";
 import { storage } from "./storage";
 import { registerAuthRoutes, requireAuth } from "./auth";
-import { insertTripPlanSchema, insertMarketplaceListingSchema, insertActivityLogSchema, insertArboristClientSchema, insertArboristJobSchema, insertArboristInvoiceSchema, insertCampgroundBookingSchema } from "@shared/schema";
+import { insertTripPlanSchema, insertMarketplaceListingSchema, insertActivityLogSchema, insertArboristClientSchema, insertArboristJobSchema, insertArboristInvoiceSchema, insertCampgroundBookingSchema, insertCatalogLocationSchema, insertLocationSubmissionSchema } from "@shared/schema";
 import Stripe from "stripe";
 
 export async function registerRoutes(
@@ -549,6 +549,157 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error deleting booking:", error);
       res.status(500).json({ message: "Failed to delete booking" });
+    }
+  });
+
+  // Catalog Locations routes
+  app.get("/api/catalog", async (req, res) => {
+    try {
+      const { type, state, activity, species, featured, limit, offset, q } = req.query;
+      if (q && typeof q === "string") {
+        const locations = await storage.searchCatalogLocations(q, type as string | undefined, state as string | undefined);
+        return res.json(locations);
+      }
+      const locations = await storage.getCatalogLocations({
+        type: type as string | undefined,
+        state: state as string | undefined,
+        activity: activity as string | undefined,
+        species: species as string | undefined,
+        featured: featured === "true",
+        limit: limit ? parseInt(limit as string) : undefined,
+        offset: offset ? parseInt(offset as string) : undefined,
+      });
+      res.json(locations);
+    } catch (error) {
+      console.error("Error fetching catalog locations:", error);
+      res.status(500).json({ message: "Failed to fetch catalog locations" });
+    }
+  });
+
+  app.get("/api/catalog/count", async (req, res) => {
+    try {
+      const { type } = req.query;
+      const count = await storage.getCatalogLocationCount(type as string | undefined);
+      res.json({ count });
+    } catch (error) {
+      console.error("Error fetching catalog count:", error);
+      res.status(500).json({ message: "Failed to fetch count" });
+    }
+  });
+
+  app.get("/api/catalog/nearby", async (req, res) => {
+    try {
+      const { lat, lng, radius, type, limit } = req.query;
+      if (!lat || !lng) return res.status(400).json({ message: "lat and lng are required" });
+      const latNum = parseFloat(lat as string);
+      const lngNum = parseFloat(lng as string);
+      const radiusNum = radius ? parseFloat(radius as string) : 50;
+      const limitNum = limit ? parseInt(limit as string) : 50;
+      if (isNaN(latNum) || isNaN(lngNum)) return res.status(400).json({ message: "Invalid coordinates" });
+      const locations = await storage.searchCatalogByProximity(latNum, lngNum, radiusNum, type as string | undefined, limitNum);
+      res.json(locations);
+    } catch (error) {
+      console.error("Error searching nearby locations:", error);
+      res.status(500).json({ message: "Failed to search nearby locations" });
+    }
+  });
+
+  app.get("/api/catalog/slug/:slug", async (req, res) => {
+    try {
+      const location = await storage.getCatalogLocationBySlug(req.params.slug);
+      if (!location) return res.status(404).json({ message: "Location not found" });
+      res.json(location);
+    } catch (error) {
+      console.error("Error fetching catalog location:", error);
+      res.status(500).json({ message: "Failed to fetch location" });
+    }
+  });
+
+  app.get("/api/catalog/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid location ID" });
+      const location = await storage.getCatalogLocation(id);
+      if (!location) return res.status(404).json({ message: "Location not found" });
+      res.json(location);
+    } catch (error) {
+      console.error("Error fetching catalog location:", error);
+      res.status(500).json({ message: "Failed to fetch location" });
+    }
+  });
+
+  app.post("/api/catalog", requireAuth, async (req, res) => {
+    try {
+      const parsed = insertCatalogLocationSchema.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ message: "Invalid location data", errors: parsed.error.flatten().fieldErrors });
+      const location = await storage.createCatalogLocation(parsed.data);
+      res.status(201).json(location);
+    } catch (error) {
+      console.error("Error creating catalog location:", error);
+      res.status(500).json({ message: "Failed to create location" });
+    }
+  });
+
+  app.patch("/api/catalog/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid location ID" });
+      const updated = await storage.updateCatalogLocation(id, req.body);
+      if (!updated) return res.status(404).json({ message: "Location not found" });
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating catalog location:", error);
+      res.status(500).json({ message: "Failed to update location" });
+    }
+  });
+
+  app.delete("/api/catalog/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid location ID" });
+      const deleted = await storage.deleteCatalogLocation(id);
+      if (!deleted) return res.status(404).json({ message: "Location not found" });
+      res.json({ message: "Location deleted" });
+    } catch (error) {
+      console.error("Error deleting catalog location:", error);
+      res.status(500).json({ message: "Failed to delete location" });
+    }
+  });
+
+  // Location Submissions routes
+  app.get("/api/submissions", requireAuth, async (req, res) => {
+    try {
+      const { status } = req.query;
+      const submissions = await storage.getLocationSubmissions(status as string | undefined);
+      res.json(submissions);
+    } catch (error) {
+      console.error("Error fetching submissions:", error);
+      res.status(500).json({ message: "Failed to fetch submissions" });
+    }
+  });
+
+  app.post("/api/submissions", requireAuth, async (req, res) => {
+    try {
+      const parsed = insertLocationSubmissionSchema.safeParse({ ...req.body, userId: req.userId! });
+      if (!parsed.success) return res.status(400).json({ message: "Invalid submission data", errors: parsed.error.flatten().fieldErrors });
+      const submission = await storage.createLocationSubmission(parsed.data);
+      res.status(201).json(submission);
+    } catch (error) {
+      console.error("Error creating submission:", error);
+      res.status(500).json({ message: "Failed to create submission" });
+    }
+  });
+
+  app.patch("/api/submissions/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid submission ID" });
+      const updated = await storage.updateLocationSubmission(id, req.body);
+      if (!updated) return res.status(404).json({ message: "Submission not found" });
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating submission:", error);
+      res.status(500).json({ message: "Failed to update submission" });
     }
   });
 
