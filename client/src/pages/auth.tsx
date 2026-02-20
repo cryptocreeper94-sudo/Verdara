@@ -15,7 +15,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { TreePine, Eye, EyeOff, ArrowRight, Shield, Loader2 } from "lucide-react";
+import { TreePine, Eye, EyeOff, ArrowRight, ArrowLeft, Shield, Loader2 } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email("Valid email is required"),
@@ -40,7 +40,7 @@ const registerSchema = z.object({
 type LoginValues = z.infer<typeof loginSchema>;
 type RegisterValues = z.infer<typeof registerSchema>;
 
-export default function AuthPage() {
+export default function AuthPage({ onBack }: { onBack?: () => void }) {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -103,11 +103,23 @@ export default function AuthPage() {
           </div>
 
           <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-12">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center">
-                <TreePine className="w-6 h-6 text-white" />
+            <div className="flex items-center justify-between gap-3 mb-12 flex-wrap">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center">
+                  <TreePine className="w-6 h-6 text-white" />
+                </div>
+                <span className="text-2xl font-bold text-white tracking-tight">Verdara</span>
               </div>
-              <span className="text-2xl font-bold text-white tracking-tight">Verdara</span>
+              {onBack && (
+                <Button
+                  variant="ghost"
+                  className="text-white/70 gap-2 text-sm"
+                  onClick={onBack}
+                  data-testid="button-back-to-landing"
+                >
+                  <ArrowLeft className="w-4 h-4" /> Back
+                </Button>
+              )}
             </div>
 
             <h1 className="text-3xl lg:text-5xl font-bold text-white leading-tight mb-6">

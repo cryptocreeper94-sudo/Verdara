@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AppLayout } from "@/components/app-layout";
 import { useAuth } from "@/hooks/use-auth";
-import Home from "@/pages/home";
+import Landing from "@/pages/landing";
 import Identify from "@/pages/identify";
 import Trails from "@/pages/trails";
 import Planner from "@/pages/planner";
@@ -35,9 +35,11 @@ import CatalogDetail from "@/pages/catalog-detail";
 import DeveloperPortal from "@/pages/developer-portal";
 import NotFound from "@/pages/not-found";
 import { Loader2, TreePine } from "lucide-react";
+import { useState } from "react";
 
 function AppContent() {
   const { isAuthenticated, isLoading } = useAuth();
+  const [showAuth, setShowAuth] = useState(false);
 
   if (isLoading) {
     return (
@@ -53,20 +55,22 @@ function AppContent() {
   }
 
   if (!isAuthenticated) {
-    return <AuthPage />;
+    if (showAuth) {
+      return <AuthPage onBack={() => setShowAuth(false)} />;
+    }
+    return <Landing onGetStarted={() => setShowAuth(true)} />;
   }
 
   return (
     <AppLayout>
       <Switch>
-        <Route path="/" component={Home} />
+        <Route path="/" component={Explore} />
         <Route path="/identify" component={Identify} />
         <Route path="/trails" component={Trails} />
         <Route path="/planner" component={Planner} />
         <Route path="/marketplace" component={Marketplace} />
         <Route path="/dashboard" component={Dashboard} />
         <Route path="/track/:id" component={Track} />
-        <Route path="/explore" component={Explore} />
         <Route path="/admin" component={Admin} />
         <Route path="/hunting" component={Hunting} />
         <Route path="/climbing" component={Climbing} />

@@ -9,8 +9,7 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 
 const sidebarNav = [
-  { path: "/", label: "Home", icon: Home },
-  { path: "/explore", label: "Explore", icon: Compass },
+  { path: "/", label: "Command Center", icon: Compass },
   { path: "/identify", label: "Identify", icon: ScanSearch },
   { path: "/trails", label: "Trails", icon: Map },
   { path: "/planner", label: "Planner", icon: CalendarDays },
@@ -23,10 +22,10 @@ const sidebarNav = [
 ];
 
 const mobileNav = [
-  { path: "/", label: "Home", icon: Home },
-  { path: "/explore", label: "Explore", icon: Compass },
+  { path: "/", label: "Command Center", icon: Compass },
   { path: "/trails", label: "Trails", icon: Map },
   { path: "/marketplace", label: "Market", icon: Store },
+  { path: "/identify", label: "Identify", icon: ScanSearch },
   { path: "/dashboard", label: "Profile", icon: User },
 ];
 
