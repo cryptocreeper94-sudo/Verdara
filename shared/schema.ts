@@ -180,6 +180,65 @@ export const arboristInvoices = pgTable("arborist_invoices", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const catalogLocations = pgTable("catalog_locations", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  type: text("type").notNull(),
+  description: text("description"),
+  editorialSummary: text("editorial_summary"),
+  address: text("address"),
+  city: text("city"),
+  state: text("state"),
+  zipCode: text("zip_code"),
+  lat: real("lat"),
+  lng: real("lng"),
+  activities: text("activities").array(),
+  species: text("species").array(),
+  gameTypes: text("game_types").array(),
+  amenities: text("amenities").array(),
+  seasons: text("seasons").array(),
+  tags: text("tags").array(),
+  difficulty: text("difficulty"),
+  regulations: text("regulations"),
+  website: text("website"),
+  phone: text("phone"),
+  bookingUrl: text("booking_url"),
+  permitUrl: text("permit_url"),
+  imageUrl: text("image_url"),
+  photos: text("photos").array(),
+  rating: real("rating").default(0),
+  reviews: integer("reviews").default(0),
+  priceRange: text("price_range"),
+  providerType: text("provider_type"),
+  jurisdiction: text("jurisdiction"),
+  source: text("source").default("manual"),
+  sourceId: text("source_id"),
+  isFeatured: boolean("is_featured").default(false),
+  isVerified: boolean("is_verified").default(false),
+  metadata: jsonb("metadata").$type<Record<string, any>>(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const locationSubmissions = pgTable("location_submissions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  name: text("name").notNull(),
+  type: text("type").notNull(),
+  description: text("description"),
+  city: text("city"),
+  state: text("state"),
+  lat: real("lat"),
+  lng: real("lng"),
+  activities: text("activities").array(),
+  species: text("species").array(),
+  website: text("website"),
+  status: text("status").default("pending"),
+  reviewNotes: text("review_notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const campgroundBookings = pgTable("campground_bookings", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
@@ -222,6 +281,8 @@ export const insertActivityLocationSchema = createInsertSchema(activityLocations
 export const insertArboristClientSchema = createInsertSchema(arboristClients).omit({ id: true, createdAt: true });
 export const insertArboristJobSchema = createInsertSchema(arboristJobs).omit({ id: true, createdAt: true });
 export const insertArboristInvoiceSchema = createInsertSchema(arboristInvoices).omit({ id: true, createdAt: true });
+export const insertCatalogLocationSchema = createInsertSchema(catalogLocations).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertLocationSubmissionSchema = createInsertSchema(locationSubmissions).omit({ id: true, createdAt: true });
 export const insertCampgroundBookingSchema = createInsertSchema(campgroundBookings).omit({ id: true, createdAt: true });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -247,5 +308,9 @@ export type InsertArboristJob = z.infer<typeof insertArboristJobSchema>;
 export type ArboristJob = typeof arboristJobs.$inferSelect;
 export type InsertArboristInvoice = z.infer<typeof insertArboristInvoiceSchema>;
 export type ArboristInvoice = typeof arboristInvoices.$inferSelect;
+export type InsertCatalogLocation = z.infer<typeof insertCatalogLocationSchema>;
+export type CatalogLocation = typeof catalogLocations.$inferSelect;
+export type InsertLocationSubmission = z.infer<typeof insertLocationSubmissionSchema>;
+export type LocationSubmission = typeof locationSubmissions.$inferSelect;
 export type InsertCampgroundBooking = z.infer<typeof insertCampgroundBookingSchema>;
 export type CampgroundBooking = typeof campgroundBookings.$inferSelect;
