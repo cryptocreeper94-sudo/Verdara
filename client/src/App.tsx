@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -37,9 +37,43 @@ import NotFound from "@/pages/not-found";
 import { Loader2, TreePine } from "lucide-react";
 import { useState } from "react";
 
+function AuthGate({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated } = useAuth();
+  const [showAuth, setShowAuth] = useState(false);
+
+  if (showAuth) {
+    return <AuthPage onBack={() => setShowAuth(false)} />;
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
+        <div className="w-16 h-16 rounded-2xl bg-emerald-500/15 flex items-center justify-center mb-6">
+          <TreePine className="w-8 h-8 text-emerald-500" />
+        </div>
+        <h2 className="text-2xl font-bold text-foreground mb-2">Sign Up to Unlock This Feature</h2>
+        <p className="text-muted-foreground mb-6 max-w-md">
+          Create a free account to access AI identification, trip planning, bookings, and more.
+        </p>
+        <button
+          onClick={() => setShowAuth(true)}
+          data-testid="button-auth-gate-signup"
+          className="px-6 py-3 rounded-xl bg-emerald-500 text-white font-semibold text-sm transition-colors"
+        >
+          Create Free Account
+        </button>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+}
+
 function AppContent() {
   const { isAuthenticated, isLoading } = useAuth();
+  const [location, setLocation] = useLocation();
   const [showAuth, setShowAuth] = useState(false);
+  const [browsing, setBrowsing] = useState(false);
 
   if (isLoading) {
     return (
@@ -54,29 +88,28 @@ function AppContent() {
     );
   }
 
-  if (!isAuthenticated) {
-    if (showAuth) {
-      return <AuthPage onBack={() => setShowAuth(false)} />;
-    }
-    return <Landing onGetStarted={() => setShowAuth(true)} />;
+  if (showAuth) {
+    return <AuthPage onBack={() => setShowAuth(false)} />;
+  }
+
+  if (!isAuthenticated && location === "/" && !browsing) {
+    return <Landing onGetStarted={() => setShowAuth(true)} onBrowse={() => setBrowsing(true)} />;
   }
 
   return (
-    <AppLayout>
+    <AppLayout onShowAuth={() => setShowAuth(true)}>
       <Switch>
         <Route path="/" component={Explore} />
-        <Route path="/identify" component={Identify} />
         <Route path="/trails" component={Trails} />
-        <Route path="/planner" component={Planner} />
         <Route path="/marketplace" component={Marketplace} />
-        <Route path="/dashboard" component={Dashboard} />
-        <Route path="/track/:id" component={Track} />
-        <Route path="/admin" component={Admin} />
+        <Route path="/catalog/:slug" component={CatalogDetail} />
+        <Route path="/catalog" component={Catalog} />
+        <Route path="/price-compare" component={PriceCompare} />
+        <Route path="/developer" component={DeveloperPortal} />
         <Route path="/hunting" component={Hunting} />
         <Route path="/climbing" component={Climbing} />
         <Route path="/fishing" component={Fishing} />
         <Route path="/public-lands" component={PublicLands} />
-        <Route path="/arborist" component={Arborist} />
         <Route path="/survival" component={Survival} />
         <Route path="/conservation" component={Conservation} />
         <Route path="/mtb" component={Mtb} />
@@ -85,10 +118,26 @@ function AppContent() {
         <Route path="/winter" component={Winter} />
         <Route path="/watersports" component={Watersports} />
         <Route path="/charters" component={Charters} />
-        <Route path="/price-compare" component={PriceCompare} />
-        <Route path="/developer" component={DeveloperPortal} />
-        <Route path="/catalog/:slug" component={CatalogDetail} />
-        <Route path="/catalog" component={Catalog} />
+
+        <Route path="/identify">
+          <AuthGate><Identify /></AuthGate>
+        </Route>
+        <Route path="/planner">
+          <AuthGate><Planner /></AuthGate>
+        </Route>
+        <Route path="/dashboard">
+          <AuthGate><Dashboard /></AuthGate>
+        </Route>
+        <Route path="/arborist">
+          <AuthGate><Arborist /></AuthGate>
+        </Route>
+        <Route path="/admin">
+          <AuthGate><Admin /></AuthGate>
+        </Route>
+        <Route path="/track/:id">
+          <AuthGate><Track /></AuthGate>
+        </Route>
+
         <Route component={NotFound} />
       </Switch>
     </AppLayout>

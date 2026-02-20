@@ -94,9 +94,10 @@ const activityHighlights = [
 
 interface LandingProps {
   onGetStarted: () => void;
+  onBrowse?: () => void;
 }
 
-export default function Landing({ onGetStarted }: LandingProps) {
+export default function Landing({ onGetStarted, onBrowse }: LandingProps) {
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const heroY = useTransform(scrollYProgress, [0, 1], [0, 200]);
@@ -203,6 +204,23 @@ export default function Landing({ onGetStarted }: LandingProps) {
               <Compass className="w-5 h-5" /> Explore Features
             </Button>
           </motion.div>
+
+          {onBrowse && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.2, duration: 0.6 }}
+              className="mt-6"
+            >
+              <button
+                onClick={onBrowse}
+                className="text-sm text-white/50 underline underline-offset-4 decoration-white/20 transition-colors"
+                data-testid="button-hero-browse"
+              >
+                or browse the app first
+              </button>
+            </motion.div>
+          )}
 
           <motion.div
             initial={{ opacity: 0 }}
