@@ -11,7 +11,7 @@ import {
   tripPlans, campgrounds, activityLog, sessions
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, ilike, or, lt } from "drizzle-orm";
+import { eq, desc, ilike, or, lt, and, count, sql } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -50,6 +50,14 @@ export interface IStorage {
 
   getActivityLog(userId: number): Promise<ActivityLog[]>;
   createActivityLog(entry: InsertActivityLog): Promise<ActivityLog>;
+
+  deleteTripPlan(id: number, userId: number): Promise<boolean>;
+  deleteMarketplaceListing(id: number, userId: number): Promise<boolean>;
+  updateMarketplaceListing(id: number, data: Partial<InsertMarketplaceListing>): Promise<MarketplaceListing | undefined>;
+  getUserMarketplaceListings(userId: number): Promise<MarketplaceListing[]>;
+  getUserStats(userId: number): Promise<{ tripsCount: number; identificationsCount: number; activitiesCount: number; listingsCount: number }>;
+  searchMarketplaceListings(query: string): Promise<MarketplaceListing[]>;
+  filterTrails(difficulty?: string, activityType?: string): Promise<Trail[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -206,6 +214,59 @@ export class DatabaseStorage implements IStorage {
   async createActivityLog(entry: InsertActivityLog): Promise<ActivityLog> {
     const [created] = await db.insert(activityLog).values(entry).returning();
     return created;
+  }
+
+  async deleteTripPlan(id: number, userId: number): Promise<boolean> {
+    const result = await db.delete(tripPlans).where(and(eq(tripPlans.id, id), eq(tripPlans.userId, userId)));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async deleteMarketplaceListing(id: number, userId: number): Promise<boolean> {
+    const result = await db.delete(marketplaceListings).where(and(eq(marketplaceListings.id, id), eq(marketplaceListings.sellerId, userId)));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async updateMarketplaceListing(id: number, data: Partial<InsertMarketplaceListing>): Promise<MarketplaceListing | undefined> {
+    const [updated] = await db.update(marketplaceListings).set(data as any).where(eq(marketplaceListings.id, id)).returning();
+    return updated;
+  }
+
+  async getUserMarketplaceListings(userId: number): Promise<MarketplaceListing[]> {
+    return db.select().from(marketplaceListings).where(eq(marketplaceListings.sellerId, userId)).orderBy(desc(marketplaceListings.createdAt));
+  }
+
+  async getUserStats(userId: number): Promise<{ tripsCount: number; identificationsCount: number; activitiesCount: number; listingsCount: number }> {
+    const [trips] = await db.select({ count: count() }).from(tripPlans).where(eq(tripPlans.userId, userId));
+    const [idents] = await db.select({ count: count() }).from(identifications).where(eq(identifications.userId, userId));
+    const [activities] = await db.select({ count: count() }).from(activityLog).where(eq(activityLog.userId, userId));
+    const [listings] = await db.select({ count: count() }).from(marketplaceListings).where(eq(marketplaceListings.sellerId, userId));
+    return {
+      tripsCount: trips?.count ?? 0,
+      identificationsCount: idents?.count ?? 0,
+      activitiesCount: activities?.count ?? 0,
+      listingsCount: listings?.count ?? 0,
+    };
+  }
+
+  async searchMarketplaceListings(query: string): Promise<MarketplaceListing[]> {
+    return db.select().from(marketplaceListings).where(
+      and(
+        eq(marketplaceListings.isActive, true),
+        or(
+          ilike(marketplaceListings.species, `%${query}%`),
+          ilike(marketplaceListings.sellerName, `%${query}%`),
+          ilike(marketplaceListings.location, `%${query}%`)
+        )
+      )
+    );
+  }
+
+  async filterTrails(difficulty?: string, activityType?: string): Promise<Trail[]> {
+    const conditions = [];
+    if (difficulty) conditions.push(eq(trails.difficulty, difficulty));
+    if (activityType) conditions.push(eq(trails.activityType, activityType));
+    if (conditions.length === 0) return this.getTrails();
+    return db.select().from(trails).where(and(...conditions));
   }
 }
 

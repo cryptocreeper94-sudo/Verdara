@@ -1,32 +1,13 @@
 import { motion } from "framer-motion";
-import { Settings, TreePine, Leaf, DollarSign, Wrench, TrendingUp, Heart, ScanSearch, Store, ChevronRight } from "lucide-react";
+import { Settings, TreePine, Leaf, DollarSign, Wrench, TrendingUp, Heart, ScanSearch, Store, ChevronRight, MapPin, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { userActivities } from "@/lib/mock-data";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from "recharts";
-
-const speciesData = [
-  { name: "Trees", value: 18, color: "#10b981" },
-  { name: "Plants", value: 12, color: "#f59e0b" },
-  { name: "Birds", value: 8, color: "#64748b" },
-  { name: "Fish", value: 5, color: "#065f46" },
-];
-
-const trailHistory = [
-  { month: "Jul", trails: 8 },
-  { month: "Aug", trails: 15 },
-  { month: "Sep", trails: 22 },
-  { month: "Oct", trails: 18 },
-  { month: "Nov", trails: 12 },
-  { month: "Dec", trails: 9 },
-  { month: "Jan", trails: 14 },
-  { month: "Feb", trails: 29 },
-];
 
 const activityIcons: Record<string, typeof ScanSearch> = {
   identification: ScanSearch,
@@ -46,8 +27,26 @@ export default function Dashboard() {
   const { user } = useAuth();
   const { data: trailsData } = useQuery({ queryKey: ['/api/trails/featured'] });
   const featuredTrails = (trailsData || []) as any[];
+  const { data: activityData } = useQuery({ queryKey: ['/api/user/activity'] });
+  const activities = (activityData || []) as any[];
+  const { data: statsData } = useQuery({ queryKey: ['/api/user/stats'] });
+  const stats = statsData as { tripsCount: number; identificationsCount: number; activitiesCount: number; listingsCount: number } | undefined;
+  const { data: tripsData } = useQuery({ queryKey: ['/api/user/trips'] });
+  const trips = (tripsData || []) as any[];
+  const { data: myListingsData } = useQuery({ queryKey: ['/api/user/listings'] });
+  const myListings = (myListingsData || []) as any[];
+
   const fullName = user ? `${user.firstName} ${user.lastName}` : "Guest";
   const initials = user ? `${user.firstName[0]}${user.lastName[0]}` : "G";
+
+  const speciesData = [
+    { name: "Trips", value: stats?.tripsCount || 0, color: "#10b981" },
+    { name: "Identifications", value: stats?.identificationsCount || 0, color: "#f59e0b" },
+    { name: "Activities", value: stats?.activitiesCount || 0, color: "#64748b" },
+    { name: "Listings", value: stats?.listingsCount || 0, color: "#065f46" },
+  ];
+
+  const totalStats = speciesData.reduce((sum, d) => sum + d.value, 0);
 
   return (
     <div className="max-w-6xl mx-auto px-5 md:px-10 py-8 md:py-12">
@@ -78,10 +77,10 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 mb-8">
         {[
-          { label: "Trails Completed", value: user?.trailsCompleted || 0, icon: TreePine, color: "text-emerald-500", bg: "bg-emerald-500/10" },
-          { label: "Species Identified", value: user?.speciesIdentified || 0, icon: ScanSearch, color: "text-amber-500", bg: "bg-amber-500/10" },
-          { label: "Conservation", value: `$${user?.conservationDonated || 0}`, icon: DollarSign, color: "text-green-500", bg: "bg-green-500/10" },
-          { label: "Equipment Tracked", value: user?.equipmentTracked || 0, icon: Wrench, color: "text-slate-500", bg: "bg-slate-500/10" },
+          { label: "Trip Plans", value: stats?.tripsCount || 0, icon: MapPin, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+          { label: "Identifications", value: stats?.identificationsCount || 0, icon: ScanSearch, color: "text-amber-500", bg: "bg-amber-500/10" },
+          { label: "Activities Logged", value: stats?.activitiesCount || 0, icon: TrendingUp, color: "text-green-500", bg: "bg-green-500/10" },
+          { label: "Marketplace Listings", value: stats?.listingsCount || 0, icon: Package, color: "text-slate-500", bg: "bg-slate-500/10" },
         ].map((stat, i) => (
           <motion.div
             key={stat.label}
@@ -104,73 +103,75 @@ export default function Dashboard() {
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={{ delay: 0.25 }}
           className="rounded-2xl bg-card border border-card-border p-6"
-          data-testid="trails-chart"
+          data-testid="stats-chart"
         >
-          <div className="flex items-center justify-between gap-3 mb-5">
-            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-emerald-500" /> Trail Activity
-            </h3>
-            <Badge variant="outline" className="text-[10px]">Last 8 months</Badge>
-          </div>
-          <div className="h-52">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={trailHistory}>
-                <defs>
-                  <linearGradient id="trailGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#10b981" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="month" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-                <YAxis hide />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px",
-                    fontSize: "12px",
-                  }}
-                />
-                <Area type="monotone" dataKey="trails" stroke="#10b981" strokeWidth={2} fill="url(#trailGrad)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+          <h3 className="text-sm font-semibold text-foreground mb-5">Activity Breakdown</h3>
+          {totalStats > 0 ? (
+            <div className="flex items-center gap-8">
+              <div className="w-40 h-40">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={speciesData.filter(d => d.value > 0)} cx="50%" cy="50%" innerRadius={35} outerRadius={60} paddingAngle={4} dataKey="value">
+                      {speciesData.filter(d => d.value > 0).map((entry, i) => (
+                        <Cell key={i} fill={entry.color} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="space-y-4 flex-1">
+                {speciesData.map(d => (
+                  <div key={d.name} className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: d.color }} />
+                      <span className="text-sm text-foreground">{d.name}</span>
+                    </div>
+                    <span className="text-sm font-medium text-foreground">{d.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <TrendingUp className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground">Start creating trips and listings to see your activity breakdown</p>
+            </div>
+          )}
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
+          transition={{ delay: 0.3 }}
           className="rounded-2xl bg-card border border-card-border p-6"
-          data-testid="species-chart"
+          data-testid="recent-trips"
         >
-          <h3 className="text-sm font-semibold text-foreground mb-5">Species Identified by Category</h3>
-          <div className="flex items-center gap-8">
-            <div className="w-40 h-40">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={speciesData} cx="50%" cy="50%" innerRadius={35} outerRadius={60} paddingAngle={4} dataKey="value">
-                    {speciesData.map((entry, i) => (
-                      <Cell key={i} fill={entry.color} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="space-y-4 flex-1">
-              {speciesData.map(d => (
-                <div key={d.name} className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: d.color }} />
-                    <span className="text-sm text-foreground">{d.name}</span>
+          <h3 className="text-sm font-semibold text-foreground mb-5">Recent Trip Plans</h3>
+          {trips.length > 0 ? (
+            <div className="space-y-4">
+              {trips.slice(0, 5).map((trip: any) => (
+                <div key={trip.id} className="flex items-center gap-3 py-1.5" data-testid={`trip-item-${trip.id}`}>
+                  <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+                    <MapPin className="w-4 h-4 text-emerald-500" />
                   </div>
-                  <span className="text-sm font-medium text-foreground">{d.value}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-foreground truncate">{trip.title}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {trip.startDate || "No date set"} | {(trip.waypoints || []).length} stops
+                    </p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                 </div>
               ))}
             </div>
-          </div>
+          ) : (
+            <div className="text-center py-8">
+              <MapPin className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground">No trip plans yet</p>
+            </div>
+          )}
         </motion.div>
       </div>
 
@@ -178,37 +179,41 @@ export default function Dashboard() {
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: 0.35 }}
           className="rounded-2xl bg-card border border-card-border p-6"
           data-testid="activity-feed"
         >
           <h3 className="text-sm font-semibold text-foreground mb-5">Recent Activity</h3>
-          <div className="space-y-5">
-            {userActivities.map((activity, i) => {
-              const Icon = activityIcons[activity.type];
-              const colorClass = activityColors[activity.type];
-              return (
-                <div key={activity.id} className="flex items-start gap-4" data-testid={`activity-item-${activity.id}`}>
-                  <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0", colorClass.split(" ")[1])}>
-                    <Icon className={cn("w-4 h-4", colorClass.split(" ")[0])} />
+          {activities.length > 0 ? (
+            <div className="space-y-5">
+              {activities.slice(0, 8).map((activity: any) => {
+                const Icon = activityIcons[activity.type] || TrendingUp;
+                const colorClass = activityColors[activity.type] || "text-emerald-500 bg-emerald-500/10";
+                return (
+                  <div key={activity.id} className="flex items-start gap-4" data-testid={`activity-item-${activity.id}`}>
+                    <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0", colorClass.split(" ")[1])}>
+                      <Icon className={cn("w-4 h-4", colorClass.split(" ")[0])} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-foreground leading-snug">{activity.title}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{activity.date}</p>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-foreground leading-snug">{activity.title}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{activity.date}</p>
-                  </div>
-                  <div className="w-11 h-11 rounded-lg overflow-hidden flex-shrink-0">
-                    <img src={activity.image} alt="" className="w-full h-full object-cover" />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <TrendingUp className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground">No activity logged yet. Create trips and listings to see your activity here.</p>
+            </div>
+          )}
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35 }}
+          transition={{ delay: 0.4 }}
           className="rounded-2xl bg-card border border-card-border p-6"
           data-testid="saved-collections"
         >
@@ -219,7 +224,7 @@ export default function Dashboard() {
                 <div className="flex items-center gap-2.5">
                   <Heart className="w-4 h-4 text-red-400" />
                   Favorite Trails
-                  <Badge variant="outline" className="text-[10px] px-1.5 py-0">5</Badge>
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0">{featuredTrails.length}</Badge>
                 </div>
               </AccordionTrigger>
               <AccordionContent>
@@ -239,37 +244,61 @@ export default function Dashboard() {
                 </div>
               </AccordionContent>
             </AccordionItem>
-            <AccordionItem value="species">
-              <AccordionTrigger className="text-sm font-medium">
-                <div className="flex items-center gap-2.5">
-                  <Leaf className="w-4 h-4 text-emerald-500" />
-                  Identified Species
-                  <Badge variant="outline" className="text-[10px] px-1.5 py-0">43</Badge>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                <div className="grid grid-cols-4 gap-2.5">
-                  {["/images/species-pine.jpg", "/images/species-oak.jpg", "/images/species-maple.jpg", "/images/species-birch.jpg", "/images/species-cedar.jpg", "/images/species-spruce.jpg"].map((img, i) => (
-                    <div key={i} className="aspect-square rounded-lg overflow-hidden">
-                      <img src={img} alt="Species" className="w-full h-full object-cover" />
-                    </div>
-                  ))}
-                  <div className="aspect-square rounded-lg bg-muted flex items-center justify-center">
-                    <span className="text-xs text-muted-foreground font-medium">+37</span>
-                  </div>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="products">
+            <AccordionItem value="listings">
               <AccordionTrigger className="text-sm font-medium">
                 <div className="flex items-center gap-2.5">
                   <Store className="w-4 h-4 text-slate-500" />
-                  Saved Products
-                  <Badge variant="outline" className="text-[10px] px-1.5 py-0">12</Badge>
+                  My Marketplace Listings
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0">{myListings.length}</Badge>
                 </div>
               </AccordionTrigger>
               <AccordionContent>
-                <p className="text-sm text-muted-foreground">12 wood listings saved from the marketplace.</p>
+                {myListings.length > 0 ? (
+                  <div className="space-y-3">
+                    {myListings.slice(0, 5).map((listing: any) => (
+                      <div key={listing.id} className="flex items-center gap-3 py-1.5">
+                        <div className="w-11 h-11 rounded-lg overflow-hidden flex-shrink-0">
+                          <img src={listing.image || "/images/wood_1.jpg"} alt={listing.species} className="w-full h-full object-cover" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-foreground truncate">{listing.species}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">${listing.pricePerBf?.toFixed(2)}/bd ft | {listing.grade}</p>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No marketplace listings yet.</p>
+                )}
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="trips">
+              <AccordionTrigger className="text-sm font-medium">
+                <div className="flex items-center gap-2.5">
+                  <MapPin className="w-4 h-4 text-emerald-500" />
+                  Trip Plans
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0">{trips.length}</Badge>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                {trips.length > 0 ? (
+                  <div className="space-y-3">
+                    {trips.slice(0, 5).map((trip: any) => (
+                      <div key={trip.id} className="flex items-center gap-3 py-1.5">
+                        <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+                          <MapPin className="w-4 h-4 text-emerald-500" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-foreground truncate">{trip.title}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{(trip.waypoints || []).length} stops</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No trip plans yet.</p>
+                )}
               </AccordionContent>
             </AccordionItem>
           </Accordion>
