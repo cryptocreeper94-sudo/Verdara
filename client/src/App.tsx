@@ -34,6 +34,7 @@ import Desert from "@/pages/desert";
 import Wetlands from "@/pages/wetlands";
 import Caves from "@/pages/caves";
 import Prairie from "@/pages/prairie";
+import Foraging from "@/pages/foraging";
 import PriceCompare from "@/pages/price-compare";
 import Catalog from "@/pages/catalog";
 import CatalogDetail from "@/pages/catalog-detail";
@@ -128,6 +129,7 @@ function AppContent() {
         <Route path="/wetlands" component={Wetlands} />
         <Route path="/caves" component={Caves} />
         <Route path="/prairie" component={Prairie} />
+        <Route path="/foraging" component={Foraging} />
 
         <Route path="/identify">
           <AuthGate><Identify /></AuthGate>

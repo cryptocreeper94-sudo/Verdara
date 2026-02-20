@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
+import { LivingCatalogBanner } from "@/components/living-catalog-banner";
 import type { ActivityLocation } from "@shared/schema";
 
 const difficultyColors: Record<string, string> = {
@@ -111,6 +112,7 @@ export default function Climbing() {
       </div>
 
       <div className="px-5 md:px-10 py-6">
+        <LivingCatalogBanner />
         <div className="flex flex-wrap items-center gap-3 mb-5">
           <div className="flex-1 min-w-[200px] flex items-center gap-2.5 bg-card border border-card-border rounded-xl px-4 py-3">
             <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />

@@ -42,7 +42,7 @@ const roadmapPhases: RoadmapPhase[] = [
     status: "completed",
     features: [
       "Custom auth with email verification",
-      "23 activity category pages",
+      "24 activity category pages",
       "AI Nature Identification engine",
       "GPS Trail Tracker with live positioning",
       "Trip Planner with gear checklists",
@@ -66,10 +66,11 @@ const roadmapPhases: RoadmapPhase[] = [
     title: "Data & Discovery",
     status: "completed",
     features: [
-      "Nationwide location catalog (160+ locations, 41 states)",
+      "Living catalog (170+ locations, 41 states, growing daily)",
       "Proximity search by zip code",
       "Species database (fish, wildlife, game)",
-      "Activity location seeding (90+ locations, 15 types)",
+      "Wild Edibles & Natural Medicine database (15+ plants)",
+      "Activity location seeding (100+ locations, 16 types)",
       "Complete geographic coverage (mountains to coastlines to caves)",
     ],
   },
@@ -116,6 +117,7 @@ const roadmapPhases: RoadmapPhase[] = [
     title: "Ecosystem Expansion",
     status: "planned",
     features: [
+      "VedaSolus wellness hub integration (Ayurvedic, TCM, herbal medicine)",
       "Additional business verticals beyond Arborist",
       "Trust Layer SSO ecosystem integration",
       "GarageBot API connection",
@@ -126,6 +128,20 @@ const roadmapPhases: RoadmapPhase[] = [
   {
     id: "phase-8",
     phase: 8,
+    title: "Living Catalog & Knowledge Base",
+    status: "planned",
+    features: [
+      "Expand to 5,000+ outdoor locations nationwide",
+      "Comprehensive wild edibles encyclopedia (500+ plants)",
+      "Natural medicine database with historical ethnobotany",
+      "AI-powered foraging identification (plant + mushroom)",
+      "Regional seasonal foraging calendars",
+      "User-contributed location and plant sightings",
+    ],
+  },
+  {
+    id: "phase-9",
+    phase: 9,
     title: "Scale & Growth",
     status: "planned",
     features: [
@@ -238,9 +254,9 @@ const topPartners: TopPartner[] = [
 ];
 
 const platformStats = [
-  { label: "Features", value: "172", icon: Layers },
-  { label: "Categories", value: "23", icon: Target },
-  { label: "Locations", value: "160+", icon: Map },
+  { label: "Features", value: "184", icon: Layers },
+  { label: "Categories", value: "24", icon: Target },
+  { label: "Locations", value: "170+", icon: Map },
   { label: "States", value: "41", icon: Globe },
   { label: "Affiliate Partners", value: "62+", icon: Network },
   { label: "Affiliate Networks", value: "7", icon: ShieldCheck },

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger
 } from "@/components/ui/accordion";
+import { LivingCatalogBanner } from "@/components/living-catalog-banner";
 
 const organizations = [
   {
@@ -207,6 +208,7 @@ export default function Conservation() {
       </div>
 
       <div className="px-5 md:px-10 py-8 space-y-12 max-w-6xl mx-auto">
+        <LivingCatalogBanner />
         <section data-testid="section-organizations">
           <motion.div
             initial={{ opacity: 0, y: 15 }}

@@ -6,7 +6,7 @@ import {
   Anchor, ShieldAlert, Heart, DollarSign, ChevronRight, ArrowLeft,
   Search, Compass, Layers, Star, Lock, Navigation, Flame, BookOpen, Package,
   Camera, Map, CloudSun, Clock, Activity, TrendingUp,
-  Shell, Sun, Droplets, Wheat
+  Shell, Sun, Droplets, Wheat, Sprout
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -465,6 +465,30 @@ const featureCategories = [
       "Prairie restoration and conservation sites",
     ],
   },
+  {
+    id: "foraging",
+    title: "Wild Edibles & Medicine",
+    subtitle: "Wild foods, natural remedies, and plant wisdom",
+    image: "/images/cat-foraging.jpg",
+    icon: Sprout,
+    featureCount: 12,
+    color: "emerald",
+    href: "/foraging",
+    features: [
+      "Wild edible plant identification guide",
+      "Natural medicine and herbal remedy database",
+      "Historical and traditional plant uses",
+      "AI-powered plant identification integration",
+      "Foraging location directory by region",
+      "Seasonal harvesting calendars",
+      "Safety warnings and look-alike alerts",
+      "Mushroom foraging guides",
+      "Native American ethnobotany traditions",
+      "VedaSolus wellness hub integration",
+      "Medicinal plant preparation methods",
+      "Foraging regulations by state",
+    ],
+  },
 ];
 
 const colorMap: Record<string, string> = {
@@ -639,7 +663,7 @@ export default function Explore() {
                 </div>
                 <div>
                   <h3 className="text-sm font-semibold text-foreground">Location Catalog</h3>
-                  <p className="text-xs text-muted-foreground">125+ verified outdoor locations across 41 states — search by zip code</p>
+                  <p className="text-xs text-muted-foreground">170+ verified outdoor locations across 41 states — search by zip code</p>
                 </div>
               </div>
               <Button className="bg-emerald-500 text-white gap-2 text-xs" data-testid="button-open-catalog">

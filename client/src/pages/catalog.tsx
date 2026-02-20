@@ -192,12 +192,12 @@ export default function Catalog() {
             </h1>
           </div>
           <p className="text-sm text-muted-foreground mb-4" data-testid="text-page-subtitle">
-            125+ verified locations across 41 states
+            170+ verified locations across 41 states
           </p>
           <div className="flex flex-wrap gap-2">
             <Badge variant="secondary" className="text-xs" data-testid="badge-total-locations">
               <Mountain className="w-3 h-3 mr-1" />
-              {allLocations.length || "125+"} Locations
+              {allLocations.length || "170+"} Locations
             </Badge>
             <Badge variant="secondary" className="text-xs" data-testid="badge-states-covered">
               <MapPin className="w-3 h-3 mr-1" />

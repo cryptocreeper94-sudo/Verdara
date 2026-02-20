@@ -19,7 +19,7 @@ Verdara is built as part of the DarkWave Trust Layer (DWTL) ecosystem, functioni
 **Key Features & Implementations:**
 - **UI/UX:** Dark mode default with an earthy green, slate, and amber color palette. Utilizes glassmorphism cards, bento grid layouts, and Framer Motion for animations. Designed mobile-first with a bottom tab navigation for mobile and a sidebar for desktop.
 - **Authentication:** Custom email/password authentication with bcrypt hashing, cookie-based sessions, and Resend for email verification. Future plans include integration with the Trust Layer ecosystem SSO.
-- **Data & Storage:** PostgreSQL database managed with Drizzle ORM. Includes seeding scripts for trails, campgrounds, marketplace listings, and a catalog of 125+ real US outdoor locations with proximity search.
+- **Data & Storage:** PostgreSQL database managed with Drizzle ORM. Includes seeding scripts for trails, campgrounds, marketplace listings, and a living catalog of 170+ real US outdoor locations with proximity search. Catalog grows daily with 10-15 new entries.
 - **Core Modules:**
     - **Command Center:** Bento grid dashboard with quick actions, featured locations, weather widget, recent activity feed, and activity categories. Personalized entry point for the app.
     - **AI Species Identification:** Real OpenAI Vision API (GPT-4o) integration for identifying trees, plants, fish, and wildlife from camera/upload photos. Returns species name, confidence score, habitat, conservation status, and fun facts.
@@ -29,7 +29,8 @@ Verdara is built as part of the DarkWave Trust Layer (DWTL) ecosystem, functioni
     - **Arborist Pro:** Client management, job scheduling, and invoice creation (full CRUD).
     - **Trip Planner:** Route builder, gear checklists, and weather forecasts.
     - **Price Compare:** Gear price comparison across 62+ affiliate retailers.
-    - **Developer Portal:** Provides an 8-phase product roadmap, affiliate network directory, and business suite preview.
+    - **Wild Edibles & Natural Medicine:** Comprehensive wild plant database with 15+ edible and medicinal plants, historical uses, safety warnings, AI plant identification integration, and VedaSolus wellness hub link. Includes medical disclaimer.
+    - **Developer Portal:** Provides a 9-phase product roadmap, affiliate network directory, and business suite preview.
     - **Interactive Maps:** Leaflet-based maps on trails page (showing all trail markers across the US) and catalog detail pages (showing individual location).
 - **Verdara Specific Tech Stack:**
     - Frontend: React 18 + TypeScript, Vite, Tailwind CSS, Shadcn UI, Framer Motion, Wouter routing, TanStack React Query.
@@ -45,6 +46,14 @@ Verdara is built as part of the DarkWave Trust Layer (DWTL) ecosystem, functioni
 - **Trust Vault:** Signal wallet integration for in-app purchases.
 - **TLID Identity:** Support for .tlid domain names as user identities.
 - **Credits System:** Acceptance of Trust Layer credits for AI identification services.
+- **VedaSolus (vedasolus.io):** Holistic wellness hub integration — Ayurvedic dosha balancing, TCM (Traditional Chinese Medicine), herbal medicine database, nutrition tracking. Links wild edible/medicinal plant data from Verdara's foraging module into VedaSolus's wellness recommendations.
+
+**Living Catalog Strategy:**
+- Verdara's location and plant databases are designed as living catalogs that grow 10-15 entries per day.
+- Goal: Become the definitive non-governmental reference for all things outdoor recreation, wildlife, wild edibles, and natural medicine across the US.
+- Target: 5,000+ outdoor locations, 500+ wild plants, comprehensive coverage of all geographic environments.
+- All category pages display a "Living Catalog" banner indicating daily updates.
+- Service worker cache version must be bumped when replacing images (currently v3).
 
 ## External Dependencies
 - **Stripe:** For payment processing (Stripe Checkout) and subscription management (webhook for tier updates).

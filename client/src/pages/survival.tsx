@@ -17,6 +17,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
+import { LivingCatalogBanner } from "@/components/living-catalog-banner";
 
 const skillSections = [
   {
@@ -224,6 +225,7 @@ export default function Survival() {
       </div>
 
       <div className="px-5 md:px-10 py-8 space-y-10 max-w-4xl mx-auto">
+        <LivingCatalogBanner />
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}

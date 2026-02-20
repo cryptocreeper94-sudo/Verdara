@@ -5,7 +5,7 @@ import {
   Zap, Snowflake, Waves, Bike, Axe, ShoppingBag, Anchor, ShieldAlert,
   Heart, DollarSign, Compass, ChevronRight, Star, Shield, ArrowRight,
   Leaf, Lock, Navigation, Flame, Eye, Users, Globe, Award,
-  Shell, Sun, Droplets, Wheat
+  Shell, Sun, Droplets, Wheat, Sprout
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -61,7 +61,7 @@ const showcaseFeatures = [
   {
     icon: Mountain,
     title: "Trail Discovery & GPS Tracking",
-    desc: "Discover trails, track your hikes in real-time, and explore our nationwide catalog of 125+ verified outdoor locations across 41 states.",
+    desc: "Discover trails, track your hikes in real-time, and explore our nationwide catalog of 170+ verified outdoor locations across 41 states.",
     image: "/images/landing-trails.jpg",
   },
   {
@@ -94,6 +94,7 @@ const activityHighlights = [
   { icon: Droplets, label: "Wetlands", image: "/images/cat-wetlands.jpg" },
   { icon: Mountain, label: "Caves", image: "/images/cat-caves.jpg" },
   { icon: Wheat, label: "Prairie", image: "/images/cat-prairie.jpg" },
+  { icon: Sprout, label: "Wild Edibles", image: "/images/cat-foraging.jpg" },
   { icon: ShieldAlert, label: "Survival", image: "/images/cat-survival.jpg" },
   { icon: Heart, label: "Conservation", image: "/images/cat-conservation.jpg" },
 ];
@@ -113,11 +114,11 @@ export default function Landing({ onGetStarted, onBrowse }: LandingProps) {
     document.title = "Verdara - AI-Powered Outdoor Recreation | DarkWave Studios";
     const meta = document.querySelector('meta[name="description"]');
     if (meta) {
-      meta.setAttribute("content", "Verdara is the AI-powered outdoor recreation super-app. Identify species, discover trails, plan trips, and shop a blockchain-verified marketplace across 18 activity categories.");
+      meta.setAttribute("content", "Verdara is the AI-powered outdoor recreation super-app. Identify species, discover trails, plan trips, and shop a blockchain-verified marketplace across 24 activity categories.");
     } else {
       const newMeta = document.createElement("meta");
       newMeta.name = "description";
-      newMeta.content = "Verdara is the AI-powered outdoor recreation super-app. Identify species, discover trails, plan trips, and shop a blockchain-verified marketplace across 18 activity categories.";
+      newMeta.content = "Verdara is the AI-powered outdoor recreation super-app. Identify species, discover trails, plan trips, and shop a blockchain-verified marketplace across 24 activity categories.";
       document.head.appendChild(newMeta);
     }
     return () => {
@@ -416,7 +417,7 @@ export default function Landing({ onGetStarted, onBrowse }: LandingProps) {
                   Your Adventure Starts Here
                 </h2>
                 <p className="text-white/70 max-w-lg mx-auto mb-8">
-                  Join Verdara and unlock 138 features across 18 outdoor recreation categories. Free to get started.
+                  Join Verdara and unlock 184 features across 24 outdoor recreation categories. Free to get started.
                 </p>
                 <Button
                   className="bg-emerald-500 text-white gap-2 text-base px-10"
