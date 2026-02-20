@@ -437,6 +437,31 @@ export default function Explore() {
           />
         </div>
 
+        <Link href="/catalog">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+            className="relative overflow-hidden rounded-xl border border-emerald-500/20 bg-emerald-500/5 backdrop-blur-md p-5 cursor-pointer hover-elevate"
+            data-testid="link-location-catalog"
+          >
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                  <MapPinned className="w-5 h-5 text-emerald-400" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground">Location Catalog</h3>
+                  <p className="text-xs text-muted-foreground">125+ verified outdoor locations across 41 states — search by zip code</p>
+                </div>
+              </div>
+              <Button className="bg-emerald-500 text-white gap-2 text-xs" data-testid="button-open-catalog">
+                <Navigation className="w-3.5 h-3.5" /> Browse Catalog
+              </Button>
+            </div>
+          </motion.div>
+        </Link>
+
         <div className="grid grid-cols-3 gap-3 max-w-md mx-auto">
           <div className="rounded-xl bg-card border border-card-border p-3 text-center">
             <div className="text-lg font-bold text-emerald-500">{totalFeatures}</div>
