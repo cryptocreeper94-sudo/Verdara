@@ -35,11 +35,11 @@ function AnimatedCounter({ target, label, suffix = "" }: { target: number; label
   }, [target]);
 
   return (
-    <div ref={ref} className="text-center">
-      <div className="text-2xl md:text-3xl font-bold text-emerald-400">
+    <div ref={ref} className="text-center px-2">
+      <div className="text-xl sm:text-2xl md:text-3xl font-bold text-emerald-400 whitespace-nowrap">
         {count.toLocaleString()}{suffix}
       </div>
-      <div className="text-xs md:text-sm text-muted-foreground mt-1">{label}</div>
+      <div className="text-[11px] sm:text-xs md:text-sm text-white/60 mt-1.5">{label}</div>
     </div>
   );
 }
@@ -56,26 +56,26 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
-      <section className="relative h-[70vh] md:h-[80vh] overflow-hidden" data-testid="hero-section">
+      <section className="relative h-[75vh] md:h-[80vh] overflow-hidden" data-testid="hero-section">
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: "url(/images/hero-landscape.jpg)" }}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-background" />
 
-        <div className="relative z-10 flex flex-col items-center justify-center h-full px-4 text-center">
+        <div className="relative z-10 flex flex-col items-center justify-center h-full px-6 text-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="flex items-center gap-2 mb-4 justify-center">
+            <div className="flex items-center gap-2.5 mb-5 justify-center">
               <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center">
                 <TreePine className="w-6 h-6 text-white" />
               </div>
               <h1 className="text-4xl md:text-6xl font-bold text-white tracking-tight">Verdara</h1>
             </div>
-            <p className="text-lg md:text-xl text-white/80 max-w-xl mx-auto mb-8">
+            <p className="text-base md:text-xl text-white/80 max-w-lg mx-auto mb-10 leading-relaxed">
               AI-powered outdoor recreation. Identify species, discover trails, plan trips, and connect with nature.
             </p>
           </motion.div>
@@ -86,7 +86,7 @@ export default function Home() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="w-full max-w-lg"
           >
-            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl px-4 py-3">
+            <div className="flex items-center gap-3 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl px-4 py-3">
               <Search className="w-5 h-5 text-white/60 flex-shrink-0" />
               <input
                 type="text"
@@ -107,7 +107,7 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.5 }}
-            className="grid grid-cols-3 gap-8 md:gap-16 mt-10"
+            className="flex items-center justify-center gap-6 sm:gap-10 md:gap-16 mt-12"
           >
             <AnimatedCounter target={284500} label="Active Users" suffix="+" />
             <AnimatedCounter target={12847} label="Trails Mapped" />
@@ -116,15 +116,15 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="px-4 md:px-8 py-8 md:py-12" data-testid="activities-section">
-        <div className="flex items-center justify-between mb-6">
+      <section className="px-5 md:px-10 py-10 md:py-14" data-testid="activities-section">
+        <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-xl md:text-2xl font-bold text-foreground">Explore Activities</h2>
-            <p className="text-sm text-muted-foreground mt-1">Discover your next outdoor adventure</p>
+            <p className="text-sm text-muted-foreground mt-1.5">Discover your next outdoor adventure</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
           {activityCategories.map((cat, i) => (
             <motion.div
               key={cat.id}
@@ -136,7 +136,7 @@ export default function Home() {
               } ${i === 5 ? "md:col-span-2" : ""}`}
               data-testid={`card-activity-${cat.id}`}
             >
-              <div className={`relative ${i === 0 ? "h-48 md:h-full min-h-[200px]" : "h-40 md:h-48"}`}>
+              <div className={`relative ${i === 0 ? "h-52 md:h-full min-h-[220px]" : "h-44 md:h-52"}`}>
                 <img
                   src={cat.image}
                   alt={cat.title}
@@ -144,9 +144,9 @@ export default function Home() {
                   loading="lazy"
                 />
                 <div className={`absolute inset-0 bg-gradient-to-t ${cat.color} via-black/20 to-transparent`} />
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20">
+                <div className="absolute bottom-0 left-0 right-0 p-5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20">
                       <cat.icon className="w-5 h-5 text-white" />
                     </div>
                     <h3 className="text-white font-semibold text-sm md:text-base">{cat.title}</h3>
@@ -158,11 +158,11 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="px-4 md:px-8 py-8 md:py-12" data-testid="trails-section">
-        <div className="flex items-center justify-between mb-6">
+      <section className="px-5 md:px-10 py-10 md:py-14" data-testid="trails-section">
+        <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-xl md:text-2xl font-bold text-foreground">Featured Trails</h2>
-            <p className="text-sm text-muted-foreground mt-1">Handpicked adventures near you</p>
+            <p className="text-sm text-muted-foreground mt-1.5">Handpicked adventures near you</p>
           </div>
           <Link href="/trails">
             <Button variant="ghost" className="text-emerald-500 gap-1" data-testid="button-view-all-trails">
@@ -173,7 +173,7 @@ export default function Home() {
 
         <div
           ref={scrollRef}
-          className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide"
+          className="flex gap-5 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {featuredTrails.map((trail, i) => (
@@ -185,7 +185,7 @@ export default function Home() {
               className="min-w-[280px] md:min-w-[320px] snap-start flex-shrink-0"
             >
               <div className="relative rounded-2xl overflow-hidden group cursor-pointer bg-card border border-card-border" data-testid={`card-trail-${trail.id}`}>
-                <div className="relative h-44">
+                <div className="relative h-48">
                   <img
                     src={trail.image}
                     alt={trail.name}
@@ -196,18 +196,18 @@ export default function Home() {
                   <div className="absolute top-3 right-3">
                     <Badge className={difficultyColors[trail.difficulty]}>{trail.difficulty}</Badge>
                   </div>
-                  <div className="absolute bottom-3 left-3 right-3">
+                  <div className="absolute bottom-3 left-4 right-4">
                     <h3 className="text-white font-semibold text-sm leading-tight">{trail.name}</h3>
-                    <p className="text-white/70 text-xs mt-1">{trail.location}</p>
+                    <p className="text-white/70 text-xs mt-1.5">{trail.location}</p>
                   </div>
                 </div>
-                <div className="p-3 flex items-center justify-between gap-2">
+                <div className="p-4 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 text-xs text-muted-foreground">
                     <span>{trail.distance}</span>
                     <span className="text-border">|</span>
                     <span>{trail.elevation}</span>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1.5">
                     <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
                     <span className="text-xs font-medium text-foreground">{trail.rating}</span>
                     <span className="text-xs text-muted-foreground">({trail.reviews.toLocaleString()})</span>
@@ -219,40 +219,40 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="px-4 md:px-8 py-8 md:py-12" data-testid="stats-weather-section">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <section className="px-5 md:px-10 py-10 md:py-14" data-testid="stats-weather-section">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           <WeatherWidget />
 
-          <div className="rounded-2xl bg-card border border-card-border p-5 flex flex-col justify-center">
-            <div className="flex items-center gap-2 mb-3">
+          <div className="rounded-2xl bg-card border border-card-border p-6 flex flex-col justify-center">
+            <div className="flex items-center gap-2.5 mb-4">
               <TrendingUp className="w-5 h-5 text-emerald-500" />
               <h3 className="text-sm font-semibold text-foreground">Trending This Week</h3>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-3.5">
               {["Fall foliage hikes in New England", "Elk viewing season in Colorado", "Winter camping gear prep"].map((item, i) => (
                 <div key={i} className="flex items-center gap-3 text-sm">
-                  <span className="w-6 h-6 rounded-full bg-emerald-500/10 flex items-center justify-center text-xs font-bold text-emerald-500">{i + 1}</span>
+                  <span className="w-7 h-7 rounded-full bg-emerald-500/10 flex items-center justify-center text-xs font-bold text-emerald-500 flex-shrink-0">{i + 1}</span>
                   <span className="text-foreground/80">{item}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="rounded-2xl bg-card border border-card-border p-5 flex flex-col justify-center">
-            <div className="flex items-center gap-2 mb-3">
+          <div className="rounded-2xl bg-card border border-card-border p-6 flex flex-col justify-center">
+            <div className="flex items-center gap-2.5 mb-4">
               <Leaf className="w-5 h-5 text-emerald-500" />
               <h3 className="text-sm font-semibold text-foreground">Conservation Impact</h3>
             </div>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
+            <div className="space-y-3.5">
+              <div className="flex items-center justify-between gap-4">
                 <span className="text-sm text-muted-foreground">Trees planted this month</span>
                 <span className="text-sm font-bold text-emerald-500">2,847</span>
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-4">
                 <span className="text-sm text-muted-foreground">Community donations</span>
                 <span className="text-sm font-bold text-emerald-500">$48,320</span>
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-4">
                 <span className="text-sm text-muted-foreground">Acres preserved</span>
                 <span className="text-sm font-bold text-emerald-500">1,205</span>
               </div>
@@ -261,14 +261,14 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="px-4 md:px-8 py-8 md:py-12" data-testid="cta-section">
+      <section className="px-5 md:px-10 py-10 md:py-14" data-testid="cta-section">
         <div className="relative rounded-3xl overflow-hidden">
-          <img src="/images/trail_5.jpg" alt="Join Verdara" className="w-full h-48 md:h-64 object-cover" />
+          <img src="/images/trail_5.jpg" alt="Join Verdara" className="w-full h-52 md:h-72 object-cover" />
           <div className="absolute inset-0 bg-gradient-to-r from-emerald-900/90 via-emerald-900/70 to-transparent" />
-          <div className="absolute inset-0 flex items-center px-6 md:px-12">
+          <div className="absolute inset-0 flex items-center px-8 md:px-14">
             <div>
-              <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">Ready for your next adventure?</h2>
-              <p className="text-white/70 text-sm md:text-base mb-4 max-w-md">
+              <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">Ready for your next adventure?</h2>
+              <p className="text-white/70 text-sm md:text-base mb-5 max-w-md leading-relaxed">
                 Join 284,500+ outdoor enthusiasts discovering trails, identifying species, and planning epic trips.
               </p>
               <Button className="bg-emerald-500 text-white" data-testid="button-get-started">

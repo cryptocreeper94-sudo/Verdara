@@ -61,18 +61,18 @@ export default function Trails() {
 
   return (
     <div className="min-h-screen">
-      <div className="relative h-48 md:h-56 overflow-hidden">
+      <div className="relative h-52 md:h-60 overflow-hidden">
         <img src="/images/map-placeholder.jpg" alt="Trail Map" className="w-full h-full object-cover" data-testid="img-map-placeholder" />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
-        <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8">
+        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
           <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-lg">Trail Discovery</h1>
-          <p className="text-white/70 text-sm mt-1 drop-shadow">Find your perfect trail from {allTrails.length} options</p>
+          <p className="text-white/70 text-sm mt-1.5 drop-shadow">Find your perfect trail from {allTrails.length} options</p>
         </div>
       </div>
 
-      <div className="px-4 md:px-8 py-4">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="flex-1 flex items-center gap-2 bg-card border border-card-border rounded-xl px-3 py-2.5">
+      <div className="px-5 md:px-10 py-6">
+        <div className="flex flex-wrap items-center gap-3 mb-5">
+          <div className="flex-1 min-w-[200px] flex items-center gap-2.5 bg-card border border-card-border rounded-xl px-4 py-3">
             <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
             <input
               type="text"
@@ -115,15 +115,15 @@ export default function Trails() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="mb-6 rounded-xl bg-card border border-card-border p-5"
+            className="mb-6 rounded-xl bg-card border border-card-border p-6"
             data-testid="filters-panel"
           >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div>
                 <h4 className="text-sm font-semibold text-foreground mb-3">Difficulty</h4>
-                <div className="space-y-2.5">
+                <div className="space-y-3">
                   {difficulties.map(d => (
-                    <label key={d} className="flex items-center gap-2.5 cursor-pointer">
+                    <label key={d} className="flex items-center gap-3 cursor-pointer">
                       <Checkbox
                         checked={selectedDifficulties.includes(d)}
                         onCheckedChange={() => toggleDifficulty(d)}
@@ -163,9 +163,9 @@ export default function Trails() {
           </motion.div>
         )}
 
-        <p className="text-sm text-muted-foreground mb-4">{filteredTrails.length} trails found</p>
+        <p className="text-sm text-muted-foreground mb-5">{filteredTrails.length} trails found</p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredTrails.map((trail, i) => (
             <motion.div
               key={trail.id}
@@ -174,7 +174,7 @@ export default function Trails() {
               transition={{ duration: 0.3, delay: i * 0.04 }}
             >
               <div className="rounded-2xl overflow-hidden bg-card border border-card-border group cursor-pointer" data-testid={`card-trail-${trail.id}`}>
-                <div className="relative h-44">
+                <div className="relative h-48">
                   <img
                     src={trail.image}
                     alt={trail.name}
@@ -187,27 +187,27 @@ export default function Trails() {
                   </div>
                   <button
                     onClick={(e) => { e.stopPropagation(); toggleFavorite(trail.id); }}
-                    className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center transition-colors hover:bg-black/50"
+                    className="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center transition-colors"
                     data-testid={`button-favorite-${trail.id}`}
                   >
                     <Heart className={cn("w-4 h-4", favorites.has(trail.id) ? "text-red-400 fill-red-400" : "text-white")} />
                   </button>
-                  <div className="absolute bottom-3 left-3 right-3">
+                  <div className="absolute bottom-3 left-4 right-4">
                     <h3 className="text-white font-semibold text-sm leading-tight">{trail.name}</h3>
-                    <div className="flex items-center gap-1 mt-1">
+                    <div className="flex items-center gap-1.5 mt-1.5">
                       <MapPin className="w-3 h-3 text-white/60" />
                       <span className="text-white/70 text-xs">{trail.location}</span>
                     </div>
                   </div>
                 </div>
-                <div className="p-3">
-                  <div className="flex items-center justify-between">
+                <div className="p-4">
+                  <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       <span>{trail.distance}</span>
                       <span className="text-border">|</span>
                       <span>{trail.elevation}</span>
                     </div>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1.5">
                       <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
                       <span className="text-xs font-medium text-foreground">{trail.rating}</span>
                       <span className="text-xs text-muted-foreground">({trail.reviews.toLocaleString()})</span>
