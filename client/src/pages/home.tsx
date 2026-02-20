@@ -35,11 +35,11 @@ function AnimatedCounter({ target, label, suffix = "" }: { target: number; label
   }, [target]);
 
   return (
-    <div ref={ref} className="text-center px-2">
+    <div ref={ref} className="text-center px-2 flex flex-col items-center">
       <div className="text-xl sm:text-2xl md:text-3xl font-bold text-emerald-400 whitespace-nowrap">
         {count.toLocaleString()}{suffix}
       </div>
-      <div className="text-[11px] sm:text-xs md:text-sm text-white/60 mt-1.5">{label}</div>
+      <div className="text-[11px] sm:text-xs md:text-sm text-white/60 mt-1.5 whitespace-nowrap">{label}</div>
     </div>
   );
 }
@@ -107,11 +107,11 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.5 }}
-            className="flex items-center justify-center gap-6 sm:gap-10 md:gap-16 mt-12"
+            className="flex items-start justify-center gap-6 sm:gap-10 md:gap-16 mt-12"
           >
-            <AnimatedCounter target={284500} label="Active Users" suffix="+" />
             <AnimatedCounter target={12847} label="Trails Mapped" />
-            <AnimatedCounter target={45230} label="Species Identified" />
+            <AnimatedCounter target={45230} label="Species in DB" />
+            <AnimatedCounter target={186} label="Gear Items Tracked" />
           </motion.div>
         </div>
       </section>
@@ -269,7 +269,7 @@ export default function Home() {
             <div>
               <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">Ready for your next adventure?</h2>
               <p className="text-white/70 text-sm md:text-base mb-5 max-w-md leading-relaxed">
-                Join 284,500+ outdoor enthusiasts discovering trails, identifying species, and planning epic trips.
+                Start discovering trails, identifying species, and planning epic trips with AI-powered tools.
               </p>
               <Button className="bg-emerald-500 text-white" data-testid="button-get-started">
                 Get Started Free
