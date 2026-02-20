@@ -60,37 +60,6 @@ import NotFound from "@/pages/not-found";
 import { Loader2, TreePine } from "lucide-react";
 import { useState } from "react";
 
-function AuthGate({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuth();
-  const [showAuth, setShowAuth] = useState(false);
-
-  if (showAuth) {
-    return <AuthPage onBack={() => setShowAuth(false)} />;
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
-        <div className="w-16 h-16 rounded-2xl bg-emerald-500/15 flex items-center justify-center mb-6">
-          <TreePine className="w-8 h-8 text-emerald-500" />
-        </div>
-        <h2 className="text-2xl font-bold text-foreground mb-2">Sign Up to Unlock This Feature</h2>
-        <p className="text-muted-foreground mb-6 max-w-md">
-          Create a free account to access AI identification, trip planning, bookings, and more.
-        </p>
-        <button
-          onClick={() => setShowAuth(true)}
-          data-testid="button-auth-gate-signup"
-          className="px-6 py-3 rounded-xl bg-emerald-500 text-white font-semibold text-sm transition-colors"
-        >
-          Create Free Account
-        </button>
-      </div>
-    );
-  }
-
-  return <>{children}</>;
-}
 
 function AppContent() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -116,7 +85,7 @@ function AppContent() {
   }
 
   if (!isAuthenticated && location === "/" && !browsing) {
-    return <Landing onGetStarted={() => setShowAuth(true)} onBrowse={() => setBrowsing(true)} />;
+    return <Landing onGetStarted={() => setShowAuth(true)} onBrowse={() => { setBrowsing(true); }} />;
   }
 
   if (location === "/signal-chat") {
@@ -124,20 +93,6 @@ function AppContent() {
   }
 
   if (location.startsWith("/arbora")) {
-    if (!isAuthenticated) {
-      return (
-        <div className="flex flex-col items-center justify-center min-h-screen px-6 text-center" style={{ background: "#0a0f1a" }}>
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6" style={{ background: "rgba(194,112,62,0.15)" }}>
-            <TreePine className="w-8 h-8" style={{ color: "#c2703e" }} />
-          </div>
-          <h2 className="text-2xl font-bold mb-2" style={{ color: "#f1f5f9" }}>Sign in to access Arbora</h2>
-          <p className="mb-6 max-w-md" style={{ color: "#94a3b8" }}>Professional arborist business management tools</p>
-          <button onClick={() => setShowAuth(true)} className="px-6 py-3 rounded-xl text-white font-semibold text-sm" style={{ background: "#c2703e" }} data-testid="button-arbora-auth">
-            Sign In
-          </button>
-        </div>
-      );
-    }
     return (
       <ArboraLayout>
         <Switch>
@@ -186,33 +141,16 @@ function AppContent() {
         <Route path="/prairie" component={Prairie} />
         <Route path="/foraging" component={Foraging} />
         <Route path="/pricing" component={Pricing} />
-        <Route path="/blog/admin">
-          <AuthGate><BlogAdmin /></AuthGate>
-        </Route>
+        <Route path="/blog/admin" component={BlogAdmin} />
         <Route path="/blog/:slug" component={BlogDetail} />
         <Route path="/blog" component={Blog} />
-
-        <Route path="/identify">
-          <AuthGate><Identify /></AuthGate>
-        </Route>
-        <Route path="/planner">
-          <AuthGate><Planner /></AuthGate>
-        </Route>
-        <Route path="/dashboard">
-          <AuthGate><Dashboard /></AuthGate>
-        </Route>
-        <Route path="/arborist">
-          <AuthGate><Arborist /></AuthGate>
-        </Route>
-        <Route path="/vault">
-          <AuthGate><Vault /></AuthGate>
-        </Route>
-        <Route path="/admin">
-          <AuthGate><Admin /></AuthGate>
-        </Route>
-        <Route path="/track/:id">
-          <AuthGate><Track /></AuthGate>
-        </Route>
+        <Route path="/identify" component={Identify} />
+        <Route path="/planner" component={Planner} />
+        <Route path="/dashboard" component={Dashboard} />
+        <Route path="/arborist" component={Arborist} />
+        <Route path="/vault" component={Vault} />
+        <Route path="/admin" component={Admin} />
+        <Route path="/track/:id" component={Track} />
 
         <Route component={NotFound} />
       </Switch>

@@ -15,6 +15,14 @@ import { Link } from "wouter";
 import { GlassCard } from "@/components/glass-card";
 import { useQuery } from "@tanstack/react-query";
 import { userActivities } from "@/lib/mock-data";
+import { useAuth } from "@/hooks/use-auth";
+
+const tierInfo: Record<string, string> = {
+  "ai-identify": "Free: 3/mo",
+  "arborist": "Arborist Starter",
+  "woodmarket": "Craftsman Pro",
+  "tripplan": "Free Explorer",
+};
 
 const featureCategories = [
   {
@@ -534,6 +542,7 @@ const stagger = {
 };
 
 export default function Explore() {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: catalogLocations, isLoading: catalogLoading } = useQuery<any[]>({
@@ -834,7 +843,12 @@ export default function Explore() {
                       loading="lazy"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                    <div className="absolute top-2 right-2">
+                    <div className="absolute top-2 right-2 flex items-center gap-1">
+                      {!user && tierInfo[cat.id] && (
+                        <Badge className="bg-amber-500/80 text-white text-[9px] border-0">
+                          {tierInfo[cat.id]}
+                        </Badge>
+                      )}
                       <Badge className={cn(bgColorMap[cat.color], colorMap[cat.color], "text-[10px]")}>
                         {cat.featureCount}
                       </Badge>

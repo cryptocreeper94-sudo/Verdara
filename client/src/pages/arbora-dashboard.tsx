@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Link } from "wouter";
 import type { ArboristClient, ArboristJob, ArboristInvoice, ArboristDeal, ArboristEstimate, ArboristCrewMember, ArboristInventoryItem } from "@shared/schema";
 import arboraSplash from "@assets/arbora-splash-bg.png";
+import { useAuth } from "@/hooks/use-auth";
+import { SubscriptionBanner } from "@/components/subscription-banner";
 
 function StatCard({ icon: Icon, label, value, sub, color, href }: { icon: any; label: string; value: string | number; sub?: string; color: string; href: string }) {
   return (
@@ -32,6 +34,7 @@ function StatCard({ icon: Icon, label, value, sub, color, href }: { icon: any; l
 }
 
 export default function ArboraDashboard() {
+  const { user } = useAuth();
   const { data: clients } = useQuery<ArboristClient[]>({ queryKey: ["/api/arborist/clients"] });
   const { data: jobs } = useQuery<ArboristJob[]>({ queryKey: ["/api/arborist/jobs"] });
   const { data: invoices } = useQuery<ArboristInvoice[]>({ queryKey: ["/api/arborist/invoices"] });
@@ -57,6 +60,21 @@ export default function ArboraDashboard() {
           <p className="text-sm md:text-base" style={{ color: "#94a3b8" }}>Professional arborist business management</p>
         </div>
       </motion.div>
+
+      {!user && (
+        <SubscriptionBanner
+          tier="Arborist Starter"
+          price="$49/mo"
+          features={[
+            "Manage up to 25 clients",
+            "Job scheduling and tracking",
+            "Estimates and invoicing",
+            "Equipment management via GarageBot",
+            "Crew and inventory tracking",
+          ]}
+          className="mb-6"
+        />
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard icon={Users} label="Total Clients" value={(clients || []).length} color="#c2703e" href="/arbora/clients" />

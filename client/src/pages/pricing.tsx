@@ -11,7 +11,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useSearch } from "wouter";
+import { useSearch, useLocation } from "wouter";
 
 interface TierData {
   key: string;
@@ -90,8 +90,14 @@ export default function Pricing() {
     queryKey: ["/api/subscriptions/tiers"],
   });
 
+  const [, navigate] = useLocation();
+
   const subscribeMutation = useMutation({
     mutationFn: async (tierKey: string) => {
+      if (!user) {
+        navigate("/auth");
+        throw new Error("Please sign in first to subscribe.");
+      }
       const res = await apiRequest("POST", "/api/subscriptions/create-checkout", { tier: tierKey });
       return res.json();
     },
@@ -354,7 +360,7 @@ function TierCard({
         ) : (
           <Button
             onClick={onSubscribe}
-            disabled={isLoading || !isAuthenticated}
+            disabled={isLoading}
             variant={popular ? "default" : "secondary"}
             className="w-full"
             data-testid={`button-tier-subscribe-${tier.key}`}

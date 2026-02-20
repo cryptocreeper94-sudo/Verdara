@@ -119,6 +119,10 @@ export default function Planner() {
   });
 
   const handleConfirmBooking = () => {
+    if (!user) {
+      toast({ title: "Sign in required", description: "Create a free account to book campgrounds." });
+      return;
+    }
     if (!bookingCampground || !bookingCheckIn || !bookingCheckOut || bookingNights <= 0) return;
     createBooking.mutate({
       userId: user?.id,
@@ -184,6 +188,10 @@ export default function Planner() {
   });
 
   const handleCreateTrip = () => {
+    if (!user) {
+      toast({ title: "Sign in required", description: "Create a free account to build trip plans." });
+      return;
+    }
     if (!newTitle.trim()) return;
     createTrip.mutate({
       title: newTitle,

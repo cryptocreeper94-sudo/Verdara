@@ -588,7 +588,13 @@ export default function Marketplace() {
                           </Button>
                           <Button
                             className="flex-1 bg-emerald-500 text-white gap-1.5 text-xs"
-                            onClick={() => { setBuyingListingId(listing.id); setBuyQuantity(1); }}
+                            onClick={() => {
+                              if (!user) {
+                                toast({ title: "Sign in required", description: "Create an account to purchase items on the marketplace." });
+                                return;
+                              }
+                              setBuyingListingId(listing.id); setBuyQuantity(1);
+                            }}
                             data-testid={`button-buy-${listing.id}`}
                           >
                             <CreditCard className="w-3.5 h-3.5" /> Buy Now

@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, Camera, Image, RotateCw, Crop, Share2, Bookmark, ChevronDown, ChevronRight, Loader2, TreePine, Fish, Leaf, ArrowLeft, Home, AlertCircle, LogIn, Award, Shield } from "lucide-react";
+import { Upload, Camera, Image, RotateCw, Crop, Share2, Bookmark, ChevronDown, ChevronRight, Loader2, TreePine, Fish, Leaf, ArrowLeft, Home, AlertCircle, LogIn, Award, Shield, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -11,6 +11,9 @@ import { Link } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
+import { useLocation } from "wouter";
+import { useToast } from "@/hooks/use-toast";
+import { SubscriptionBanner, FeatureInfoBubble } from "@/components/subscription-banner";
 
 type ViewState = "upload" | "analyzing" | "results";
 
@@ -105,6 +108,9 @@ export default function Identify() {
     },
   });
 
+  const { toast } = useToast();
+  const [, navigate] = useLocation();
+
   const processFile = useCallback((file: File) => {
     if (!file.type.startsWith("image/")) {
       setError("Please select a valid image file.");
@@ -115,11 +121,20 @@ export default function Identify() {
     reader.onload = (e) => {
       const dataUrl = e.target?.result as string;
       setImagePreview(dataUrl);
+      if (!user) {
+        setView("upload");
+        toast({
+          title: "Sign in to identify",
+          description: "Create a free account to use AI species identification. Free tier includes 3 IDs per month.",
+        });
+        navigate("/auth");
+        return;
+      }
       setView("analyzing");
       identifyMutation.mutate(dataUrl);
     };
     reader.readAsDataURL(file);
-  }, [identifyMutation]);
+  }, [identifyMutation, user, toast, navigate]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -143,40 +158,6 @@ export default function Identify() {
     setVaultSaved(false);
   };
 
-  if (!authLoading && !user) {
-    return (
-      <div className="max-w-4xl mx-auto px-5 md:px-10 py-8 md:py-12">
-        <div className="lg:hidden flex items-center gap-2 mb-6">
-          <Link href="/explore">
-            <Button size="icon" variant="ghost" data-testid="button-back-identify">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          </Link>
-          <Link href="/">
-            <Button size="icon" variant="ghost" data-testid="button-home-identify">
-              <Home className="w-5 h-5" />
-            </Button>
-          </Link>
-        </div>
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">AI Species Identification</h1>
-          <p className="text-muted-foreground text-sm mb-10">Upload a photo to identify trees, plants, fish, or wildlife instantly</p>
-        </motion.div>
-        <div className="rounded-2xl bg-card border border-card-border p-10 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-amber-500/10 flex items-center justify-center mx-auto mb-6">
-            <LogIn className="w-8 h-8 text-amber-500" />
-          </div>
-          <h3 className="text-lg font-semibold text-foreground mb-2">Sign in to Identify Species</h3>
-          <p className="text-sm text-muted-foreground mb-6">You need to be logged in to use the AI species identification feature.</p>
-          <Link href="/auth">
-            <Button className="bg-emerald-500 text-white gap-2" data-testid="button-login-prompt">
-              <LogIn className="w-4 h-4" /> Sign In
-            </Button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-4xl mx-auto px-5 md:px-10 py-8 md:py-12">
@@ -214,6 +195,15 @@ export default function Identify() {
         <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">AI Species Identification</h1>
         <p className="text-muted-foreground text-sm mb-10">Upload a photo to identify trees, plants, fish, or wildlife instantly</p>
       </motion.div>
+
+      {!user && view === "upload" && (
+        <FeatureInfoBubble
+          title="AI Species Identification"
+          description="Free accounts get 3 identifications per month. Upgrade to Outdoor Explorer ($19.99/yr) for unlimited identifications."
+          tier="Free: 3/month"
+          className="mb-6"
+        />
+      )}
 
       <AnimatePresence mode="wait">
         {view === "upload" && (

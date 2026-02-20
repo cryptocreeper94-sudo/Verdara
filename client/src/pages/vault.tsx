@@ -14,6 +14,8 @@ import { cn } from "@/lib/utils";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
+import { FeatureInfoBubble } from "@/components/subscription-banner";
 
 interface MediaItem {
   id: number;
@@ -141,7 +143,13 @@ export default function Vault() {
     },
   });
 
+  const { toast } = useToast();
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!user) {
+      toast({ title: "Sign in required", description: "Create a free account to upload media to TrustVault." });
+      return;
+    }
     const file = e.target.files?.[0];
     if (file) uploadMutation.mutate(file);
   };
@@ -199,6 +207,14 @@ export default function Vault() {
           </Button>
         </div>
       </motion.div>
+
+      {!user && (
+        <FeatureInfoBubble
+          title="TrustVault Media Storage"
+          description="Upload and manage your media files. Included with Outdoor Explorer ($19.99/yr) and above."
+          tier="Outdoor Explorer+"
+        />
+      )}
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Card className="border-card-border bg-card/80 backdrop-blur-sm">
