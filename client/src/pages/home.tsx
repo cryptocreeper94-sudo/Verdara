@@ -114,9 +114,9 @@ export default function Home() {
             transition={{ duration: 0.6, delay: 0.5 }}
             className="flex items-start justify-center gap-6 sm:gap-10 md:gap-16 mt-12"
           >
-            <AnimatedCounter target={appStats?.trails ?? 0} label="Trails in Database" />
-            <AnimatedCounter target={appStats?.activityLocations ?? 0} label="Activity Locations" />
-            <AnimatedCounter target={appStats?.totalFeatures ?? 138} label="App Features" />
+            <AnimatedCounter target={138} label="App Features" />
+            <AnimatedCounter target={18} label="Activity Categories" />
+            <AnimatedCounter target={10} label="Retail Partners" />
           </motion.div>
         </div>
       </section>
@@ -251,20 +251,20 @@ export default function Home() {
           <div className="rounded-2xl bg-card border border-card-border p-6 flex flex-col justify-center">
             <div className="flex items-center gap-2.5 mb-4">
               <Leaf className="w-5 h-5 text-emerald-500" />
-              <h3 className="text-sm font-semibold text-foreground">Platform Stats</h3>
+              <h3 className="text-sm font-semibold text-foreground">What's Inside</h3>
             </div>
             <div className="space-y-3.5">
               <div className="flex items-center justify-between gap-4">
-                <span className="text-sm text-muted-foreground">Trails in database</span>
-                <span className="text-sm font-bold text-emerald-500">{appStats?.trails ?? 0}</span>
+                <span className="text-sm text-muted-foreground">AI-powered features</span>
+                <span className="text-sm font-bold text-emerald-500">138</span>
               </div>
               <div className="flex items-center justify-between gap-4">
-                <span className="text-sm text-muted-foreground">Campgrounds listed</span>
-                <span className="text-sm font-bold text-emerald-500">{appStats?.campgrounds ?? 0}</span>
+                <span className="text-sm text-muted-foreground">Activity categories</span>
+                <span className="text-sm font-bold text-emerald-500">18</span>
               </div>
               <div className="flex items-center justify-between gap-4">
-                <span className="text-sm text-muted-foreground">Marketplace listings</span>
-                <span className="text-sm font-bold text-emerald-500">{appStats?.listings ?? 0}</span>
+                <span className="text-sm text-muted-foreground">Outdoor retail partners</span>
+                <span className="text-sm font-bold text-emerald-500">10</span>
               </div>
             </div>
           </div>
