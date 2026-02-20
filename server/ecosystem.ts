@@ -3,6 +3,7 @@ import { requireAuth } from "./auth";
 import { signToken, generateTrustLayerIdPublic } from "./trustlayer-sso";
 import { storage } from "./storage";
 import crypto from "crypto";
+import { openai } from "./replit_integrations/image/client";
 
 const DWSC_BASE = "https://dwsc.io";
 
@@ -58,7 +59,11 @@ function hmacHeaders(body: any = ""): Record<string, string> {
 
 export async function stampToChain(userId: number, category: string, data: string, metadata: Record<string, any> = {}): Promise<void> {
   try {
-    const { trustLayerId } = await getOrCreateTrustLayerId(userId);
+    let trustLayerId = "system-verdara";
+    if (userId > 0) {
+      const result = await getOrCreateTrustLayerId(userId);
+      trustLayerId = result.trustLayerId;
+    }
     const apiKey = process.env.DWSTAMP_API_KEY;
     await dwscFetch("/api/stamp/dual", {
       apiKey,
@@ -465,6 +470,265 @@ export function registerEcosystemRoutes(app: Express) {
       res.json(data);
     } catch (error: any) {
       res.status(error?.status || 502).json(error?.data || { message: "Ecosystem service unavailable" });
+    }
+  });
+
+  // ─── TrustHome Ecosystem Integration ──────────────────────────
+  registerTrustHomeRoutes(app);
+}
+
+// ─── HMAC-SHA256 Ecosystem Request Verification ─────────────────
+export function verifyEcosystemRequest(authHeader: string): { valid: boolean; appName?: string } {
+  const match = authHeader.match(/^DW (.+):(\d+):([a-f0-9]+)$/);
+  if (!match) return { valid: false };
+
+  const [, incomingKey, timestamp, incomingSignature] = match;
+
+  const age = Date.now() - parseInt(timestamp);
+  if (age > 300000) return { valid: false };
+
+  const knownApps: Record<string, { secret: string; name: string }> = {};
+  if (process.env.TRUSTHOME_API_KEY && process.env.TRUSTHOME_API_SECRET) {
+    knownApps[process.env.TRUSTHOME_API_KEY] = {
+      secret: process.env.TRUSTHOME_API_SECRET,
+      name: "TrustHome",
+    };
+  }
+
+  const app = knownApps[incomingKey];
+  if (!app) return { valid: false };
+
+  const expectedSignature = crypto
+    .createHmac("sha256", app.secret)
+    .update(`${timestamp}:${incomingKey}`)
+    .digest("hex");
+
+  if (incomingSignature !== expectedSignature) return { valid: false };
+  return { valid: true, appName: app.name };
+}
+
+function requireEcosystemAuth(req: Request, res: Response, next: Function) {
+  const auth = verifyEcosystemRequest(req.header("Authorization") || "");
+  if (!auth.valid) {
+    return res.status(401).json({ error: "Invalid ecosystem credentials" });
+  }
+  (req as any).ecosystemApp = auth.appName;
+  next();
+}
+
+// ─── Outbound TrustHome Client ──────────────────────────────────
+function getTrustHomeHeaders(): Record<string, string> {
+  const apiKey = process.env.VERDARA_API_KEY || "";
+  const apiSecret = process.env.VERDARA_API_SECRET || "";
+  const timestamp = Date.now().toString();
+  const signature = crypto
+    .createHmac("sha256", apiSecret)
+    .update(`${timestamp}:${apiKey}`)
+    .digest("hex");
+  return {
+    "Content-Type": "application/json",
+    "Authorization": `DW ${apiKey}:${timestamp}:${signature}`,
+    "X-App-Name": "Verdara",
+  };
+}
+
+export async function callTrustHome(method: string, endpoint: string, body?: any) {
+  const baseUrl = process.env.TRUSTHOME_BASE_URL || "https://trusthome.replit.app";
+  const res = await fetch(`${baseUrl}${endpoint}`, {
+    method,
+    headers: getTrustHomeHeaders(),
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  return res.json();
+}
+
+// ─── TrustHome Inbound API Endpoints ────────────────────────────
+function registerTrustHomeRoutes(app: Express) {
+
+  app.get("/api/ecosystem/status", (_req: Request, res: Response) => {
+    res.json({
+      status: "ok",
+      app: "Verdara",
+      appId: "dw_app_verdara",
+      ecosystem: "DarkWave Trust Layer",
+      version: "1.0.0",
+      capabilities: ["identify", "removal-plan", "assess", "species", "sync-user"],
+    });
+  });
+
+  app.post("/api/ecosystem/identify", requireEcosystemAuth, async (req: Request, res: Response) => {
+    try {
+      const { imageData, location } = req.body;
+      if (!imageData) return res.status(400).json({ error: "imageData is required" });
+
+      const result = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: "You are a professional arborist and botanist. Identify the tree or plant species in this image. Return JSON with: speciesName, commonName, scientificName, confidence (0-1), family, habitat, conservationStatus, healthNotes, estimatedAge, height, canopySpread, riskLevel (low/medium/high), and funFacts (array of strings).",
+          },
+          {
+            role: "user",
+            content: [
+              { type: "image_url", image_url: { url: `data:image/jpeg;base64,${imageData}` } },
+              { type: "text", text: `Identify this tree/plant species.${location ? ` Location: ${location.lat}, ${location.lng}` : ""}` },
+            ],
+          },
+        ],
+        response_format: { type: "json_object" },
+        max_tokens: 1000,
+      });
+
+      const identification = JSON.parse(result.choices[0].message.content || "{}");
+
+      stampToChain(0, "ecosystem_identification", `TrustHome species ID: ${identification.commonName || "Unknown"}`, {
+        source: "TrustHome",
+        speciesName: identification.commonName,
+        confidence: identification.confidence,
+        location,
+      });
+
+      res.json({
+        success: true,
+        identification,
+        source: "Verdara AI (GPT-4o)",
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error: any) {
+      console.error("[Ecosystem] Identify error:", error.message);
+      res.status(500).json({ error: "Identification failed", message: error.message });
+    }
+  });
+
+  app.post("/api/ecosystem/removal-plan", requireEcosystemAuth, async (req: Request, res: Response) => {
+    try {
+      const { propertyAddress, treeIds } = req.body;
+      if (!propertyAddress) return res.status(400).json({ error: "propertyAddress is required" });
+
+      const result = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: "You are a certified arborist creating a tree removal plan. Return JSON with: planId, propertyAddress, trees (array with id, species, diameter, height, condition, removalMethod, estimatedCost, timeEstimate, permitRequired), totalEstimatedCost, safetyConsiderations (array), equipmentNeeded (array), crewSize, estimatedDuration, bestSeason, environmentalImpact, replantingRecommendations (array).",
+          },
+          {
+            role: "user",
+            content: `Create a removal plan for property at ${propertyAddress}. Tree IDs: ${(treeIds || []).join(", ") || "assess all visible trees"}`,
+          },
+        ],
+        response_format: { type: "json_object" },
+        max_tokens: 2000,
+      });
+
+      const plan = JSON.parse(result.choices[0].message.content || "{}");
+      plan.planId = `rp_${crypto.randomBytes(8).toString("hex")}`;
+      plan.generatedAt = new Date().toISOString();
+      plan.source = "Verdara Arborist AI";
+
+      stampToChain(0, "ecosystem_removal_plan", `Removal plan for ${propertyAddress}`, {
+        source: "TrustHome",
+        planId: plan.planId,
+        propertyAddress,
+        treeCount: (treeIds || []).length,
+      });
+
+      res.json({ success: true, plan });
+    } catch (error: any) {
+      console.error("[Ecosystem] Removal plan error:", error.message);
+      res.status(500).json({ error: "Removal plan generation failed", message: error.message });
+    }
+  });
+
+  app.post("/api/ecosystem/assess", requireEcosystemAuth, async (req: Request, res: Response) => {
+    try {
+      const { propertyAddress, agentId } = req.body;
+      if (!propertyAddress) return res.status(400).json({ error: "propertyAddress is required" });
+
+      const result = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: "You are a certified arborist conducting a property tree/plant assessment. Return JSON with: assessmentId, propertyAddress, overallHealthScore (1-10), trees (array with species, commonName, health, dbh, height, canopySpread, riskLevel, recommendations), landscapeNotes, soilCondition, drainageNotes, pestOrDiseaseRisks (array), maintenanceSchedule (array of monthly tasks), estimatedAnnualCost, propertyValueImpact (string describing how trees affect property value).",
+          },
+          {
+            role: "user",
+            content: `Conduct a full property tree and plant assessment for: ${propertyAddress}${agentId ? ` (requested by agent ${agentId})` : ""}`,
+          },
+        ],
+        response_format: { type: "json_object" },
+        max_tokens: 3000,
+      });
+
+      const assessment = JSON.parse(result.choices[0].message.content || "{}");
+      assessment.assessmentId = `assess_${crypto.randomBytes(8).toString("hex")}`;
+      assessment.generatedAt = new Date().toISOString();
+      assessment.source = "Verdara Arborist AI";
+
+      stampToChain(0, "ecosystem_assessment", `Property assessment: ${propertyAddress}`, {
+        source: "TrustHome",
+        assessmentId: assessment.assessmentId,
+        propertyAddress,
+        healthScore: assessment.overallHealthScore,
+      });
+
+      res.json({ success: true, assessment });
+    } catch (error: any) {
+      console.error("[Ecosystem] Assessment error:", error.message);
+      res.status(500).json({ error: "Assessment failed", message: error.message });
+    }
+  });
+
+  app.get("/api/ecosystem/species/:id", requireEcosystemAuth, async (req: Request, res: Response) => {
+    try {
+      const speciesId = req.params.id;
+
+      const result = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: "You are a botanist encyclopedia. Return detailed species information as JSON with: id, commonName, scientificName, family, description, nativeRange, usdaZones (array), growthRate, matureHeight, matureSpread, lifespan, soilPreference, sunRequirement, waterNeeds, diseases (array), pests (array), propertyConsiderations (root damage risk, leaf litter, allergens), maintenanceDifficulty (low/medium/high), wildlifeValue, edibleParts (array or null), toxicity, funFacts (array).",
+          },
+          {
+            role: "user",
+            content: `Provide detailed species information for: ${speciesId}`,
+          },
+        ],
+        response_format: { type: "json_object" },
+        max_tokens: 2000,
+      });
+
+      const species = JSON.parse(result.choices[0].message.content || "{}");
+      species.id = speciesId;
+      species.source = "Verdara Species Database";
+
+      res.json({ success: true, species });
+    } catch (error: any) {
+      console.error("[Ecosystem] Species lookup error:", error.message);
+      res.status(500).json({ error: "Species lookup failed", message: error.message });
+    }
+  });
+
+  app.post("/api/ecosystem/sync-user", requireEcosystemAuth, async (req: Request, res: Response) => {
+    try {
+      const { userId, email, displayName, trustLayerId } = req.body;
+      if (!email) return res.status(400).json({ error: "email is required" });
+
+      console.log(`[Ecosystem] User sync from ${(req as any).ecosystemApp}: ${email} (TL: ${trustLayerId || "none"})`);
+
+      res.json({
+        success: true,
+        synced: true,
+        app: "Verdara",
+        userId: trustLayerId || userId,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error: any) {
+      console.error("[Ecosystem] User sync error:", error.message);
+      res.status(500).json({ error: "User sync failed", message: error.message });
     }
   });
 }

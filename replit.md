@@ -49,6 +49,7 @@ Verdara is built as part of the DarkWave Trust Layer (DWTL) ecosystem, functioni
 - **TLID Identity:** Support for .tlid domain names as user identities.
 - **Credits System:** Acceptance of Trust Layer credits for AI identification services.
 - **VedaSolus (vedasolus.io):** Holistic wellness hub integration — Ayurvedic dosha balancing, TCM (Traditional Chinese Medicine), herbal medicine database, nutrition tracking. Links wild edible/medicinal plant data from Verdara's foraging module into VedaSolus's wellness recommendations.
+- **TrustHome:** Real estate platform integration — HMAC-SHA256 authenticated API connection. Verdara provides: species identification (POST /api/ecosystem/identify), tree removal plans (POST /api/ecosystem/removal-plan), property tree assessments (POST /api/ecosystem/assess), species details (GET /api/ecosystem/species/:id), SSO user sync (POST /api/ecosystem/sync-user). Outbound client available via callTrustHome(). Credentials: VERDARA_API_KEY, VERDARA_API_SECRET (generated), TRUSTHOME_API_KEY, TRUSTHOME_API_SECRET, TRUSTHOME_BASE_URL (pending from TrustHome).
 
 **Living Catalog Strategy:**
 - Verdara's location and plant databases are designed as living catalogs that grow 10-15 entries per day.
