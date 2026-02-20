@@ -4,7 +4,7 @@
 Verdara is a comprehensive AI-powered outdoor recreation super-app by DarkWave Studios. It combines nature identification, outdoor activities suite, arborist business management, wood economy marketplace, trip planning, and more. Full 138-feature roadmap documented in attached_assets/.
 
 ## Current State
-Phase 8: Location Catalog - All 18 categories with dedicated pages, Stripe subscription webhook for tier updates, Price Compare with affiliate retailer links, DarkWave Weather with live Open-Meteo API data, campground booking system with reservation UI, PWA offline caching via service worker. NEW: Nationwide outdoor location catalog with 125+ verified locations across 41 US states, proximity search by zip code, rich detail pages, and catalog browse/search UI. Affiliate program research document at attached_assets/affiliate-programs.md. GarageBot is an external product (NOT built into Verdara) - will connect via API later.
+Phase 9: Developer Portal & Monetization - All 18 categories with dedicated pages, Stripe subscription webhook for tier updates, Price Compare expanded with 62+ affiliate retailers across 12 categories, DarkWave Weather with live Open-Meteo API data, campground booking system with reservation UI, PWA offline caching via service worker, nationwide outdoor location catalog with 125+ verified locations across 41 US states, proximity search by zip code, rich detail pages, and catalog browse/search UI. NEW: Developer Portal with 8-phase product roadmap, affiliate network directory (7 networks, 62+ brands), business suite preview, and resources section. Comprehensive SEO meta tags, Open Graph, Twitter Cards, and JSON-LD structured data. FTC affiliate disclosure on Price Compare page. Affiliate program research document at attached_assets/affiliate-programs.md. GarageBot is an external product (NOT built into Verdara) - will connect via API later.
 
 ## Tech Stack
 - Frontend: React 18 + TypeScript, Vite, Tailwind CSS, Shadcn UI, Framer Motion, Wouter routing, TanStack React Query
@@ -15,7 +15,7 @@ Phase 8: Location Catalog - All 18 categories with dedicated pages, Stripe subsc
 - Auth: Custom email/password (NOT Replit Auth), session tokens, httpOnly secure cookies
 
 ## Project Structure
-- `client/src/pages/` - 26 screens + auth page: home, explore, identify, trails, track, planner, marketplace, dashboard, admin, auth, fishing, hunting, climbing, public-lands, arborist, survival, conservation, mtb, camping, emobility, winter, watersports, charters, price-compare, catalog, catalog-detail
+- `client/src/pages/` - 27 screens + auth page: home, explore, identify, trails, track, planner, marketplace, dashboard, admin, auth, fishing, hunting, climbing, public-lands, arborist, survival, conservation, mtb, camping, emobility, winter, watersports, charters, price-compare, catalog, catalog-detail, developer-portal
 - `client/src/components/` - Custom components: glass-card, bento-grid, trust-badge, weather-widget, theme-provider, app-layout
 - `client/src/hooks/use-auth.ts` - Auth context hook with login/register/logout mutations
 - `client/src/lib/mock-data.ts` - Remaining mock data (activity categories, gear lists, weather forecasts)
@@ -63,15 +63,16 @@ Phase 8: Location Catalog - All 18 categories with dedicated pages, Stripe subsc
 17. **Winter Sports** (`/winter`) - Ski resorts, backcountry zones with vertical drop, snowfall info
 18. **Water Sports** (`/watersports`) - Kayak launches, SUP spots, rafting sections with water type badges
 19. **Charters** (`/charters`) - Charter fishing/hunting with max passengers, charter type badges
-20. **Price Compare** (`/price-compare`) - Gear price comparison tool with category cards (coming soon)
+20. **Price Compare** (`/price-compare`) - Gear price comparison with 62+ retailers across 12 categories, FTC disclosure, commission/cookie info
 21. **Arborist Pro** (`/arborist`) - Client management, job scheduling, invoice creation (full CRUD)
 22. **Survival Hub** (`/survival`) - Skills library, emergency checklists, first aid content
 23. **Conservation** (`/conservation`) - Organization directory, educational content
+24. **Developer Portal** (`/developer`) - 8-phase product roadmap, affiliate network directory (7 networks, 62+ brands), business suite preview, resources
 
 ## Navigation
 - **Mobile (bottom tabs, 5 max):** Home, Explore, Trails, Market, Profile
-- **Desktop (sidebar, 9 items):** Home, Explore, Identify, Trails, Planner, Market, Profile, Arborist, Admin
-- Admin and Arborist links use amber highlight; all others use emerald
+- **Desktop (sidebar, 11 items):** Home, Explore, Identify, Trails, Planner, Market, Catalog, Profile, Arborist, Developer, Admin
+- Admin, Arborist, and Developer links use amber highlight; all others use emerald
 - All activity pages accessible from Explore Command Center
 
 ## Feature Categories (138 total across 18 categories)

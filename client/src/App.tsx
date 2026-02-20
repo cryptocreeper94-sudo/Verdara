@@ -32,6 +32,7 @@ import Charters from "@/pages/charters";
 import PriceCompare from "@/pages/price-compare";
 import Catalog from "@/pages/catalog";
 import CatalogDetail from "@/pages/catalog-detail";
+import DeveloperPortal from "@/pages/developer-portal";
 import NotFound from "@/pages/not-found";
 import { Loader2, TreePine } from "lucide-react";
 
@@ -81,6 +82,7 @@ function AppContent() {
         <Route path="/watersports" component={Watersports} />
         <Route path="/charters" component={Charters} />
         <Route path="/price-compare" component={PriceCompare} />
+        <Route path="/developer" component={DeveloperPortal} />
         <Route path="/catalog/:slug" component={CatalogDetail} />
         <Route path="/catalog" component={Catalog} />
         <Route component={NotFound} />
