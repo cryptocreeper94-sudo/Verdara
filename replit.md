@@ -18,7 +18,7 @@ Verdara is built as part of the DarkWave Trust Layer (DWTL) ecosystem, functioni
 
 **Key Features & Implementations:**
 - **UI/UX:** Dark mode default with an earthy green, slate, and amber color palette. Utilizes glassmorphism cards, bento grid layouts, and Framer Motion for animations. Designed mobile-first with a bottom tab navigation for mobile and a sidebar for desktop.
-- **Authentication:** Custom email/password authentication with bcrypt hashing, cookie-based sessions, and Resend for email verification. Future plans include integration with the Trust Layer ecosystem SSO.
+- **Authentication:** Custom email/password authentication with bcrypt hashing, cookie-based sessions, and Resend for email verification. Trust Layer SSO integrated with JWT-based cross-app authentication (HS256, shared JWT_SECRET), Trust Layer IDs (tl-xxxx-xxxx format), and bcryptjs password hashing (12 rounds).
 - **Data & Storage:** PostgreSQL database managed with Drizzle ORM. Includes seeding scripts for trails, campgrounds, marketplace listings, and a living catalog of 170+ real US outdoor locations with proximity search. Catalog grows daily with 10-15 new entries.
 - **Core Modules:**
     - **Command Center:** Bento grid dashboard with quick actions, featured locations, weather widget, recent activity feed, and activity categories. Personalized entry point for the app.
@@ -30,6 +30,7 @@ Verdara is built as part of the DarkWave Trust Layer (DWTL) ecosystem, functioni
     - **Trip Planner:** Route builder, gear checklists, and weather forecasts.
     - **Price Compare:** Gear price comparison across 62+ affiliate retailers.
     - **Wild Edibles & Natural Medicine:** Comprehensive wild plant database with 15+ edible and medicinal plants, historical uses, safety warnings, AI plant identification integration, and VedaSolus wellness hub link. Includes medical disclaimer.
+    - **Signal Chat:** Real-time WebSocket chat integrated with Trust Layer SSO. JWT-authenticated WebSocket on /ws/chat, channel-based messaging (general, announcements, app-support channels), typing indicators, presence tracking. Separate auth system (chat_users table) with cross-app SSO compatibility.
     - **Developer Portal:** Provides a 9-phase product roadmap, affiliate network directory, and business suite preview.
     - **Interactive Maps:** Leaflet-based maps on trails page (showing all trail markers across the US) and catalog detail pages (showing individual location).
 - **Verdara Specific Tech Stack:**
@@ -38,7 +39,7 @@ Verdara is built as part of the DarkWave Trust Layer (DWTL) ecosystem, functioni
     - Database: PostgreSQL with Drizzle ORM.
 
 **Ecosystem Integration (Planned):**
-- **SSO:** Connection to the Trust Layer ecosystem's Firebase Auth + JWT SSO.
+- **SSO:** Trust Layer JWT SSO integrated — shared JWT_SECRET across ecosystem apps (HS256), cross-app identity via chat_users.trust_layer_id. Endpoints: /api/chat/auth/register, /api/chat/auth/login, /api/chat/auth/me.
 - **TrustShield:** Integration for marketplace vendor verification badges using blockchain.
 - **Signal (SIG) Payments:** Acceptance of the native cryptocurrency for marketplace transactions.
 - **GarageBot API:** Connection for motorized equipment maintenance tracking.

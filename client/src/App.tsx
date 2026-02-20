@@ -35,6 +35,7 @@ import Wetlands from "@/pages/wetlands";
 import Caves from "@/pages/caves";
 import Prairie from "@/pages/prairie";
 import Foraging from "@/pages/foraging";
+import SignalChat from "@/pages/signal-chat";
 import PriceCompare from "@/pages/price-compare";
 import Catalog from "@/pages/catalog";
 import CatalogDetail from "@/pages/catalog-detail";
@@ -100,6 +101,10 @@ function AppContent() {
 
   if (!isAuthenticated && location === "/" && !browsing) {
     return <Landing onGetStarted={() => setShowAuth(true)} onBrowse={() => setBrowsing(true)} />;
+  }
+
+  if (location === "/signal-chat") {
+    return <SignalChat />;
   }
 
   return (

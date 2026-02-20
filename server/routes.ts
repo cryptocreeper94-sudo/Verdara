@@ -2,6 +2,9 @@ import type { Express } from "express";
 import { type Server } from "http";
 import { storage } from "./storage";
 import { registerAuthRoutes, requireAuth } from "./auth";
+import { registerChatAuthRoutes } from "./trustlayer-sso";
+import { setupChatWebSocket } from "./chat-ws";
+import { seedChatData } from "./seedChat";
 import { insertTripPlanSchema, insertMarketplaceListingSchema, insertActivityLogSchema, insertArboristClientSchema, insertArboristJobSchema, insertArboristInvoiceSchema, insertCampgroundBookingSchema, insertCatalogLocationSchema, insertLocationSubmissionSchema, insertReviewSchema } from "@shared/schema";
 import Stripe from "stripe";
 import { openai } from "./replit_integrations/image/client";
@@ -11,6 +14,9 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   registerAuthRoutes(app);
+  registerChatAuthRoutes(app);
+  setupChatWebSocket(httpServer);
+  seedChatData().catch(console.error);
 
   app.get("/api/trails", async (req, res) => {
     try {

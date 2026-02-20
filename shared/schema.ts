@@ -265,6 +265,65 @@ export const reviews = pgTable("reviews", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const chatUsers = pgTable("chat_users", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  username: text("username").notNull().unique(),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  displayName: text("display_name").notNull(),
+  avatarColor: text("avatar_color").notNull().default("#06b6d4"),
+  role: text("role").notNull().default("member"),
+  trustLayerId: text("trust_layer_id").unique(),
+  isOnline: boolean("is_online").default(false),
+  lastSeen: timestamp("last_seen").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const chatChannels = pgTable("chat_channels", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  description: text("description"),
+  category: text("category").notNull().default("ecosystem"),
+  isDefault: boolean("is_default").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const chatMessages = pgTable("chat_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  channelId: varchar("channel_id").notNull(),
+  userId: varchar("user_id").notNull(),
+  content: text("content").notNull(),
+  replyToId: varchar("reply_to_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const chatLoginSchema = z.object({
+  username: z.string().min(1, "Username is required"),
+  password: z.string().min(1, "Password is required"),
+});
+
+export const chatRegisterSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters").max(30),
+  email: z.string().email("Valid email is required"),
+  password: z.string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Must contain at least 1 capital letter")
+    .regex(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/, "Must contain at least 1 special character")
+    .regex(/^(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/, "Password does not meet security requirements"),
+  displayName: z.string().min(1, "Display name is required"),
+});
+
+export const insertChatUserSchema = createInsertSchema(chatUsers).omit({ id: true, createdAt: true, lastSeen: true });
+export const insertChatChannelSchema = createInsertSchema(chatChannels).omit({ id: true, createdAt: true });
+export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({ id: true, createdAt: true });
+
+export type ChatUser = typeof chatUsers.$inferSelect;
+export type InsertChatUser = z.infer<typeof insertChatUserSchema>;
+export type ChatChannel = typeof chatChannels.$inferSelect;
+export type InsertChatChannel = z.infer<typeof insertChatChannelSchema>;
+export type ChatMessage = typeof chatMessages.$inferSelect;
+export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
+
 export const passwordSchema = z.string()
   .min(8, "Password must be at least 8 characters")
   .regex(/[A-Z]/, "Password must contain at least 1 capital letter")
