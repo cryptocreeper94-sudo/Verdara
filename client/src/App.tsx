@@ -42,6 +42,9 @@ import CatalogDetail from "@/pages/catalog-detail";
 import DeveloperPortal from "@/pages/developer-portal";
 import Vault from "@/pages/vault";
 import Pricing from "@/pages/pricing";
+import Blog from "@/pages/blog";
+import BlogDetail from "@/pages/blog-detail";
+import BlogAdmin from "@/pages/blog-admin";
 import NotFound from "@/pages/not-found";
 import { Loader2, TreePine } from "lucide-react";
 import { useState } from "react";
@@ -138,6 +141,11 @@ function AppContent() {
         <Route path="/prairie" component={Prairie} />
         <Route path="/foraging" component={Foraging} />
         <Route path="/pricing" component={Pricing} />
+        <Route path="/blog/admin">
+          <AuthGate><BlogAdmin /></AuthGate>
+        </Route>
+        <Route path="/blog/:slug" component={BlogDetail} />
+        <Route path="/blog" component={Blog} />
 
         <Route path="/identify">
           <AuthGate><Identify /></AuthGate>

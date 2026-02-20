@@ -15,10 +15,11 @@ import {
   type LocationSubmission, type InsertLocationSubmission,
   type Review, type InsertReview,
   type Session,
+  type BlogPost, type InsertBlogPost,
   users, trails, identifications, marketplaceListings,
   tripPlans, campgrounds, activityLog, sessions,
   activityLocations, arboristClients, arboristJobs, arboristInvoices,
-  campgroundBookings, catalogLocations, locationSubmissions, reviews
+  campgroundBookings, catalogLocations, locationSubmissions, reviews, blogPosts
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, ilike, or, lt, and, count, sql, asc } from "drizzle-orm";
@@ -119,6 +120,15 @@ export interface IStorage {
   getReviews(targetType: string, targetId: number): Promise<Review[]>;
   createReview(review: InsertReview): Promise<Review>;
   getAverageRating(targetType: string, targetId: number): Promise<{ average: number; count: number }>;
+
+  getBlogPosts(filters?: { status?: string; category?: string; tag?: string; featured?: boolean; limit?: number; offset?: number }): Promise<BlogPost[]>;
+  getBlogPost(id: number): Promise<BlogPost | undefined>;
+  getBlogPostBySlug(slug: string): Promise<BlogPost | undefined>;
+  searchBlogPosts(query: string): Promise<BlogPost[]>;
+  createBlogPost(post: InsertBlogPost): Promise<BlogPost>;
+  updateBlogPost(id: number, data: Partial<InsertBlogPost>): Promise<BlogPost | undefined>;
+  deleteBlogPost(id: number): Promise<boolean>;
+  getBlogPostCount(status?: string): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -628,6 +638,68 @@ export class DatabaseStorage implements IStorage {
     }).from(reviews)
       .where(and(eq(reviews.targetType, targetType), eq(reviews.targetId, targetId)));
     return { average: Number(result?.average ?? 0), count: result?.count ?? 0 };
+  }
+
+  async getBlogPosts(filters?: { status?: string; category?: string; tag?: string; featured?: boolean; limit?: number; offset?: number }): Promise<BlogPost[]> {
+    const conditions = [];
+    if (filters?.status) conditions.push(eq(blogPosts.status, filters.status));
+    if (filters?.category) conditions.push(eq(blogPosts.category, filters.category));
+    if (filters?.featured) conditions.push(eq(blogPosts.featured, true));
+    if (filters?.tag) conditions.push(sql`${filters.tag} = ANY(${blogPosts.tags})`);
+    
+    const query = db.select().from(blogPosts);
+    if (conditions.length > 0) {
+      return query
+        .where(and(...conditions))
+        .limit(filters?.limit ?? 20)
+        .offset(filters?.offset ?? 0)
+        .orderBy(desc(blogPosts.publishedAt), desc(blogPosts.createdAt));
+    }
+    return query
+      .limit(filters?.limit ?? 20)
+      .offset(filters?.offset ?? 0)
+      .orderBy(desc(blogPosts.publishedAt), desc(blogPosts.createdAt));
+  }
+
+  async getBlogPost(id: number): Promise<BlogPost | undefined> {
+    const [post] = await db.select().from(blogPosts).where(eq(blogPosts.id, id));
+    return post;
+  }
+
+  async getBlogPostBySlug(slug: string): Promise<BlogPost | undefined> {
+    const [post] = await db.select().from(blogPosts).where(eq(blogPosts.slug, slug));
+    return post;
+  }
+
+  async searchBlogPosts(query: string): Promise<BlogPost[]> {
+    return db.select().from(blogPosts).where(
+      or(
+        ilike(blogPosts.title, `%${query}%`),
+        ilike(blogPosts.excerpt, `%${query}%`),
+        ilike(blogPosts.category, `%${query}%`)
+      )
+    );
+  }
+
+  async createBlogPost(post: InsertBlogPost): Promise<BlogPost> {
+    const [created] = await db.insert(blogPosts).values(post as any).returning();
+    return created;
+  }
+
+  async updateBlogPost(id: number, data: Partial<InsertBlogPost>): Promise<BlogPost | undefined> {
+    const [updated] = await db.update(blogPosts).set({ ...data, updatedAt: new Date() }).where(eq(blogPosts.id, id)).returning();
+    return updated;
+  }
+
+  async deleteBlogPost(id: number): Promise<boolean> {
+    const result = await db.delete(blogPosts).where(eq(blogPosts.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async getBlogPostCount(status?: string): Promise<number> {
+    const [result] = await db.select({ count: count() }).from(blogPosts)
+      .where(status ? eq(blogPosts.status, status) : undefined);
+    return result?.count ?? 0;
   }
 }
 

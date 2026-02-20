@@ -5,7 +5,7 @@ import { registerAuthRoutes, requireAuth } from "./auth";
 import { registerChatAuthRoutes } from "./trustlayer-sso";
 import { setupChatWebSocket } from "./chat-ws";
 import { seedChatData } from "./seedChat";
-import { insertTripPlanSchema, insertMarketplaceListingSchema, insertActivityLogSchema, insertArboristClientSchema, insertArboristJobSchema, insertArboristInvoiceSchema, insertCampgroundBookingSchema, insertCatalogLocationSchema, insertLocationSubmissionSchema, insertReviewSchema } from "@shared/schema";
+import { insertTripPlanSchema, insertMarketplaceListingSchema, insertActivityLogSchema, insertArboristClientSchema, insertArboristJobSchema, insertArboristInvoiceSchema, insertCampgroundBookingSchema, insertCatalogLocationSchema, insertLocationSubmissionSchema, insertReviewSchema, insertBlogPostSchema } from "@shared/schema";
 import { registerGarageBotRoutes } from "./garagebot";
 import { registerEcosystemRoutes, stampToChain } from "./ecosystem";
 import Stripe from "stripe";
@@ -1076,6 +1076,131 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error identifying species:", error);
       res.status(500).json({ message: "Failed to identify species" });
+    }
+  });
+
+  app.get("/api/blog", async (req, res) => {
+    try {
+      const { status, category, tag, featured, limit, offset, q } = req.query;
+      if (q) {
+        const posts = await storage.searchBlogPosts(q as string);
+        return res.json(posts);
+      }
+      const posts = await storage.getBlogPosts({
+        status: (status as string) || "published",
+        category: category as string,
+        tag: tag as string,
+        featured: featured === "true" ? true : undefined,
+        limit: limit ? parseInt(limit as string) : undefined,
+        offset: offset ? parseInt(offset as string) : undefined,
+      });
+      res.json(posts);
+    } catch (error) {
+      console.error("Error fetching blog posts:", error);
+      res.status(500).json({ message: "Failed to fetch blog posts" });
+    }
+  });
+
+  app.get("/api/blog/count", async (req, res) => {
+    try {
+      const count = await storage.getBlogPostCount(req.query.status as string);
+      res.json({ count });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get blog post count" });
+    }
+  });
+
+  app.get("/api/blog/:slug", async (req, res) => {
+    try {
+      const post = await storage.getBlogPostBySlug(req.params.slug);
+      if (!post) return res.status(404).json({ message: "Post not found" });
+      res.json(post);
+    } catch (error) {
+      console.error("Error fetching blog post:", error);
+      res.status(500).json({ message: "Failed to fetch blog post" });
+    }
+  });
+
+  app.post("/api/blog", requireAuth, requireTier("Craftsman Pro"), async (req, res) => {
+    try {
+      const { title, slug, content } = req.body;
+      if (!title || !slug || !content) {
+        return res.status(400).json({ message: "Title, slug, and content are required" });
+      }
+      const user = await storage.getUser(req.userId!);
+      if (!user) return res.status(401).json({ message: "User not found" });
+      const data = {
+        ...req.body,
+        authorId: req.userId,
+        authorName: `${user.firstName} ${user.lastName}`,
+        publishedAt: req.body.status === "published" ? new Date() : null,
+        readingTime: Math.ceil((req.body.content || "").split(/\s+/).length / 200),
+      };
+      const post = await storage.createBlogPost(data);
+      stampToChain(req.userId!, "blog_post_published", `Blog: ${post.title}`, { postId: post.id, slug: post.slug });
+      res.status(201).json(post);
+    } catch (error) {
+      console.error("Error creating blog post:", error);
+      res.status(500).json({ message: "Failed to create blog post" });
+    }
+  });
+
+  app.patch("/api/blog/:id", requireAuth, requireTier("Craftsman Pro"), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const existing = await storage.getBlogPost(id);
+      if (!existing) return res.status(404).json({ message: "Post not found" });
+      const data = { ...req.body };
+      if (req.body.content) {
+        data.readingTime = Math.ceil(req.body.content.split(/\s+/).length / 200);
+      }
+      if (req.body.status === "published" && existing.status !== "published") {
+        data.publishedAt = new Date();
+      }
+      const updated = await storage.updateBlogPost(id, data);
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating blog post:", error);
+      res.status(500).json({ message: "Failed to update blog post" });
+    }
+  });
+
+  app.delete("/api/blog/:id", requireAuth, requireTier("Craftsman Pro"), async (req, res) => {
+    try {
+      const deleted = await storage.deleteBlogPost(parseInt(req.params.id));
+      if (!deleted) return res.status(404).json({ message: "Post not found" });
+      res.json({ message: "Post deleted" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete blog post" });
+    }
+  });
+
+  app.post("/api/blog/ai-generate", requireAuth, requireTier("Craftsman Pro"), async (req, res) => {
+    try {
+      const { topic, keywords, tone } = req.body;
+      if (!topic) return res.status(400).json({ message: "Topic is required" });
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: `You are an expert outdoor recreation, forestry, and nature content writer for Verdara — a premium outdoor recreation super-app. Write SEO-optimized, educational, engaging blog content. Use a ${tone || "informative and enthusiastic"} tone. Return a JSON object with these fields: title, slug (url-friendly), excerpt (150 chars max), content (full article in markdown, 800-1500 words, with H2/H3 headings, bullet points, practical tips), category (one of: Lumberjack Sports, Wilderness Skills, Trail Guides, Gear Reviews, Conservation, Wild Edibles, Forestry, Outdoor Education, Safety, Wildlife, Fishing, Camping, Climbing, Water Sports, Winter Sports), tags (array of 5-8 relevant tags), seoTitle (60 chars max), seoDescription (155 chars max), seoKeywords (array of 8-12 SEO keywords).`,
+          },
+          {
+            role: "user",
+            content: `Write a blog post about: ${topic}${keywords ? `. Key topics to cover: ${keywords}` : ""}`,
+          },
+        ],
+        response_format: { type: "json_object" },
+        max_tokens: 4000,
+      });
+
+      const result = JSON.parse(response.choices[0]?.message?.content || "{}");
+      res.json(result);
+    } catch (error) {
+      console.error("Error generating blog content:", error);
+      res.status(500).json({ message: "Failed to generate blog content" });
     }
   });
 

@@ -33,6 +33,7 @@ Verdara is built as part of the DarkWave Trust Layer (DWTL) ecosystem, functioni
     - **Signal Chat:** Real-time WebSocket chat integrated with Trust Layer SSO. JWT-authenticated WebSocket on /ws/chat, channel-based messaging (general, announcements, app-support channels), typing indicators, presence tracking. Separate auth system (chat_users table) with cross-app SSO compatibility.
     - **Developer Portal:** Provides a 9-phase product roadmap, affiliate network directory, and business suite preview.
     - **Interactive Maps:** Leaflet-based maps on trails page (showing all trail markers across the US) and catalog detail pages (showing individual location).
+    - **Verdara Journal (Blog):** AI-assisted SEO-optimized blog system. Public listing page at /blog, detail pages at /blog/:slug, admin editor at /blog/admin with AI content generation via OpenAI GPT-4o. Categories: Lumberjack Sports, Wilderness Skills, Trail Guides, Gear Reviews, Conservation, Wild Edibles, Forestry, Outdoor Education, Safety, Wildlife, Fishing, Camping, Climbing, Water Sports, Winter Sports. Full SEO with structured data (JSON-LD Article schema), meta tags, seo keywords. Database table: blog_posts. DW-STAMP blockchain certification on publish.
 - **Verdara Specific Tech Stack:**
     - Frontend: React 18 + TypeScript, Vite, Tailwind CSS, Shadcn UI, Framer Motion, Wouter routing, TanStack React Query.
     - Backend: Express.js + TypeScript.

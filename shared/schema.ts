@@ -298,6 +298,29 @@ export const chatMessages = pgTable("chat_messages", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const blogPosts = pgTable("blog_posts", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  slug: text("slug").notNull().unique(),
+  excerpt: text("excerpt"),
+  content: text("content").notNull(),
+  coverImage: text("cover_image"),
+  authorId: integer("author_id").references(() => users.id),
+  authorName: text("author_name"),
+  status: text("status").default("draft"),
+  category: text("category"),
+  tags: text("tags").array(),
+  seoTitle: text("seo_title"),
+  seoDescription: text("seo_description"),
+  seoKeywords: text("seo_keywords").array(),
+  ogImage: text("og_image"),
+  readingTime: integer("reading_time"),
+  featured: boolean("featured").default(false),
+  publishedAt: timestamp("published_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const chatLoginSchema = z.object({
   username: z.string().min(1, "Username is required"),
   password: z.string().min(1, "Password is required"),
@@ -389,3 +412,7 @@ export type InsertCampgroundBooking = z.infer<typeof insertCampgroundBookingSche
 export type CampgroundBooking = typeof campgroundBookings.$inferSelect;
 export type InsertReview = z.infer<typeof insertReviewSchema>;
 export type Review = typeof reviews.$inferSelect;
+
+export const insertBlogPostSchema = createInsertSchema(blogPosts).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertBlogPost = z.infer<typeof insertBlogPostSchema>;
+export type BlogPost = typeof blogPosts.$inferSelect;
