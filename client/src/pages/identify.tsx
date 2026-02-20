@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, Camera, Image, RotateCw, Crop, Share2, Bookmark, ChevronDown, ChevronRight, Loader2, TreePine, Fish, Leaf, ArrowLeft, Home, AlertCircle, LogIn } from "lucide-react";
+import { Upload, Camera, Image, RotateCw, Crop, Share2, Bookmark, ChevronDown, ChevronRight, Loader2, TreePine, Fish, Leaf, ArrowLeft, Home, AlertCircle, LogIn, Award, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -31,6 +31,7 @@ export default function Identify() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [result, setResult] = useState<IdentifyResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [stampResult, setStampResult] = useState<{ id: string; timestamp: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const { user, isLoading: authLoading } = useAuth();
@@ -48,6 +49,28 @@ export default function Identify() {
     onError: (err: Error) => {
       setError(err.message || "Failed to identify species. Please try again.");
       setView("upload");
+    },
+  });
+
+  const stampMutation = useMutation({
+    mutationFn: async (identifyData: IdentifyResult) => {
+      const res = await apiRequest("POST", "/api/ecosystem/stamp", {
+        data: identifyData.commonName + " - " + identifyData.scientificName,
+        category: "species_identification",
+        metadata: {
+          commonName: identifyData.commonName,
+          scientificName: identifyData.scientificName,
+          confidence: identifyData.confidence,
+          category: identifyData.category,
+          habitat: identifyData.habitat,
+          conservationStatus: identifyData.conservationStatus,
+        },
+        chains: ["darkwave"],
+      });
+      return res.json() as Promise<{ id: string; timestamp: string }>;
+    },
+    onSuccess: (data) => {
+      setStampResult(data);
     },
   });
 
@@ -85,6 +108,7 @@ export default function Identify() {
     setImagePreview(null);
     setResult(null);
     setError(null);
+    setStampResult(null);
   };
 
   if (!authLoading && !user) {
@@ -344,6 +368,55 @@ export default function Identify() {
                     </Button>
                   </div>
                 </div>
+
+                {user && (
+                  <div className="mt-5 rounded-xl bg-card border border-card-border p-5" data-testid="card-blockchain-certification">
+                    {stampResult ? (
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+                          <Shield className="w-5 h-5 text-emerald-500" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-sm font-semibold text-foreground">Blockchain Certified</span>
+                            <Badge className="bg-emerald-500/15 text-emerald-500" data-testid="badge-verified">
+                              <Shield className="w-3 h-3 mr-1" /> Verified
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1.5" data-testid="text-stamp-id">
+                            Stamp ID: {stampResult.id}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-0.5" data-testid="text-stamp-timestamp">
+                            Certified: {new Date(stampResult.timestamp).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+                          <Award className="w-5 h-5 text-emerald-500" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-foreground">DW-STAMP Certification</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">Record this identification on the DarkWave blockchain</p>
+                        </div>
+                        <Button
+                          onClick={() => stampMutation.mutate(result)}
+                          disabled={stampMutation.isPending}
+                          className="bg-emerald-500 text-white gap-2 flex-shrink-0"
+                          data-testid="button-certify-blockchain"
+                        >
+                          {stampMutation.isPending ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Award className="w-4 h-4" />
+                          )}
+                          {stampMutation.isPending ? "Certifying..." : "Certify on Blockchain"}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 

@@ -7,6 +7,7 @@ import { setupChatWebSocket } from "./chat-ws";
 import { seedChatData } from "./seedChat";
 import { insertTripPlanSchema, insertMarketplaceListingSchema, insertActivityLogSchema, insertArboristClientSchema, insertArboristJobSchema, insertArboristInvoiceSchema, insertCampgroundBookingSchema, insertCatalogLocationSchema, insertLocationSubmissionSchema, insertReviewSchema } from "@shared/schema";
 import { registerGarageBotRoutes } from "./garagebot";
+import { registerEcosystemRoutes } from "./ecosystem";
 import Stripe from "stripe";
 import { openai } from "./replit_integrations/image/client";
 
@@ -17,6 +18,7 @@ export async function registerRoutes(
   registerAuthRoutes(app);
   registerChatAuthRoutes(app);
   registerGarageBotRoutes(app);
+  registerEcosystemRoutes(app);
   setupChatWebSocket(httpServer);
   seedChatData().catch(console.error);
 

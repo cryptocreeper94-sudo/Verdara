@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const sidebarNav = [
   { path: "/", label: "Command Center", icon: Compass, authRequired: false },
@@ -37,6 +37,19 @@ export function AppLayout({ children, onShowAuth }: { children: React.ReactNode;
   const { theme, toggleTheme } = useTheme();
   const { isAuthenticated } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  useEffect(() => {
+    if (document.getElementById("dwsc-ecosystem-widget")) return;
+    const script = document.createElement("script");
+    script.id = "dwsc-ecosystem-widget";
+    script.src = "https://dwsc.io/api/ecosystem/widget.js";
+    script.async = true;
+    document.body.appendChild(script);
+    return () => {
+      const el = document.getElementById("dwsc-ecosystem-widget");
+      if (el) el.remove();
+    };
+  }, []);
 
   const visibleSidebarNav = sidebarNav.filter(item => isAuthenticated || !item.authRequired);
 

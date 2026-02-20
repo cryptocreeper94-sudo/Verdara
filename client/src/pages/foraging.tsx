@@ -61,9 +61,28 @@ interface WildPlant {
   historicalUse: string;
   caution: string;
   regions: string[];
+  image: string;
 }
 
-const wildPlantsDatabase: WildPlant[] = [
+const plantImages: Record<string, string> = {
+  "Dandelion": "/images/plant-dandelion.jpg",
+  "Cattail": "/images/plant-cattail.jpg",
+  "Elderberry": "/images/plant-elderberry.jpg",
+  "Stinging Nettle": "/images/plant-stinging-nettle.jpg",
+  "Plantain": "/images/plant-plantain.jpg",
+  "Yarrow": "/images/plant-yarrow.jpg",
+  "Wild Garlic (Ramps)": "/images/plant-wild-garlic.jpg",
+  "Echinacea": "/images/plant-echinacea.jpg",
+  "Chickweed": "/images/plant-chickweed.jpg",
+  "Willow Bark": "/images/plant-willow-bark.jpg",
+  "Morel Mushroom": "/images/plant-morel.jpg",
+  "Pawpaw": "/images/plant-pawpaw.jpg",
+  "Mullein": "/images/plant-mullein.jpg",
+  "Wood Sorrel": "/images/plant-wood-sorrel.jpg",
+  "Sassafras": "/images/plant-sassafras.jpg",
+};
+
+const wildPlantsDatabase: WildPlant[] = ([
   {
     name: "Dandelion",
     scientificName: "Taraxacum officinale",
@@ -244,7 +263,7 @@ const wildPlantsDatabase: WildPlant[] = [
     caution: "FDA banned safrole (found in root bark oil) as a food additive due to cancer concerns in lab animals. Dried leaf powder (file) is considered safe in culinary amounts. Use root bark tea sparingly if at all.",
     regions: ["Eastern US", "Southeast", "Midwest"],
   },
-];
+] as Omit<WildPlant, "image">[]).map(p => ({ ...p, image: plantImages[p.name] || "/images/cat-foraging.jpg" }));
 
 const plantCategoryColors = {
   edible: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
@@ -421,6 +440,29 @@ export default function Foraging() {
           </TabsList>
 
           <TabsContent value="guide" className="mt-5">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-xl bg-purple-500/10 border border-purple-500/20 p-4 mb-5"
+              data-testid="vedasolus-integration-banner"
+            >
+              <div className="flex items-start gap-3">
+                <Pill className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-purple-400">VedaSolus Wellness Integration</p>
+                  <p className="text-xs text-purple-400/70 mt-1">
+                    Medicinal plant data integrates with VedaSolus holistic wellness hub for Ayurvedic dosha balancing, TCM, and herbal medicine recommendations.
+                  </p>
+                  <a href="https://vedasolus.io" target="_blank" rel="noopener noreferrer" className="inline-block mt-2">
+                    <Button variant="outline" size="sm" className="border-purple-500/30 text-purple-400" data-testid="button-vedasolus-banner-link">
+                      Explore VedaSolus
+                      <ExternalLink className="w-3 h-3 ml-1.5" />
+                    </Button>
+                  </a>
+                </div>
+              </div>
+            </motion.div>
+
             <div className="flex flex-wrap items-center gap-3 mb-5">
               <div className="flex-1 min-w-[200px] flex items-center gap-2.5 bg-card border border-card-border rounded-xl px-4 py-3">
                 <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
@@ -467,32 +509,40 @@ export default function Foraging() {
                     transition={{ duration: 0.3, delay: i * 0.03 }}
                   >
                     <Card
-                      className="overflow-visible border-card-border bg-card/80 backdrop-blur-sm cursor-pointer hover-elevate"
+                      className="overflow-hidden border-card-border bg-card/80 backdrop-blur-sm cursor-pointer hover-elevate"
                       data-testid={`card-plant-${plant.name.toLowerCase().replace(/\s+/g, "-")}`}
                       onClick={() => togglePlant(plant.name)}
                     >
-                      <CardContent className="p-5">
-                        <div className="flex items-start justify-between gap-3 mb-3">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h3 className="font-semibold text-foreground">{plant.name}</h3>
-                              <Badge className={plantCategoryColors[plant.category]} variant="outline">
-                                {plant.category === "edible" && <Sprout className="w-3 h-3 mr-1" />}
-                                {plant.category === "medicinal" && <Pill className="w-3 h-3 mr-1" />}
-                                {plant.category === "both" && <Flower2 className="w-3 h-3 mr-1" />}
-                                {plantCategoryLabels[plant.category]}
-                              </Badge>
-                            </div>
-                            <p className="text-xs text-muted-foreground italic">{plant.scientificName}</p>
+                      <div className="relative h-36 overflow-hidden">
+                        <img
+                          src={plant.image}
+                          alt={plant.name}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                        <div className="absolute bottom-3 left-4 right-4 flex items-end justify-between gap-2">
+                          <div>
+                            <h3 className="font-semibold text-white text-base">{plant.name}</h3>
+                            <p className="text-xs text-white/70 italic">{plant.scientificName}</p>
                           </div>
+                          <Badge className={plantCategoryColors[plant.category]} variant="outline">
+                            {plant.category === "edible" && <Sprout className="w-3 h-3 mr-1" />}
+                            {plant.category === "medicinal" && <Pill className="w-3 h-3 mr-1" />}
+                            {plant.category === "both" && <Flower2 className="w-3 h-3 mr-1" />}
+                            {plantCategoryLabels[plant.category]}
+                          </Badge>
+                        </div>
+                      </div>
+                      <CardContent className="p-5">
+                        <div className="flex items-start justify-between gap-2 mb-3">
+                          <p className="text-sm text-muted-foreground flex-1">{plant.description}</p>
                           {isExpanded ? (
-                            <ChevronUp className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-1" />
+                            <ChevronUp className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
                           ) : (
-                            <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-1" />
+                            <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
                           )}
                         </div>
-
-                        <p className="text-sm text-muted-foreground mb-3">{plant.description}</p>
 
                         <div className="flex flex-wrap gap-1.5 mb-3">
                           <Badge variant="outline" className="text-xs text-emerald-400 border-emerald-500/30">
@@ -540,6 +590,24 @@ export default function Foraging() {
                                 ))}
                               </div>
                             </div>
+
+                            {(plant.category === "medicinal" || plant.category === "both") && (
+                              <div className="pt-2">
+                                <a
+                                  href={`https://vedasolus.io/plant/${encodeURIComponent(plant.name.toLowerCase().replace(/\s+/g, '-'))}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  data-testid={`link-vedasolus-${plant.name.toLowerCase().replace(/\s+/g, "-")}`}
+                                >
+                                  <Button variant="outline" size="sm" className="border-purple-500/30 text-purple-400">
+                                    <Pill className="w-3.5 h-3.5 mr-1.5" />
+                                    View on VedaSolus
+                                    <ExternalLink className="w-3 h-3 ml-1.5" />
+                                  </Button>
+                                </a>
+                              </div>
+                            )}
                           </motion.div>
                         )}
                       </CardContent>
