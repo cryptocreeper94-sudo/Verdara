@@ -1,11 +1,12 @@
 import { motion } from "framer-motion";
-import { CalendarDays, GripVertical, Clock, MapPin, Plus, Share2, Sun, Cloud, CloudRain, CloudSun, Star } from "lucide-react";
+import { CalendarDays, GripVertical, Clock, MapPin, Plus, Share2, Sun, Cloud, CloudRain, CloudSun, Star, ArrowLeft, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { tripWaypoints, gearCategories, campgrounds, weeklyForecast } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
+import { Link } from "wouter";
 
 const weatherIcons: Record<string, typeof Sun> = {
   sun: Sun,
@@ -17,6 +18,18 @@ const weatherIcons: Record<string, typeof Sun> = {
 export default function Planner() {
   return (
     <div className="max-w-6xl mx-auto px-5 md:px-10 py-8 md:py-12">
+      <div className="lg:hidden flex items-center gap-2 mb-6">
+        <Link href="/explore">
+          <Button size="icon" variant="ghost" data-testid="button-back-planner">
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+        </Link>
+        <Link href="/">
+          <Button size="icon" variant="ghost" data-testid="button-home-planner">
+            <Home className="w-5 h-5" />
+          </Button>
+        </Link>
+      </div>
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-wrap items-center justify-between gap-4 mb-10">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">Trip Planner</h1>

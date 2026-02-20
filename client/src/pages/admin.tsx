@@ -7,7 +7,7 @@ import {
   Search, Compass, Layers, Star, Navigation, BarChart3, Users,
   Megaphone, Settings, Shield, Server, CreditCard, Globe, Code2,
   LineChart, PieChart, TrendingUp, Activity, FileText, Target,
-  Bell, Mail, Palette, Lock, Database, Gauge, Wrench
+  Bell, Mail, Palette, Lock, Database, Gauge, Wrench, ArrowLeft, Home
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -206,6 +206,18 @@ export default function Admin() {
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-background" />
+        <div className="lg:hidden absolute top-4 left-4 z-10 flex items-center gap-2">
+          <Link href="/explore">
+            <Button size="icon" variant="ghost" className="bg-black/30 backdrop-blur-md text-white" data-testid="button-back-admin">
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+          </Link>
+          <Link href="/">
+            <Button size="icon" variant="ghost" className="bg-black/30 backdrop-blur-md text-white" data-testid="button-home-admin">
+              <Home className="w-5 h-5" />
+            </Button>
+          </Link>
+        </div>
         <div className="absolute inset-0 flex flex-col items-center justify-center px-5 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

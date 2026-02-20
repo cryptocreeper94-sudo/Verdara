@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, Camera, Image, RotateCw, Crop, Share2, Bookmark, ChevronDown, ChevronRight, Loader2, TreePine, Fish, Leaf } from "lucide-react";
+import { Upload, Camera, Image, RotateCw, Crop, Share2, Bookmark, ChevronDown, ChevronRight, Loader2, TreePine, Fish, Leaf, ArrowLeft, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { similarSpecies } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
+import { Link } from "wouter";
 
 type ViewState = "upload" | "analyzing" | "results";
 
@@ -21,6 +22,18 @@ export default function Identify() {
 
   return (
     <div className="max-w-4xl mx-auto px-5 md:px-10 py-8 md:py-12">
+      <div className="lg:hidden flex items-center gap-2 mb-6">
+        <Link href="/explore">
+          <Button size="icon" variant="ghost" data-testid="button-back-identify">
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+        </Link>
+        <Link href="/">
+          <Button size="icon" variant="ghost" data-testid="button-home-identify">
+            <Home className="w-5 h-5" />
+          </Button>
+        </Link>
+      </div>
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">AI Species Identification</h1>
         <p className="text-muted-foreground text-sm mb-10">Upload a photo to identify trees, plants, fish, or wildlife instantly</p>
