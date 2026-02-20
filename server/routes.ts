@@ -7,7 +7,7 @@ import { setupChatWebSocket } from "./chat-ws";
 import { seedChatData } from "./seedChat";
 import { insertTripPlanSchema, insertMarketplaceListingSchema, insertActivityLogSchema, insertArboristClientSchema, insertArboristJobSchema, insertArboristInvoiceSchema, insertCampgroundBookingSchema, insertCatalogLocationSchema, insertLocationSubmissionSchema, insertReviewSchema } from "@shared/schema";
 import { registerGarageBotRoutes } from "./garagebot";
-import { registerEcosystemRoutes } from "./ecosystem";
+import { registerEcosystemRoutes, stampToChain } from "./ecosystem";
 import Stripe from "stripe";
 import { openai } from "./replit_integrations/image/client";
 
@@ -157,6 +157,10 @@ export async function registerRoutes(
         date: new Date().toLocaleDateString(),
       });
 
+      stampToChain(req.userId!, "marketplace_listing", `Listed ${listing.species} (${listing.grade}) at $${listing.pricePerBf}/bf`, {
+        listingId: listing.id, species: listing.species, grade: listing.grade, price: listing.pricePerBf,
+      });
+
       res.status(201).json(listing);
     } catch (error) {
       console.error("Error creating listing:", error);
@@ -230,6 +234,10 @@ export async function registerRoutes(
         type: "trail",
         title: `Created trip plan: ${plan.title}`,
         date: new Date().toLocaleDateString(),
+      });
+
+      stampToChain(req.userId!, "trip_plan_created", `Trip plan: ${plan.title}`, {
+        tripId: plan.id, title: plan.title, destination: plan.destination,
       });
 
       res.status(201).json(plan);
@@ -477,6 +485,11 @@ export async function registerRoutes(
       });
       if (!parsed.success) return res.status(400).json({ message: "Invalid invoice data", errors: parsed.error.flatten().fieldErrors });
       const invoice = await storage.createArboristInvoice(parsed.data);
+
+      stampToChain(req.userId!, "arborist_invoice_created", `Invoice ${invoiceNumber} — $${total.toFixed(2)}`, {
+        invoiceId: invoice.id, invoiceNumber, total, itemCount: items.length,
+      });
+
       res.status(201).json(invoice);
     } catch (error) {
       console.error("Error creating arborist invoice:", error);
@@ -528,6 +541,11 @@ export async function registerRoutes(
       const parsed = insertCampgroundBookingSchema.safeParse({ ...req.body, userId: req.userId! });
       if (!parsed.success) return res.status(400).json({ message: "Invalid booking data", errors: parsed.error.flatten().fieldErrors });
       const booking = await storage.createCampgroundBooking(parsed.data);
+
+      stampToChain(req.userId!, "campground_booking", `Booked campground: ${booking.campgroundName || "reservation"} (${booking.checkIn} to ${booking.checkOut})`, {
+        bookingId: booking.id, campgroundName: booking.campgroundName, checkIn: booking.checkIn, checkOut: booking.checkOut,
+      });
+
       res.status(201).json(booking);
     } catch (error) {
       console.error("Error creating booking:", error);
@@ -896,6 +914,11 @@ export async function registerRoutes(
         cancel_url: `${baseUrl}/marketplace?checkout=cancelled`,
       });
 
+      stampToChain(req.userId!, "marketplace_purchase", `Checkout for ${listing.species} (${listing.grade}) x${quantity}`, {
+        listingId: listing.id, species: listing.species, grade: listing.grade,
+        quantity, unitAmount: unitAmountCents, sessionId: session.id,
+      });
+
       res.json({ url: session.url });
     } catch (error) {
       console.error("Error creating checkout session:", error);
@@ -945,6 +968,11 @@ export async function registerRoutes(
         userName: user.name || user.email.split("@")[0],
       });
       const review = await storage.createReview(data);
+
+      stampToChain(req.userId!, "review_submitted", `Review for ${data.targetType} #${data.targetId} — ${data.rating}/5`, {
+        reviewId: review.id, targetType: data.targetType, targetId: data.targetId, rating: data.rating,
+      });
+
       res.status(201).json(review);
     } catch (error) {
       console.error("Error creating review:", error);
@@ -979,6 +1007,15 @@ export async function registerRoutes(
       });
 
       const result = JSON.parse(response.choices[0]?.message?.content || "{}");
+
+      if (result.commonName && result.commonName !== "Unknown") {
+        stampToChain(req.userId!, "species_identification", `Identified: ${result.commonName} (${result.scientificName}) — ${result.confidence}% confidence`, {
+          commonName: result.commonName, scientificName: result.scientificName,
+          confidence: result.confidence, category: result.category,
+          conservationStatus: result.conservationStatus,
+        });
+      }
+
       res.json(result);
     } catch (error) {
       console.error("Error identifying species:", error);

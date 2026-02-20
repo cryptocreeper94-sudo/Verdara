@@ -56,6 +56,28 @@ function hmacHeaders(body: any = ""): Record<string, string> {
   };
 }
 
+export async function stampToChain(userId: number, category: string, data: string, metadata: Record<string, any> = {}): Promise<void> {
+  try {
+    const { trustLayerId } = await getOrCreateTrustLayerId(userId);
+    const apiKey = process.env.DWSTAMP_API_KEY;
+    await dwscFetch("/api/stamp/dual", {
+      apiKey,
+      method: "POST",
+      body: {
+        data,
+        category,
+        metadata: { ...metadata, trustLayerId },
+        appId: "verdara",
+        appName: "Verdara",
+        chains: ["darkwave"],
+      },
+    });
+    console.log(`[DW-STAMP] ${category}: ${data}`);
+  } catch (err: any) {
+    console.warn(`[DW-STAMP] Failed to stamp ${category}:`, err?.data?.message || err?.message || "unknown error");
+  }
+}
+
 export function registerEcosystemRoutes(app: Express) {
 
   // ─── TrustShield (Vendor Verification) ───────────────────────
@@ -360,6 +382,12 @@ export function registerEcosystemRoutes(app: Express) {
     try {
       const { jwt } = await getOrCreateTrustLayerId(req.userId!);
       const data = await tvFetch("/api/studio/media/confirm", jwt, { method: "POST", body: req.body });
+
+      stampToChain(req.userId!, "trustvault_media_upload", `Uploaded media: ${req.body.title || req.body.filename}`, {
+        mediaId: data.id, title: req.body.title, contentType: req.body.contentType,
+        tags: req.body.tags, filename: req.body.filename,
+      });
+
       res.json(data);
     } catch (error: any) {
       res.status(error?.status || 502).json(error?.data || { message: "TrustVault unavailable" });
@@ -370,6 +398,11 @@ export function registerEcosystemRoutes(app: Express) {
     try {
       const { jwt } = await getOrCreateTrustLayerId(req.userId!);
       const data = await tvFetch("/api/studio/projects/create", jwt, { method: "POST", body: req.body });
+
+      stampToChain(req.userId!, "trustvault_project_created", `Project: ${req.body.title} (${req.body.type})`, {
+        projectId: data.projectId, title: req.body.title, type: req.body.type,
+      });
+
       res.json(data);
     } catch (error: any) {
       res.status(error?.status || 502).json(error?.data || { message: "TrustVault unavailable" });
