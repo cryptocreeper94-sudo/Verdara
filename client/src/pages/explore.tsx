@@ -62,7 +62,7 @@ const featureCategories = [
     icon: Bike,
     featureCount: 5,
     color: "amber",
-    href: "/trails",
+    href: "/mtb",
     features: [
       "MTB-specific trail filtering",
       "Technical difficulty ratings",
@@ -97,7 +97,7 @@ const featureCategories = [
     icon: Tent,
     featureCount: 6,
     color: "emerald",
-    href: "/planner",
+    href: "/camping",
     features: [
       "Campground directory (developed + dispersed)",
       "Campsite booking integration",
@@ -150,7 +150,7 @@ const featureCategories = [
     icon: Zap,
     featureCount: 8,
     color: "emerald",
-    href: "/trails",
+    href: "/emobility",
     features: [
       "E-bike trail compatibility filtering",
       "E-bike charging station map",
@@ -170,7 +170,7 @@ const featureCategories = [
     icon: Snowflake,
     featureCount: 5,
     color: "slate",
-    href: "/trails",
+    href: "/winter",
     features: [
       "Ski resort directory with conditions",
       "Backcountry skiing/snowboarding zones",
@@ -187,7 +187,7 @@ const featureCategories = [
     icon: Waves,
     featureCount: 5,
     color: "slate",
-    href: "/trails",
+    href: "/watersports",
     features: [
       "Kayaking/canoeing launch sites",
       "Stand-up paddleboarding locations",
@@ -297,7 +297,7 @@ const featureCategories = [
     icon: Anchor,
     featureCount: 8,
     color: "slate",
-    href: "/trails",
+    href: "/charters",
     features: [
       "Charter boat directory",
       "Captain profiles with ratings",
@@ -354,7 +354,7 @@ const featureCategories = [
     icon: DollarSign,
     featureCount: 8,
     color: "amber",
-    href: "/marketplace",
+    href: "/price-compare",
     features: [
       "Product search across 50+ retailers",
       "Real-time price comparison",

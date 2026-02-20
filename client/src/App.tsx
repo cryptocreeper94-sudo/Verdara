@@ -23,6 +23,13 @@ import Arborist from "@/pages/arborist";
 import AuthPage from "@/pages/auth";
 import Survival from "@/pages/survival";
 import Conservation from "@/pages/conservation";
+import Mtb from "@/pages/mtb";
+import Camping from "@/pages/camping";
+import Emobility from "@/pages/emobility";
+import Winter from "@/pages/winter";
+import Watersports from "@/pages/watersports";
+import Charters from "@/pages/charters";
+import PriceCompare from "@/pages/price-compare";
 import NotFound from "@/pages/not-found";
 import { Loader2, TreePine } from "lucide-react";
 
@@ -65,6 +72,13 @@ function AppContent() {
         <Route path="/arborist" component={Arborist} />
         <Route path="/survival" component={Survival} />
         <Route path="/conservation" component={Conservation} />
+        <Route path="/mtb" component={Mtb} />
+        <Route path="/camping" component={Camping} />
+        <Route path="/emobility" component={Emobility} />
+        <Route path="/winter" component={Winter} />
+        <Route path="/watersports" component={Watersports} />
+        <Route path="/charters" component={Charters} />
+        <Route path="/price-compare" component={PriceCompare} />
         <Route component={NotFound} />
       </Switch>
     </AppLayout>
