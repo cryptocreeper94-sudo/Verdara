@@ -111,7 +111,7 @@ export default function Catalog() {
   });
 
   const { data: nearbyData, isLoading: nearbyLoading } = useQuery<CatalogLocationWithDistance[]>({
-    queryKey: nearbyQueryKey!,
+    queryKey: nearbyQueryKey ?? ["/api/catalog/nearby", "?zip=00000&radius=0"],
     enabled: isNearbySearch,
   });
 

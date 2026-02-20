@@ -4,7 +4,7 @@
 Verdara is a comprehensive AI-powered outdoor recreation super-app by DarkWave Studios. It combines nature identification, outdoor activities suite, arborist business management, wood economy marketplace, trip planning, and more. Full 138-feature roadmap documented in attached_assets/.
 
 ## Current State
-Phase 7: Feature Completion - All 18 categories with dedicated pages, Stripe subscription webhook for tier updates, Price Compare with affiliate retailer links, DarkWave Weather with live Open-Meteo API data, campground booking system with reservation UI, PWA offline caching via service worker. Affiliate program research document at attached_assets/affiliate-programs.md. GarageBot is an external product (NOT built into Verdara) - will connect via API later.
+Phase 8: Location Catalog - All 18 categories with dedicated pages, Stripe subscription webhook for tier updates, Price Compare with affiliate retailer links, DarkWave Weather with live Open-Meteo API data, campground booking system with reservation UI, PWA offline caching via service worker. NEW: Nationwide outdoor location catalog with 125+ verified locations across 41 US states, proximity search by zip code, rich detail pages, and catalog browse/search UI. Affiliate program research document at attached_assets/affiliate-programs.md. GarageBot is an external product (NOT built into Verdara) - will connect via API later.
 
 ## Tech Stack
 - Frontend: React 18 + TypeScript, Vite, Tailwind CSS, Shadcn UI, Framer Motion, Wouter routing, TanStack React Query
@@ -15,7 +15,7 @@ Phase 7: Feature Completion - All 18 categories with dedicated pages, Stripe sub
 - Auth: Custom email/password (NOT Replit Auth), session tokens, httpOnly secure cookies
 
 ## Project Structure
-- `client/src/pages/` - 24 screens + auth page: home, explore, identify, trails, track, planner, marketplace, dashboard, admin, auth, fishing, hunting, climbing, public-lands, arborist, survival, conservation, mtb, camping, emobility, winter, watersports, charters, price-compare
+- `client/src/pages/` - 26 screens + auth page: home, explore, identify, trails, track, planner, marketplace, dashboard, admin, auth, fishing, hunting, climbing, public-lands, arborist, survival, conservation, mtb, camping, emobility, winter, watersports, charters, price-compare, catalog, catalog-detail
 - `client/src/components/` - Custom components: glass-card, bento-grid, trust-badge, weather-widget, theme-provider, app-layout
 - `client/src/hooks/use-auth.ts` - Auth context hook with login/register/logout mutations
 - `client/src/lib/mock-data.ts` - Remaining mock data (activity categories, gear lists, weather forecasts)
@@ -24,7 +24,8 @@ Phase 7: Feature Completion - All 18 categories with dedicated pages, Stripe sub
 - `server/email.ts` - Resend email integration for verification emails
 - `server/storage.ts` - PostgreSQL storage layer with all CRUD operations
 - `server/seed.ts` - Database seeding script with trails, campgrounds, marketplace listings, activity locations (56 entries across 10 types)
-- `shared/schema.ts` - Drizzle ORM schema: users, sessions, trails, campgrounds, marketplaceListings, tripPlans, identifications, activityLog, activityLocations, arboristClients, arboristJobs, arboristInvoices
+- `server/catalog-seed.ts` - Catalog seeding with 125 real US outdoor locations across 41 states (national parks, state parks, fishing, hunting, climbing, camping, MTB, watersports, winter sports, e-mobility, charters, public lands, conservation)
+- `shared/schema.ts` - Drizzle ORM schema: users, sessions, trails, campgrounds, marketplaceListings, tripPlans, identifications, activityLog, activityLocations, arboristClients, arboristJobs, arboristInvoices, catalogLocations, locationSubmissions, campgroundBookings
 
 ## Authentication
 - Custom email/password auth (NOT Replit Auth)

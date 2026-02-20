@@ -2,7 +2,7 @@ import { useLocation, Link } from "wouter";
 import { useTheme } from "./theme-provider";
 import {
   Home, ScanSearch, Map, CalendarDays, Store, User,
-  Sun, Moon, TreePine, Menu, Compass, Gauge, Axe
+  Sun, Moon, TreePine, Menu, Compass, Gauge, Axe, MapPinned
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -15,6 +15,7 @@ const sidebarNav = [
   { path: "/trails", label: "Trails", icon: Map },
   { path: "/planner", label: "Planner", icon: CalendarDays },
   { path: "/marketplace", label: "Market", icon: Store },
+  { path: "/catalog", label: "Catalog", icon: MapPinned },
   { path: "/dashboard", label: "Profile", icon: User },
   { path: "/arborist", label: "Arborist", icon: Axe },
   { path: "/admin", label: "Admin", icon: Gauge },

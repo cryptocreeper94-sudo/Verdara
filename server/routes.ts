@@ -593,9 +593,10 @@ export async function registerRoutes(
       if (!lat || !lng) return res.status(400).json({ message: "lat and lng are required" });
       const latNum = parseFloat(lat as string);
       const lngNum = parseFloat(lng as string);
-      const radiusNum = radius ? parseFloat(radius as string) : 50;
-      const limitNum = limit ? parseInt(limit as string) : 50;
+      const radiusNum = Math.min(Math.max(radius ? parseFloat(radius as string) : 50, 1), 500);
+      const limitNum = Math.min(Math.max(limit ? parseInt(limit as string) : 50, 1), 100);
       if (isNaN(latNum) || isNaN(lngNum)) return res.status(400).json({ message: "Invalid coordinates" });
+      if (isNaN(radiusNum) || isNaN(limitNum)) return res.status(400).json({ message: "Invalid radius or limit" });
       const locations = await storage.searchCatalogByProximity(latNum, lngNum, radiusNum, type as string | undefined, limitNum);
       res.json(locations);
     } catch (error) {
