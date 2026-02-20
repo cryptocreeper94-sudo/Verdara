@@ -1,4 +1,4 @@
-const CACHE_NAME = 'verdara-v1';
+const CACHE_NAME = 'verdara-v2';
 const MAX_API_ENTRIES = 50;
 const MAX_IMAGE_ENTRIES = 100;
 
