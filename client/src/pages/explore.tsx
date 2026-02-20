@@ -79,7 +79,7 @@ const featureCategories = [
     icon: Mountain,
     featureCount: 6,
     color: "amber",
-    href: "/trails",
+    href: "/climbing",
     features: [
       "Climbing area database (sport, trad, bouldering)",
       "Route grades (YDS, V-scale, French, UIAA)",
@@ -115,7 +115,7 @@ const featureCategories = [
     icon: Fish,
     featureCount: 5,
     color: "slate",
-    href: "/trails",
+    href: "/fishing",
     features: [
       "Fishing spot database (lakes, rivers, streams)",
       "Species availability by season",
@@ -132,7 +132,7 @@ const featureCategories = [
     icon: Crosshair,
     featureCount: 6,
     color: "amber",
-    href: "/trails",
+    href: "/hunting",
     features: [
       "Hunting unit/WMA database by state",
       "Game species seasons and bag limits",
@@ -204,7 +204,7 @@ const featureCategories = [
     icon: TreePine,
     featureCount: 8,
     color: "emerald",
-    href: "/trails",
+    href: "/public-lands",
     features: [
       "National Parks database with entrance fees",
       "State Parks by region",
@@ -224,7 +224,7 @@ const featureCategories = [
     icon: Axe,
     featureCount: 15,
     color: "emerald",
-    href: "/dashboard",
+    href: "/arborist",
     features: [
       "Client database with service history",
       "Job scheduling with reminders",
@@ -317,7 +317,7 @@ const featureCategories = [
     icon: ShieldAlert,
     featureCount: 7,
     color: "amber",
-    href: "/trails",
+    href: "/survival",
     features: [
       "Survival skills library",
       "Emergency preparation checklists",
@@ -336,7 +336,7 @@ const featureCategories = [
     icon: Heart,
     featureCount: 6,
     color: "emerald",
-    href: "/dashboard",
+    href: "/conservation",
     features: [
       "Conservation organization directory",
       "Featured orgs: RMEF, Ducks Unlimited, etc.",

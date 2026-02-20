@@ -2,7 +2,7 @@ import { useLocation, Link } from "wouter";
 import { useTheme } from "./theme-provider";
 import {
   Home, ScanSearch, Map, CalendarDays, Store, User,
-  Sun, Moon, TreePine, Menu, Compass, Gauge
+  Sun, Moon, TreePine, Menu, Compass, Gauge, Axe
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -16,6 +16,7 @@ const sidebarNav = [
   { path: "/planner", label: "Planner", icon: CalendarDays },
   { path: "/marketplace", label: "Market", icon: Store },
   { path: "/dashboard", label: "Profile", icon: User },
+  { path: "/arborist", label: "Arborist", icon: Axe },
   { path: "/admin", label: "Admin", icon: Gauge },
 ];
 
@@ -51,6 +52,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           {sidebarNav.map((item) => {
             const isActive = location === item.path;
             const isAdmin = item.path === "/admin";
+            const isArborist = item.path === "/arborist";
             return (
               <Link key={item.path} href={item.path}>
                 <div
@@ -58,12 +60,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   className={cn(
                     "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer hover-elevate",
                     isActive
-                      ? isAdmin ? "bg-amber-500/15 text-amber-400" : "bg-emerald-500/15 text-emerald-400"
+                      ? (isAdmin || isArborist) ? "bg-amber-500/15 text-amber-400" : "bg-emerald-500/15 text-emerald-400"
                       : "text-sidebar-foreground/70",
                     !sidebarOpen && "justify-center px-2"
                   )}
                 >
-                  <item.icon className={cn("w-5 h-5 flex-shrink-0", isActive && (isAdmin ? "text-amber-400" : "text-emerald-400"))} />
+                  <item.icon className={cn("w-5 h-5 flex-shrink-0", isActive && ((isAdmin || isArborist) ? "text-amber-400" : "text-emerald-400"))} />
                   {sidebarOpen && <span>{item.label}</span>}
                 </div>
               </Link>

@@ -115,6 +115,71 @@ export const activityLog = pgTable("activity_log", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const activityLocations = pgTable("activity_locations", {
+  id: serial("id").primaryKey(),
+  type: text("type").notNull(),
+  name: text("name").notNull(),
+  location: text("location").notNull(),
+  state: text("state"),
+  description: text("description"),
+  image: text("image"),
+  rating: real("rating").default(0),
+  reviews: integer("reviews").default(0),
+  difficulty: text("difficulty"),
+  season: text("season"),
+  regulations: text("regulations"),
+  species: text("species").array(),
+  amenities: text("amenities").array(),
+  tags: text("tags").array(),
+  coordinates: jsonb("coordinates").$type<{ lat: number; lng: number }>(),
+  metadata: jsonb("metadata").$type<Record<string, string>>(),
+  isFeatured: boolean("is_featured").default(false),
+});
+
+export const arboristClients = pgTable("arborist_clients", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  name: text("name").notNull(),
+  email: text("email"),
+  phone: text("phone"),
+  address: text("address"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const arboristJobs = pgTable("arborist_jobs", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  clientId: integer("client_id").references(() => arboristClients.id),
+  title: text("title").notNull(),
+  description: text("description"),
+  status: text("status").default("scheduled"),
+  scheduledDate: text("scheduled_date"),
+  completedDate: text("completed_date"),
+  crew: text("crew").array(),
+  estimatedCost: real("estimated_cost"),
+  actualCost: real("actual_cost"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const arboristInvoices = pgTable("arborist_invoices", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  clientId: integer("client_id").references(() => arboristClients.id),
+  jobId: integer("job_id").references(() => arboristJobs.id),
+  invoiceNumber: text("invoice_number").notNull(),
+  status: text("status").default("draft"),
+  items: jsonb("items").$type<{ description: string; quantity: number; unitPrice: number }[]>(),
+  subtotal: real("subtotal").default(0),
+  tax: real("tax").default(0),
+  total: real("total").default(0),
+  dueDate: text("due_date"),
+  paidDate: text("paid_date"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const passwordSchema = z.string()
   .min(8, "Password must be at least 8 characters")
   .regex(/[A-Z]/, "Password must contain at least 1 capital letter")
@@ -139,6 +204,10 @@ export const insertMarketplaceListingSchema = createInsertSchema(marketplaceList
 export const insertTripPlanSchema = createInsertSchema(tripPlans).omit({ id: true, createdAt: true });
 export const insertCampgroundSchema = createInsertSchema(campgrounds).omit({ id: true });
 export const insertActivityLogSchema = createInsertSchema(activityLog).omit({ id: true, createdAt: true });
+export const insertActivityLocationSchema = createInsertSchema(activityLocations).omit({ id: true });
+export const insertArboristClientSchema = createInsertSchema(arboristClients).omit({ id: true, createdAt: true });
+export const insertArboristJobSchema = createInsertSchema(arboristJobs).omit({ id: true, createdAt: true });
+export const insertArboristInvoiceSchema = createInsertSchema(arboristInvoices).omit({ id: true, createdAt: true });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -155,3 +224,11 @@ export type Campground = typeof campgrounds.$inferSelect;
 export type InsertActivityLog = z.infer<typeof insertActivityLogSchema>;
 export type ActivityLog = typeof activityLog.$inferSelect;
 export type Session = typeof sessions.$inferSelect;
+export type InsertActivityLocation = z.infer<typeof insertActivityLocationSchema>;
+export type ActivityLocation = typeof activityLocations.$inferSelect;
+export type InsertArboristClient = z.infer<typeof insertArboristClientSchema>;
+export type ArboristClient = typeof arboristClients.$inferSelect;
+export type InsertArboristJob = z.infer<typeof insertArboristJobSchema>;
+export type ArboristJob = typeof arboristJobs.$inferSelect;
+export type InsertArboristInvoice = z.infer<typeof insertArboristInvoiceSchema>;
+export type ArboristInvoice = typeof arboristInvoices.$inferSelect;

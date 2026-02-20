@@ -15,7 +15,14 @@ import Dashboard from "@/pages/dashboard";
 import Track from "@/pages/track";
 import Explore from "@/pages/explore";
 import Admin from "@/pages/admin";
+import Hunting from "@/pages/hunting";
+import Climbing from "@/pages/climbing";
+import Fishing from "@/pages/fishing";
+import PublicLands from "@/pages/public-lands";
+import Arborist from "@/pages/arborist";
 import AuthPage from "@/pages/auth";
+import Survival from "@/pages/survival";
+import Conservation from "@/pages/conservation";
 import NotFound from "@/pages/not-found";
 import { Loader2, TreePine } from "lucide-react";
 
@@ -51,6 +58,13 @@ function AppContent() {
         <Route path="/track/:id" component={Track} />
         <Route path="/explore" component={Explore} />
         <Route path="/admin" component={Admin} />
+        <Route path="/hunting" component={Hunting} />
+        <Route path="/climbing" component={Climbing} />
+        <Route path="/fishing" component={Fishing} />
+        <Route path="/public-lands" component={PublicLands} />
+        <Route path="/arborist" component={Arborist} />
+        <Route path="/survival" component={Survival} />
+        <Route path="/conservation" component={Conservation} />
         <Route component={NotFound} />
       </Switch>
     </AppLayout>

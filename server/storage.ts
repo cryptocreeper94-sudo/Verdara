@@ -6,9 +6,14 @@ import {
   type TripPlan, type InsertTripPlan,
   type Campground, type InsertCampground,
   type ActivityLog, type InsertActivityLog,
+  type ActivityLocation, type InsertActivityLocation,
+  type ArboristClient, type InsertArboristClient,
+  type ArboristJob, type InsertArboristJob,
+  type ArboristInvoice, type InsertArboristInvoice,
   type Session,
   users, trails, identifications, marketplaceListings,
-  tripPlans, campgrounds, activityLog, sessions
+  tripPlans, campgrounds, activityLog, sessions,
+  activityLocations, arboristClients, arboristJobs, arboristInvoices
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, ilike, or, lt, and, count, sql } from "drizzle-orm";
@@ -58,6 +63,29 @@ export interface IStorage {
   getUserStats(userId: number): Promise<{ tripsCount: number; identificationsCount: number; activitiesCount: number; listingsCount: number }>;
   searchMarketplaceListings(query: string): Promise<MarketplaceListing[]>;
   filterTrails(difficulty?: string, activityType?: string): Promise<Trail[]>;
+
+  getActivityLocations(type?: string): Promise<ActivityLocation[]>;
+  getActivityLocation(id: number): Promise<ActivityLocation | undefined>;
+  searchActivityLocations(query: string, type?: string): Promise<ActivityLocation[]>;
+  createActivityLocation(location: InsertActivityLocation): Promise<ActivityLocation>;
+
+  getArboristClients(userId: number): Promise<ArboristClient[]>;
+  getArboristClient(id: number): Promise<ArboristClient | undefined>;
+  createArboristClient(client: InsertArboristClient): Promise<ArboristClient>;
+  updateArboristClient(id: number, data: Partial<InsertArboristClient>): Promise<ArboristClient | undefined>;
+  deleteArboristClient(id: number, userId: number): Promise<boolean>;
+
+  getArboristJobs(userId: number): Promise<ArboristJob[]>;
+  getArboristJob(id: number): Promise<ArboristJob | undefined>;
+  createArboristJob(job: InsertArboristJob): Promise<ArboristJob>;
+  updateArboristJob(id: number, data: Partial<InsertArboristJob>): Promise<ArboristJob | undefined>;
+  deleteArboristJob(id: number, userId: number): Promise<boolean>;
+
+  getArboristInvoices(userId: number): Promise<ArboristInvoice[]>;
+  getArboristInvoice(id: number): Promise<ArboristInvoice | undefined>;
+  createArboristInvoice(invoice: InsertArboristInvoice): Promise<ArboristInvoice>;
+  updateArboristInvoice(id: number, data: Partial<InsertArboristInvoice>): Promise<ArboristInvoice | undefined>;
+  deleteArboristInvoice(id: number, userId: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -267,6 +295,107 @@ export class DatabaseStorage implements IStorage {
     if (activityType) conditions.push(eq(trails.activityType, activityType));
     if (conditions.length === 0) return this.getTrails();
     return db.select().from(trails).where(and(...conditions));
+  }
+
+  async getActivityLocations(type?: string): Promise<ActivityLocation[]> {
+    if (type) {
+      return db.select().from(activityLocations).where(eq(activityLocations.type, type));
+    }
+    return db.select().from(activityLocations);
+  }
+
+  async getActivityLocation(id: number): Promise<ActivityLocation | undefined> {
+    const [loc] = await db.select().from(activityLocations).where(eq(activityLocations.id, id));
+    return loc;
+  }
+
+  async searchActivityLocations(query: string, type?: string): Promise<ActivityLocation[]> {
+    const searchConditions = or(
+      ilike(activityLocations.name, `%${query}%`),
+      ilike(activityLocations.location, `%${query}%`),
+      ilike(activityLocations.state, `%${query}%`)
+    );
+    if (type) {
+      return db.select().from(activityLocations).where(and(eq(activityLocations.type, type), searchConditions));
+    }
+    return db.select().from(activityLocations).where(searchConditions!);
+  }
+
+  async createActivityLocation(location: InsertActivityLocation): Promise<ActivityLocation> {
+    const [created] = await db.insert(activityLocations).values(location as any).returning();
+    return created;
+  }
+
+  async getArboristClients(userId: number): Promise<ArboristClient[]> {
+    return db.select().from(arboristClients).where(eq(arboristClients.userId, userId)).orderBy(desc(arboristClients.createdAt));
+  }
+
+  async getArboristClient(id: number): Promise<ArboristClient | undefined> {
+    const [client] = await db.select().from(arboristClients).where(eq(arboristClients.id, id));
+    return client;
+  }
+
+  async createArboristClient(client: InsertArboristClient): Promise<ArboristClient> {
+    const [created] = await db.insert(arboristClients).values(client).returning();
+    return created;
+  }
+
+  async updateArboristClient(id: number, data: Partial<InsertArboristClient>): Promise<ArboristClient | undefined> {
+    const [updated] = await db.update(arboristClients).set(data as any).where(eq(arboristClients.id, id)).returning();
+    return updated;
+  }
+
+  async deleteArboristClient(id: number, userId: number): Promise<boolean> {
+    const result = await db.delete(arboristClients).where(and(eq(arboristClients.id, id), eq(arboristClients.userId, userId)));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async getArboristJobs(userId: number): Promise<ArboristJob[]> {
+    return db.select().from(arboristJobs).where(eq(arboristJobs.userId, userId)).orderBy(desc(arboristJobs.createdAt));
+  }
+
+  async getArboristJob(id: number): Promise<ArboristJob | undefined> {
+    const [job] = await db.select().from(arboristJobs).where(eq(arboristJobs.id, id));
+    return job;
+  }
+
+  async createArboristJob(job: InsertArboristJob): Promise<ArboristJob> {
+    const [created] = await db.insert(arboristJobs).values(job as any).returning();
+    return created;
+  }
+
+  async updateArboristJob(id: number, data: Partial<InsertArboristJob>): Promise<ArboristJob | undefined> {
+    const [updated] = await db.update(arboristJobs).set(data as any).where(eq(arboristJobs.id, id)).returning();
+    return updated;
+  }
+
+  async deleteArboristJob(id: number, userId: number): Promise<boolean> {
+    const result = await db.delete(arboristJobs).where(and(eq(arboristJobs.id, id), eq(arboristJobs.userId, userId)));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async getArboristInvoices(userId: number): Promise<ArboristInvoice[]> {
+    return db.select().from(arboristInvoices).where(eq(arboristInvoices.userId, userId)).orderBy(desc(arboristInvoices.createdAt));
+  }
+
+  async getArboristInvoice(id: number): Promise<ArboristInvoice | undefined> {
+    const [invoice] = await db.select().from(arboristInvoices).where(eq(arboristInvoices.id, id));
+    return invoice;
+  }
+
+  async createArboristInvoice(invoice: InsertArboristInvoice): Promise<ArboristInvoice> {
+    const [created] = await db.insert(arboristInvoices).values(invoice as any).returning();
+    return created;
+  }
+
+  async updateArboristInvoice(id: number, data: Partial<InsertArboristInvoice>): Promise<ArboristInvoice | undefined> {
+    const [updated] = await db.update(arboristInvoices).set(data as any).where(eq(arboristInvoices.id, id)).returning();
+    return updated;
+  }
+
+  async deleteArboristInvoice(id: number, userId: number): Promise<boolean> {
+    const result = await db.delete(arboristInvoices).where(and(eq(arboristInvoices.id, id), eq(arboristInvoices.userId, userId)));
+    return (result.rowCount ?? 0) > 0;
   }
 }
 

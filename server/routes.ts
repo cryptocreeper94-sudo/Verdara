@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { type Server } from "http";
 import { storage } from "./storage";
 import { registerAuthRoutes, requireAuth } from "./auth";
-import { insertTripPlanSchema, insertMarketplaceListingSchema, insertActivityLogSchema } from "@shared/schema";
+import { insertTripPlanSchema, insertMarketplaceListingSchema, insertActivityLogSchema, insertArboristClientSchema, insertArboristJobSchema, insertArboristInvoiceSchema } from "@shared/schema";
 import Stripe from "stripe";
 
 export async function registerRoutes(
@@ -267,6 +267,257 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching stats:", error);
       res.status(500).json({ message: "Failed to fetch stats" });
+    }
+  });
+
+  // Activity Locations routes
+  app.get("/api/activities", async (req, res) => {
+    try {
+      const { type, q } = req.query;
+      if (q && typeof q === "string") {
+        const locations = await storage.searchActivityLocations(q, type as string | undefined);
+        return res.json(locations);
+      }
+      const locations = await storage.getActivityLocations(type as string | undefined);
+      res.json(locations);
+    } catch (error) {
+      console.error("Error fetching activity locations:", error);
+      res.status(500).json({ message: "Failed to fetch activity locations" });
+    }
+  });
+
+  app.get("/api/activities/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid location ID" });
+      const location = await storage.getActivityLocation(id);
+      if (!location) return res.status(404).json({ message: "Location not found" });
+      res.json(location);
+    } catch (error) {
+      console.error("Error fetching activity location:", error);
+      res.status(500).json({ message: "Failed to fetch activity location" });
+    }
+  });
+
+  // Arborist Client routes
+  app.get("/api/arborist/clients", requireAuth, async (req, res) => {
+    try {
+      const clients = await storage.getArboristClients(req.userId!);
+      res.json(clients);
+    } catch (error) {
+      console.error("Error fetching arborist clients:", error);
+      res.status(500).json({ message: "Failed to fetch clients" });
+    }
+  });
+
+  app.post("/api/arborist/clients", requireAuth, async (req, res) => {
+    try {
+      const parsed = insertArboristClientSchema.safeParse({ ...req.body, userId: req.userId! });
+      if (!parsed.success) return res.status(400).json({ message: "Invalid client data", errors: parsed.error.flatten().fieldErrors });
+      const client = await storage.createArboristClient(parsed.data);
+      res.status(201).json(client);
+    } catch (error) {
+      console.error("Error creating arborist client:", error);
+      res.status(500).json({ message: "Failed to create client" });
+    }
+  });
+
+  app.patch("/api/arborist/clients/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid client ID" });
+      const existing = await storage.getArboristClient(id);
+      if (!existing || existing.userId !== req.userId!) return res.status(404).json({ message: "Client not found" });
+      const { name, email, phone, address, notes } = req.body;
+      const updated = await storage.updateArboristClient(id, { name, email, phone, address, notes });
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating arborist client:", error);
+      res.status(500).json({ message: "Failed to update client" });
+    }
+  });
+
+  app.delete("/api/arborist/clients/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid client ID" });
+      const deleted = await storage.deleteArboristClient(id, req.userId!);
+      if (!deleted) return res.status(404).json({ message: "Client not found or unauthorized" });
+      res.json({ message: "Client deleted" });
+    } catch (error) {
+      console.error("Error deleting arborist client:", error);
+      res.status(500).json({ message: "Failed to delete client" });
+    }
+  });
+
+  // Arborist Job routes
+  app.get("/api/arborist/jobs", requireAuth, async (req, res) => {
+    try {
+      const jobs = await storage.getArboristJobs(req.userId!);
+      res.json(jobs);
+    } catch (error) {
+      console.error("Error fetching arborist jobs:", error);
+      res.status(500).json({ message: "Failed to fetch jobs" });
+    }
+  });
+
+  app.post("/api/arborist/jobs", requireAuth, async (req, res) => {
+    try {
+      const parsed = insertArboristJobSchema.safeParse({ ...req.body, userId: req.userId!, status: "scheduled" });
+      if (!parsed.success) return res.status(400).json({ message: "Invalid job data", errors: parsed.error.flatten().fieldErrors });
+      const job = await storage.createArboristJob(parsed.data);
+      res.status(201).json(job);
+    } catch (error) {
+      console.error("Error creating arborist job:", error);
+      res.status(500).json({ message: "Failed to create job" });
+    }
+  });
+
+  app.patch("/api/arborist/jobs/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid job ID" });
+      const existing = await storage.getArboristJob(id);
+      if (!existing || existing.userId !== req.userId!) return res.status(404).json({ message: "Job not found" });
+      const { title, clientId, description, status, scheduledDate, completedDate, crew, estimatedCost, actualCost, notes } = req.body;
+      const updated = await storage.updateArboristJob(id, { title, clientId, description, status, scheduledDate, completedDate, crew, estimatedCost, actualCost, notes });
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating arborist job:", error);
+      res.status(500).json({ message: "Failed to update job" });
+    }
+  });
+
+  app.delete("/api/arborist/jobs/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid job ID" });
+      const deleted = await storage.deleteArboristJob(id, req.userId!);
+      if (!deleted) return res.status(404).json({ message: "Job not found or unauthorized" });
+      res.json({ message: "Job deleted" });
+    } catch (error) {
+      console.error("Error deleting arborist job:", error);
+      res.status(500).json({ message: "Failed to delete job" });
+    }
+  });
+
+  // Arborist Invoice routes
+  app.get("/api/arborist/invoices", requireAuth, async (req, res) => {
+    try {
+      const invoices = await storage.getArboristInvoices(req.userId!);
+      res.json(invoices);
+    } catch (error) {
+      console.error("Error fetching arborist invoices:", error);
+      res.status(500).json({ message: "Failed to fetch invoices" });
+    }
+  });
+
+  app.post("/api/arborist/invoices", requireAuth, async (req, res) => {
+    try {
+      const { clientId, jobId, items, dueDate, notes, tax } = req.body;
+      if (!items || !Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({ message: "At least one invoice item is required" });
+      }
+      for (const item of items) {
+        if (!item.description || typeof item.quantity !== "number" || typeof item.unitPrice !== "number") {
+          return res.status(400).json({ message: "Each item must have description, quantity (number), and unitPrice (number)" });
+        }
+      }
+      const subtotal = items.reduce((sum: number, item: { quantity: number; unitPrice: number }) => sum + (item.quantity * item.unitPrice), 0);
+      const taxAmount = typeof tax === "number" ? tax : 0;
+      const total = subtotal + taxAmount;
+      const invoiceCount = (await storage.getArboristInvoices(req.userId!)).length;
+      const invoiceNumber = `INV-${String(invoiceCount + 1).padStart(4, "0")}`;
+
+      const parsed = insertArboristInvoiceSchema.safeParse({
+        userId: req.userId!,
+        clientId: clientId || null,
+        jobId: jobId || null,
+        invoiceNumber,
+        status: "draft",
+        items,
+        subtotal,
+        tax: taxAmount,
+        total,
+        dueDate: dueDate || null,
+        paidDate: null,
+        notes: notes || null,
+      });
+      if (!parsed.success) return res.status(400).json({ message: "Invalid invoice data", errors: parsed.error.flatten().fieldErrors });
+      const invoice = await storage.createArboristInvoice(parsed.data);
+      res.status(201).json(invoice);
+    } catch (error) {
+      console.error("Error creating arborist invoice:", error);
+      res.status(500).json({ message: "Failed to create invoice" });
+    }
+  });
+
+  app.patch("/api/arborist/invoices/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid invoice ID" });
+      const existing = await storage.getArboristInvoice(id);
+      if (!existing || existing.userId !== req.userId!) return res.status(404).json({ message: "Invoice not found" });
+      const { status, dueDate, paidDate, notes } = req.body;
+      const updated = await storage.updateArboristInvoice(id, { status, dueDate, paidDate, notes });
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating arborist invoice:", error);
+      res.status(500).json({ message: "Failed to update invoice" });
+    }
+  });
+
+  app.delete("/api/arborist/invoices/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid invoice ID" });
+      const deleted = await storage.deleteArboristInvoice(id, req.userId!);
+      if (!deleted) return res.status(404).json({ message: "Invoice not found or unauthorized" });
+      res.json({ message: "Invoice deleted" });
+    } catch (error) {
+      console.error("Error deleting arborist invoice:", error);
+      res.status(500).json({ message: "Failed to delete invoice" });
+    }
+  });
+
+  // Stripe subscription route
+  app.post("/api/subscriptions/create-checkout", requireAuth, async (req, res) => {
+    try {
+      if (!stripe) return res.status(503).json({ message: "Payment processing is not configured" });
+      const { tier } = req.body;
+      const tierConfig: Record<string, { name: string; priceInCents: number; interval: "month" | "year" }> = {
+        "outdoor_explorer": { name: "Outdoor Explorer", priceInCents: 1999, interval: "year" },
+        "craftsman_pro": { name: "Craftsman Pro", priceInCents: 2999, interval: "year" },
+        "arborist_starter": { name: "Arborist Pro - Starter", priceInCents: 4900, interval: "month" },
+        "arborist_business": { name: "Arborist Pro - Business", priceInCents: 9900, interval: "month" },
+        "arborist_enterprise": { name: "Arborist Pro - Enterprise", priceInCents: 19900, interval: "month" },
+      };
+      const config = tierConfig[tier];
+      if (!config) return res.status(400).json({ message: "Invalid subscription tier" });
+
+      const host = req.headers.host || "localhost:5000";
+      const protocol = req.headers["x-forwarded-proto"] === "https" ? "https" : (host.includes("localhost") ? "http" : "https");
+      const baseUrl = `${protocol}://${host}`;
+
+      const session = await stripe.checkout.sessions.create({
+        mode: "subscription",
+        line_items: [{
+          price_data: {
+            currency: "usd",
+            product_data: { name: `Verdara ${config.name}` },
+            unit_amount: config.priceInCents,
+            recurring: { interval: config.interval },
+          },
+          quantity: 1,
+        }],
+        metadata: { userId: req.userId!.toString(), tier: config.name },
+        success_url: `${baseUrl}/dashboard?subscription=success`,
+        cancel_url: `${baseUrl}/dashboard?subscription=cancelled`,
+      });
+      res.json({ url: session.url });
+    } catch (error) {
+      console.error("Error creating subscription checkout:", error);
+      res.status(500).json({ message: "Failed to create subscription checkout" });
     }
   });
 
