@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, MessageSquare, HandCoins, ShieldCheck, X, ArrowUpDown, Loader2, Plus, Trash2, Package } from "lucide-react";
+import { Search, MessageSquare, HandCoins, ShieldCheck, X, ArrowUpDown, Loader2, Plus, Trash2, Package, CreditCard, CheckCircle2, XCircle, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -10,6 +10,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { useSearch } from "wouter";
 
 export default function Marketplace() {
   const { user } = useAuth();
@@ -24,6 +25,22 @@ export default function Marketplace() {
   const [speciesFilter, setSpeciesFilter] = useState("all");
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [viewMode, setViewMode] = useState<"browse" | "my-listings">("browse");
+
+  const [buyingListingId, setBuyingListingId] = useState<number | null>(null);
+  const [buyQuantity, setBuyQuantity] = useState(1);
+  const [checkoutBanner, setCheckoutBanner] = useState<"success" | "cancelled" | null>(null);
+
+  const searchString = useSearch();
+  useEffect(() => {
+    const params = new URLSearchParams(searchString);
+    const checkoutStatus = params.get("checkout");
+    if (checkoutStatus === "success") {
+      setCheckoutBanner("success");
+      toast({ title: "Payment successful", description: "Your order has been placed. The seller will be notified." });
+    } else if (checkoutStatus === "cancelled") {
+      setCheckoutBanner("cancelled");
+    }
+  }, []);
 
   const [newSpecies, setNewSpecies] = useState("");
   const [newGrade, setNewGrade] = useState("");
@@ -76,6 +93,21 @@ export default function Marketplace() {
     },
   });
 
+  const startCheckout = useMutation({
+    mutationFn: async ({ listingId, quantity }: { listingId: number; quantity: number }) => {
+      const res = await apiRequest("POST", "/api/checkout/create-session", { listingId, quantity });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to start checkout. Please try again.", variant: "destructive" });
+    },
+  });
+
   const resetForm = () => {
     setNewSpecies("");
     setNewGrade("");
@@ -108,6 +140,45 @@ export default function Marketplace() {
 
   return (
     <div className="max-w-7xl mx-auto px-5 md:px-10 py-8 md:py-12">
+      <AnimatePresence>
+        {checkoutBanner === "success" && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-4 mb-6 flex items-center gap-3"
+            data-testid="banner-checkout-success"
+          >
+            <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-foreground">Payment successful</p>
+              <p className="text-xs text-muted-foreground">Your order has been placed. The seller will be notified and your purchase is protected by TrustShield Escrow.</p>
+            </div>
+            <Button size="icon" variant="ghost" onClick={() => setCheckoutBanner(null)}>
+              <X className="w-4 h-4" />
+            </Button>
+          </motion.div>
+        )}
+        {checkoutBanner === "cancelled" && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-4 mb-6 flex items-center gap-3"
+            data-testid="banner-checkout-cancelled"
+          >
+            <XCircle className="w-5 h-5 text-amber-500 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-foreground">Checkout cancelled</p>
+              <p className="text-xs text-muted-foreground">No payment was processed. You can try again anytime.</p>
+            </div>
+            <Button size="icon" variant="ghost" onClick={() => setCheckoutBanner(null)}>
+              <X className="w-4 h-4" />
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
         <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">Wood Marketplace</h1>
@@ -407,14 +478,50 @@ export default function Marketplace() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                      <Button variant="outline" className="flex-1 gap-1.5 text-xs" data-testid={`button-message-${listing.id}`}>
-                        <MessageSquare className="w-3.5 h-3.5" /> Message
-                      </Button>
-                      <Button className="flex-1 bg-emerald-500 text-white gap-1.5 text-xs" data-testid={`button-offer-${listing.id}`}>
-                        <HandCoins className="w-3.5 h-3.5" /> Make Offer
-                      </Button>
-                    </div>
+                    {buyingListingId === listing.id ? (
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs text-muted-foreground">Board feet:</span>
+                          <div className="flex items-center gap-2">
+                            <Button size="icon" variant="outline" onClick={() => setBuyQuantity(q => Math.max(1, q - 1))} data-testid={`button-qty-minus-${listing.id}`}>
+                              <Minus className="w-3 h-3" />
+                            </Button>
+                            <span className="text-sm font-medium text-foreground w-8 text-center" data-testid={`text-qty-${listing.id}`}>{buyQuantity}</span>
+                            <Button size="icon" variant="outline" onClick={() => setBuyQuantity(q => q + 1)} data-testid={`button-qty-plus-${listing.id}`}>
+                              <Plus className="w-3 h-3" />
+                            </Button>
+                          </div>
+                          <span className="text-xs font-semibold text-foreground ml-auto">${(listing.pricePerBf * buyQuantity).toFixed(2)}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Button variant="outline" className="flex-1 text-xs" onClick={() => { setBuyingListingId(null); setBuyQuantity(1); }}>
+                            Cancel
+                          </Button>
+                          <Button
+                            className="flex-1 bg-emerald-500 text-white gap-1.5 text-xs"
+                            onClick={() => startCheckout.mutate({ listingId: listing.id, quantity: buyQuantity })}
+                            disabled={startCheckout.isPending}
+                            data-testid={`button-checkout-${listing.id}`}
+                          >
+                            {startCheckout.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CreditCard className="w-3.5 h-3.5" />}
+                            Pay Now
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-3">
+                        <Button variant="outline" className="flex-1 gap-1.5 text-xs" data-testid={`button-message-${listing.id}`}>
+                          <MessageSquare className="w-3.5 h-3.5" /> Message
+                        </Button>
+                        <Button
+                          className="flex-1 bg-emerald-500 text-white gap-1.5 text-xs"
+                          onClick={() => { setBuyingListingId(listing.id); setBuyQuantity(1); }}
+                          data-testid={`button-buy-${listing.id}`}
+                        >
+                          <CreditCard className="w-3.5 h-3.5" /> Buy Now
+                        </Button>
+                      </div>
+                    )}
 
                     <div className="mt-4 pt-4 border-t border-border flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground">
                       <ShieldCheck className="w-3 h-3 text-emerald-500" />

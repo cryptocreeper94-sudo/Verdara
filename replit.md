@@ -4,13 +4,14 @@
 Verdara is a comprehensive AI-powered outdoor recreation super-app by DarkWave Studios. It combines nature identification, outdoor activities suite, arborist business management, wood economy marketplace, trip planning, and more. Full 138-feature roadmap documented in attached_assets/.
 
 ## Current State
-Phase 2: Core Infrastructure - PostgreSQL database active, custom email/password auth with Resend verification, API routes serving real data, frontend connected via React Query. Auth page gates unauthenticated users.
+Phase 3: Core CRUD & Payments - Trip plan CRUD (create/edit/delete with waypoints & gear checklists), marketplace listing CRUD (create/delete/manage own listings), automatic activity logging, real-time dashboard stats, Stripe Checkout integration for marketplace purchases, server-side trail filtering and marketplace search.
 
 ## Tech Stack
 - Frontend: React 18 + TypeScript, Vite, Tailwind CSS, Shadcn UI, Framer Motion, Wouter routing, TanStack React Query
 - Backend: Express.js + TypeScript, bcrypt password hashing, cookie-based sessions
 - Database: PostgreSQL with Drizzle ORM (active)
 - Email: Resend for transactional emails (verification)
+- Payments: Stripe Checkout (hosted page redirect) for marketplace purchases
 - Auth: Custom email/password (NOT Replit Auth), session tokens, httpOnly secure cookies
 
 ## Project Structure

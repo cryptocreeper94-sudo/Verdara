@@ -3,6 +3,7 @@ import { type Server } from "http";
 import { storage } from "./storage";
 import { registerAuthRoutes, requireAuth } from "./auth";
 import { insertTripPlanSchema, insertMarketplaceListingSchema, insertActivityLogSchema } from "@shared/schema";
+import Stripe from "stripe";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -96,8 +97,19 @@ export async function registerRoutes(
       const user = await storage.getUser(req.userId!);
       if (!user) return res.status(404).json({ message: "User not found" });
 
+      const { species, grade, dimensions, pricePerBf, location, description, image } = req.body;
+      if (!species || !grade || !dimensions || !pricePerBf || typeof pricePerBf !== "number" || pricePerBf <= 0) {
+        return res.status(400).json({ message: "Species, grade, dimensions, and a positive price are required" });
+      }
+
       const listingData = {
-        ...req.body,
+        species,
+        grade,
+        dimensions,
+        pricePerBf,
+        location: location || null,
+        description: description || null,
+        image: image || null,
         sellerId: req.userId!,
         sellerName: `${user.firstName} ${user.lastName}`,
         trustLevel: 1,
@@ -255,6 +267,89 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching stats:", error);
       res.status(500).json({ message: "Failed to fetch stats" });
+    }
+  });
+
+  if (!process.env.STRIPE_SECRET_KEY) {
+    console.warn("STRIPE_SECRET_KEY not set - Stripe checkout disabled");
+  }
+
+  const stripe = process.env.STRIPE_SECRET_KEY
+    ? new Stripe(process.env.STRIPE_SECRET_KEY)
+    : null;
+
+  app.post("/api/checkout/create-session", requireAuth, async (req, res) => {
+    try {
+      if (!stripe) {
+        return res.status(503).json({ message: "Payment processing is not configured" });
+      }
+
+      const { listingId, quantity } = req.body;
+      if (!listingId || !quantity || quantity < 1) {
+        return res.status(400).json({ message: "Listing ID and quantity are required" });
+      }
+
+      const listing = await storage.getMarketplaceListing(listingId);
+      if (!listing) {
+        return res.status(404).json({ message: "Listing not found" });
+      }
+
+      const unitAmountCents = Math.round(listing.pricePerBf * 100);
+      if (unitAmountCents < 50) {
+        return res.status(400).json({ message: "Price too low for payment processing (minimum $0.50)" });
+      }
+      const host = req.headers.host || "localhost:5000";
+      const protocol = req.headers["x-forwarded-proto"] === "https" ? "https" : (host.includes("localhost") ? "http" : "https");
+      const baseUrl = `${protocol}://${host}`;
+
+      const session = await stripe.checkout.sessions.create({
+        mode: "payment",
+        line_items: [
+          {
+            price_data: {
+              currency: "usd",
+              product_data: {
+                name: `${listing.species} - ${listing.grade} Grade`,
+                description: `${listing.dimensions} | Seller: ${listing.sellerName}${listing.location ? ` | ${listing.location}` : ""}`,
+              },
+              unit_amount: unitAmountCents,
+            },
+            quantity,
+          },
+        ],
+        metadata: {
+          listingId: listing.id.toString(),
+          buyerId: req.userId!.toString(),
+          sellerId: (listing.sellerId ?? "").toString(),
+        },
+        success_url: `${baseUrl}/marketplace?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${baseUrl}/marketplace?checkout=cancelled`,
+      });
+
+      res.json({ url: session.url });
+    } catch (error) {
+      console.error("Error creating checkout session:", error);
+      res.status(500).json({ message: "Failed to create checkout session" });
+    }
+  });
+
+  app.get("/api/checkout/session/:sessionId", requireAuth, async (req, res) => {
+    try {
+      if (!stripe) {
+        return res.status(503).json({ message: "Payment processing is not configured" });
+      }
+
+      const session = await stripe.checkout.sessions.retrieve(req.params.sessionId);
+      res.json({
+        status: session.payment_status,
+        customerEmail: session.customer_details?.email,
+        amountTotal: session.amount_total,
+        currency: session.currency,
+        listingId: session.metadata?.listingId,
+      });
+    } catch (error) {
+      console.error("Error retrieving checkout session:", error);
+      res.status(500).json({ message: "Failed to retrieve checkout session" });
     }
   });
 
