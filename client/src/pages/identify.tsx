@@ -32,6 +32,7 @@ export default function Identify() {
   const [result, setResult] = useState<IdentifyResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [stampResult, setStampResult] = useState<{ id: string; timestamp: string } | null>(null);
+  const [vaultSaved, setVaultSaved] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const { user, isLoading: authLoading } = useAuth();
@@ -74,6 +75,36 @@ export default function Identify() {
     },
   });
 
+  const vaultSaveMutation = useMutation({
+    mutationFn: async () => {
+      if (!imagePreview || !result) throw new Error("No image to save");
+      const blob = await (await fetch(imagePreview)).blob();
+      const contentType = blob.type || "image/jpeg";
+      const ext = contentType.split("/")[1]?.replace("jpeg", "jpg") || "jpg";
+      const fileName = `${result.commonName.replace(/\s+/g, "-").toLowerCase()}-${Date.now()}.${ext}`;
+      const uploadRes = await apiRequest("POST", "/api/trustvault/media/upload", {
+        name: fileName,
+        contentType,
+        size: blob.size,
+      });
+      const { uploadURL, objectPath } = await uploadRes.json();
+      await fetch(uploadURL, { method: "PUT", headers: { "Content-Type": contentType }, body: blob });
+      const confirmRes = await apiRequest("POST", "/api/trustvault/media/confirm", {
+        title: `${result.commonName} (${result.scientificName})`,
+        url: objectPath,
+        filename: fileName,
+        contentType,
+        size: blob.size,
+        tags: ["verdara", "species-id", result.category, result.commonName.toLowerCase()],
+        description: `AI-identified ${result.category}: ${result.commonName}. Confidence: ${result.confidence}%. Habitat: ${result.habitat}`,
+      });
+      return confirmRes.json();
+    },
+    onSuccess: () => {
+      setVaultSaved(true);
+    },
+  });
+
   const processFile = useCallback((file: File) => {
     if (!file.type.startsWith("image/")) {
       setError("Please select a valid image file.");
@@ -109,6 +140,7 @@ export default function Identify() {
     setResult(null);
     setError(null);
     setStampResult(null);
+    setVaultSaved(false);
   };
 
   if (!authLoading && !user) {
@@ -415,6 +447,35 @@ export default function Identify() {
                         </Button>
                       </div>
                     )}
+
+                    <div className="flex items-center gap-3 mt-4 pt-4 border-t border-card-border">
+                      <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center flex-shrink-0">
+                        <Shield className="w-5 h-5 text-purple-500" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-foreground">Save to TrustVault</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">Store this photo in your secure media vault</p>
+                      </div>
+                      {vaultSaved ? (
+                        <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30" variant="outline">
+                          <Shield className="w-3 h-3 mr-1" /> Saved
+                        </Badge>
+                      ) : (
+                        <Button
+                          onClick={() => vaultSaveMutation.mutate()}
+                          disabled={vaultSaveMutation.isPending}
+                          className="bg-purple-600 hover:bg-purple-700 text-white gap-2 flex-shrink-0"
+                          data-testid="button-save-trustvault"
+                        >
+                          {vaultSaveMutation.isPending ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Shield className="w-4 h-4" />
+                          )}
+                          {vaultSaveMutation.isPending ? "Saving..." : "Save to Vault"}
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>

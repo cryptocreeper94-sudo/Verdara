@@ -44,7 +44,7 @@ Verdara is built as part of the DarkWave Trust Layer (DWTL) ecosystem, functioni
 - **Signal (SIG) Payments:** Acceptance of the native cryptocurrency for marketplace transactions.
 - **GarageBot API:** Integrated — server proxy at /api/garagebot/* forwards requests to garagebot.io/api/ecosystem/v1 with Trust Layer JWT auth. Equipment list, details, maintenance alerts, create/update. Equipment tab in Arborist Pro module.
 - **DW-STAMP:** Blockchain certification for activities like trail completions or species identifications.
-- **Trust Vault:** Signal wallet integration for in-app purchases.
+- **TrustVault:** Integrated — server proxy at /api/trustvault/* forwards requests to trustvault.replit.app/api/studio with Trust Layer JWT auth. Media gallery page at /vault with upload, browse, embedded editors (image/video/audio), project creation (highlight reels), and webhook receiver at /api/trustvault/webhook. Species identification photos can be saved directly to TrustVault from the identify page. Supports presigned URL upload flow (upload → PUT → confirm).
 - **TLID Identity:** Support for .tlid domain names as user identities.
 - **Credits System:** Acceptance of Trust Layer credits for AI identification services.
 - **VedaSolus (vedasolus.io):** Holistic wellness hub integration — Ayurvedic dosha balancing, TCM (Traditional Chinese Medicine), herbal medicine database, nutrition tracking. Links wild edible/medicinal plant data from Verdara's foraging module into VedaSolus's wellness recommendations.

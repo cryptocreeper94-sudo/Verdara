@@ -40,6 +40,7 @@ import PriceCompare from "@/pages/price-compare";
 import Catalog from "@/pages/catalog";
 import CatalogDetail from "@/pages/catalog-detail";
 import DeveloperPortal from "@/pages/developer-portal";
+import Vault from "@/pages/vault";
 import NotFound from "@/pages/not-found";
 import { Loader2, TreePine } from "lucide-react";
 import { useState } from "react";
@@ -147,6 +148,9 @@ function AppContent() {
         </Route>
         <Route path="/arborist">
           <AuthGate><Arborist /></AuthGate>
+        </Route>
+        <Route path="/vault">
+          <AuthGate><Vault /></AuthGate>
         </Route>
         <Route path="/admin">
           <AuthGate><Admin /></AuthGate>

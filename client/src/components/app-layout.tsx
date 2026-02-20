@@ -3,7 +3,7 @@ import { useTheme } from "./theme-provider";
 import { useAuth } from "@/hooks/use-auth";
 import {
   Home, ScanSearch, Map, CalendarDays, Store, User,
-  Sun, Moon, TreePine, Menu, Compass, Gauge, Axe, MapPinned, Code, LogIn, DollarSign, Radio
+  Sun, Moon, TreePine, Menu, Compass, Gauge, Axe, MapPinned, Code, LogIn, DollarSign, Radio, Shield
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -19,6 +19,7 @@ const sidebarNav = [
   { path: "/price-compare", label: "Price Compare", icon: DollarSign, authRequired: false },
   { path: "/dashboard", label: "Profile", icon: User, authRequired: true },
   { path: "/arborist", label: "Arborist", icon: Axe, authRequired: true },
+  { path: "/vault", label: "TrustVault", icon: Shield, authRequired: true },
   { path: "/signal-chat", label: "Signal Chat", icon: Radio, authRequired: false },
   { path: "/developer", label: "Developer", icon: Code, authRequired: false },
   { path: "/admin", label: "Admin", icon: Gauge, authRequired: true },
