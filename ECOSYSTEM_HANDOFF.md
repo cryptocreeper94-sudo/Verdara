@@ -245,6 +245,40 @@ ADDITIONAL NOTES:
 
 ---
 
+### 9. TrustVault (Media Studio)
+
+**Live at:** https://trustvault.replit.app
+
+**What Verdara needs:**
+- Open TrustVault's image/video/audio editors from within Verdara (deep link or embedded).
+- Upload photos from Verdara directly to a user's TrustVault (species ID photos, trail photos, job documentation).
+- Pull media back from TrustVault into Verdara (marketplace product images, chat attachments, trip galleries).
+- Access AI-powered features (auto-tagging, smart search, auto-enhance) for Verdara media.
+- On-chain provenance for outdoor content (trail photos, species documentation).
+
+**How Verdara will use it:**
+- AI Species Identification: "Edit in TrustVault" button after capturing a photo, or auto-enhance before AI analysis.
+- Marketplace: sellers open TrustVault editor for product images (crop, filters, text overlays).
+- Arborist Pro: annotate job site photos with TrustVault's image editor (text overlays, annotations, stickers).
+- Trip Planner: store and organize trip photo/video galleries in encrypted vault.
+- Signal Chat: share media from TrustVault directly in chat channels.
+- Catalog: user-submitted location photos edited and enhanced via TrustVault.
+
+**What we need from you (Return Handoff):**
+- API base URL
+- Authentication method (Trust Layer SSO JWT shared, or separate?)
+- Endpoint to upload media to a user's vault (input: file, Trust Layer ID, metadata/tags)
+- Endpoint to list a user's media/collections (input: Trust Layer ID, filters)
+- Endpoint to get a media item (input: media ID, returns URL/metadata)
+- Deep link URL format to open a specific editor (image/video/audio) with a file pre-loaded
+- Endpoint to trigger AI features (auto-enhance, auto-tag) on a media item
+- Endpoint for on-chain provenance registration (input: media ID, ownership details)
+- Webhook for media edits completed, new uploads, or provenance registered
+- Supported file formats and size limits
+- Rate limits
+
+---
+
 ## Contact
 **App:** Verdara (App #28)
 **Stack:** React + Express + PostgreSQL on Replit
