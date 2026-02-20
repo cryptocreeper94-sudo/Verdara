@@ -45,6 +45,17 @@ import Pricing from "@/pages/pricing";
 import Blog from "@/pages/blog";
 import BlogDetail from "@/pages/blog-detail";
 import BlogAdmin from "@/pages/blog-admin";
+import { ArboraLayout } from "@/components/arbora-layout";
+import ArboraDashboard from "@/pages/arbora-dashboard";
+import ArboraClients from "@/pages/arbora-clients";
+import ArboraDeals from "@/pages/arbora-deals";
+import ArboraJobs from "@/pages/arbora-jobs";
+import ArboraEstimates from "@/pages/arbora-estimates";
+import ArboraInvoices from "@/pages/arbora-invoices";
+import ArboraCalendar from "@/pages/arbora-calendar";
+import ArboraCrew from "@/pages/arbora-crew";
+import ArboraInventory from "@/pages/arbora-inventory";
+import ArboraEquipment from "@/pages/arbora-equipment";
 import NotFound from "@/pages/not-found";
 import { Loader2, TreePine } from "lucide-react";
 import { useState } from "react";
@@ -110,6 +121,40 @@ function AppContent() {
 
   if (location === "/signal-chat") {
     return <SignalChat />;
+  }
+
+  if (location.startsWith("/arbora")) {
+    if (!isAuthenticated) {
+      return (
+        <div className="flex flex-col items-center justify-center min-h-screen px-6 text-center" style={{ background: "#0a0f1a" }}>
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6" style={{ background: "rgba(194,112,62,0.15)" }}>
+            <TreePine className="w-8 h-8" style={{ color: "#c2703e" }} />
+          </div>
+          <h2 className="text-2xl font-bold mb-2" style={{ color: "#f1f5f9" }}>Sign in to access Arbora</h2>
+          <p className="mb-6 max-w-md" style={{ color: "#94a3b8" }}>Professional arborist business management tools</p>
+          <button onClick={() => setShowAuth(true)} className="px-6 py-3 rounded-xl text-white font-semibold text-sm" style={{ background: "#c2703e" }} data-testid="button-arbora-auth">
+            Sign In
+          </button>
+        </div>
+      );
+    }
+    return (
+      <ArboraLayout>
+        <Switch>
+          <Route path="/arbora" component={ArboraDashboard} />
+          <Route path="/arbora/clients" component={ArboraClients} />
+          <Route path="/arbora/deals" component={ArboraDeals} />
+          <Route path="/arbora/jobs" component={ArboraJobs} />
+          <Route path="/arbora/estimates" component={ArboraEstimates} />
+          <Route path="/arbora/invoices" component={ArboraInvoices} />
+          <Route path="/arbora/calendar" component={ArboraCalendar} />
+          <Route path="/arbora/crew" component={ArboraCrew} />
+          <Route path="/arbora/inventory" component={ArboraInventory} />
+          <Route path="/arbora/equipment" component={ArboraEquipment} />
+          <Route component={NotFound} />
+        </Switch>
+      </ArboraLayout>
+    );
   }
 
   return (

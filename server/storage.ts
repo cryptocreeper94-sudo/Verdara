@@ -10,6 +10,11 @@ import {
   type ArboristClient, type InsertArboristClient,
   type ArboristJob, type InsertArboristJob,
   type ArboristInvoice, type InsertArboristInvoice,
+  type ArboristDeal, type InsertArboristDeal,
+  type ArboristEstimate, type InsertArboristEstimate,
+  type ArboristCrewMember, type InsertArboristCrewMember,
+  type ArboristTimeEntry, type InsertArboristTimeEntry,
+  type ArboristInventoryItem, type InsertArboristInventory,
   type CampgroundBooking, type InsertCampgroundBooking,
   type CatalogLocation, type InsertCatalogLocation,
   type LocationSubmission, type InsertLocationSubmission,
@@ -19,6 +24,7 @@ import {
   users, trails, identifications, marketplaceListings,
   tripPlans, campgrounds, activityLog, sessions,
   activityLocations, arboristClients, arboristJobs, arboristInvoices,
+  arboristDeals, arboristEstimates, arboristCrewMembers, arboristTimeEntries, arboristInventory,
   campgroundBookings, catalogLocations, locationSubmissions, reviews, blogPosts
 } from "@shared/schema";
 import { db } from "./db";
@@ -94,6 +100,32 @@ export interface IStorage {
   createArboristInvoice(invoice: InsertArboristInvoice): Promise<ArboristInvoice>;
   updateArboristInvoice(id: number, data: Partial<InsertArboristInvoice>): Promise<ArboristInvoice | undefined>;
   deleteArboristInvoice(id: number, userId: number): Promise<boolean>;
+
+  getArboristDeals(userId: number): Promise<ArboristDeal[]>;
+  createArboristDeal(deal: InsertArboristDeal): Promise<ArboristDeal>;
+  updateArboristDeal(id: number, data: Partial<InsertArboristDeal>): Promise<ArboristDeal | undefined>;
+  deleteArboristDeal(id: number, userId: number): Promise<boolean>;
+
+  getArboristEstimates(userId: number): Promise<ArboristEstimate[]>;
+  createArboristEstimate(estimate: InsertArboristEstimate): Promise<ArboristEstimate>;
+  updateArboristEstimate(id: number, data: Partial<InsertArboristEstimate>): Promise<ArboristEstimate | undefined>;
+  deleteArboristEstimate(id: number, userId: number): Promise<boolean>;
+
+  getArboristCrewMembers(userId: number): Promise<ArboristCrewMember[]>;
+  createArboristCrewMember(member: InsertArboristCrewMember): Promise<ArboristCrewMember>;
+  updateArboristCrewMember(id: number, data: Partial<InsertArboristCrewMember>): Promise<ArboristCrewMember | undefined>;
+  deleteArboristCrewMember(id: number, userId: number): Promise<boolean>;
+
+  getArboristTimeEntries(userId: number, jobId?: number): Promise<ArboristTimeEntry[]>;
+  createArboristTimeEntry(entry: InsertArboristTimeEntry): Promise<ArboristTimeEntry>;
+  updateArboristTimeEntry(id: number, data: Partial<InsertArboristTimeEntry>): Promise<ArboristTimeEntry | undefined>;
+  deleteArboristTimeEntry(id: number, userId: number): Promise<boolean>;
+
+  getArboristInventoryItems(userId: number): Promise<ArboristInventoryItem[]>;
+  createArboristInventoryItem(item: InsertArboristInventory): Promise<ArboristInventoryItem>;
+  updateArboristInventoryItem(id: number, data: Partial<InsertArboristInventory>): Promise<ArboristInventoryItem | undefined>;
+  deleteArboristInventoryItem(id: number, userId: number): Promise<boolean>;
+  getArboristLowStockItems(userId: number): Promise<ArboristInventoryItem[]>;
 
   updateUserTier(userId: number, tier: string): Promise<User | undefined>;
 
@@ -443,6 +475,110 @@ export class DatabaseStorage implements IStorage {
   async deleteArboristInvoice(id: number, userId: number): Promise<boolean> {
     const result = await db.delete(arboristInvoices).where(and(eq(arboristInvoices.id, id), eq(arboristInvoices.userId, userId)));
     return (result.rowCount ?? 0) > 0;
+  }
+
+  async getArboristDeals(userId: number): Promise<ArboristDeal[]> {
+    return db.select().from(arboristDeals).where(eq(arboristDeals.userId, userId)).orderBy(desc(arboristDeals.createdAt));
+  }
+
+  async createArboristDeal(deal: InsertArboristDeal): Promise<ArboristDeal> {
+    const [created] = await db.insert(arboristDeals).values(deal as any).returning();
+    return created;
+  }
+
+  async updateArboristDeal(id: number, data: Partial<InsertArboristDeal>): Promise<ArboristDeal | undefined> {
+    const [updated] = await db.update(arboristDeals).set(data as any).where(eq(arboristDeals.id, id)).returning();
+    return updated;
+  }
+
+  async deleteArboristDeal(id: number, userId: number): Promise<boolean> {
+    const result = await db.delete(arboristDeals).where(and(eq(arboristDeals.id, id), eq(arboristDeals.userId, userId)));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async getArboristEstimates(userId: number): Promise<ArboristEstimate[]> {
+    return db.select().from(arboristEstimates).where(eq(arboristEstimates.userId, userId)).orderBy(desc(arboristEstimates.createdAt));
+  }
+
+  async createArboristEstimate(estimate: InsertArboristEstimate): Promise<ArboristEstimate> {
+    const [created] = await db.insert(arboristEstimates).values(estimate as any).returning();
+    return created;
+  }
+
+  async updateArboristEstimate(id: number, data: Partial<InsertArboristEstimate>): Promise<ArboristEstimate | undefined> {
+    const [updated] = await db.update(arboristEstimates).set(data as any).where(eq(arboristEstimates.id, id)).returning();
+    return updated;
+  }
+
+  async deleteArboristEstimate(id: number, userId: number): Promise<boolean> {
+    const result = await db.delete(arboristEstimates).where(and(eq(arboristEstimates.id, id), eq(arboristEstimates.userId, userId)));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async getArboristCrewMembers(userId: number): Promise<ArboristCrewMember[]> {
+    return db.select().from(arboristCrewMembers).where(eq(arboristCrewMembers.userId, userId)).orderBy(asc(arboristCrewMembers.firstName));
+  }
+
+  async createArboristCrewMember(member: InsertArboristCrewMember): Promise<ArboristCrewMember> {
+    const [created] = await db.insert(arboristCrewMembers).values(member as any).returning();
+    return created;
+  }
+
+  async updateArboristCrewMember(id: number, data: Partial<InsertArboristCrewMember>): Promise<ArboristCrewMember | undefined> {
+    const [updated] = await db.update(arboristCrewMembers).set(data as any).where(eq(arboristCrewMembers.id, id)).returning();
+    return updated;
+  }
+
+  async deleteArboristCrewMember(id: number, userId: number): Promise<boolean> {
+    const result = await db.delete(arboristCrewMembers).where(and(eq(arboristCrewMembers.id, id), eq(arboristCrewMembers.userId, userId)));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async getArboristTimeEntries(userId: number, jobId?: number): Promise<ArboristTimeEntry[]> {
+    if (jobId) {
+      return db.select().from(arboristTimeEntries).where(and(eq(arboristTimeEntries.userId, userId), eq(arboristTimeEntries.jobId, jobId))).orderBy(desc(arboristTimeEntries.date));
+    }
+    return db.select().from(arboristTimeEntries).where(eq(arboristTimeEntries.userId, userId)).orderBy(desc(arboristTimeEntries.date));
+  }
+
+  async createArboristTimeEntry(entry: InsertArboristTimeEntry): Promise<ArboristTimeEntry> {
+    const [created] = await db.insert(arboristTimeEntries).values(entry as any).returning();
+    return created;
+  }
+
+  async updateArboristTimeEntry(id: number, data: Partial<InsertArboristTimeEntry>): Promise<ArboristTimeEntry | undefined> {
+    const [updated] = await db.update(arboristTimeEntries).set(data as any).where(eq(arboristTimeEntries.id, id)).returning();
+    return updated;
+  }
+
+  async deleteArboristTimeEntry(id: number, userId: number): Promise<boolean> {
+    const result = await db.delete(arboristTimeEntries).where(and(eq(arboristTimeEntries.id, id), eq(arboristTimeEntries.userId, userId)));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async getArboristInventoryItems(userId: number): Promise<ArboristInventoryItem[]> {
+    return db.select().from(arboristInventory).where(eq(arboristInventory.userId, userId)).orderBy(asc(arboristInventory.name));
+  }
+
+  async createArboristInventoryItem(item: InsertArboristInventory): Promise<ArboristInventoryItem> {
+    const [created] = await db.insert(arboristInventory).values(item as any).returning();
+    return created;
+  }
+
+  async updateArboristInventoryItem(id: number, data: Partial<InsertArboristInventory>): Promise<ArboristInventoryItem | undefined> {
+    const [updated] = await db.update(arboristInventory).set(data as any).where(eq(arboristInventory.id, id)).returning();
+    return updated;
+  }
+
+  async deleteArboristInventoryItem(id: number, userId: number): Promise<boolean> {
+    const result = await db.delete(arboristInventory).where(and(eq(arboristInventory.id, id), eq(arboristInventory.userId, userId)));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async getArboristLowStockItems(userId: number): Promise<ArboristInventoryItem[]> {
+    return db.select().from(arboristInventory).where(
+      and(eq(arboristInventory.userId, userId), sql`${arboristInventory.currentQuantity} <= ${arboristInventory.reorderPoint}`)
+    );
   }
 
   async updateUserTier(userId: number, tier: string): Promise<User | undefined> {

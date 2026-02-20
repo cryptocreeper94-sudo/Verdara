@@ -558,6 +558,255 @@ export async function registerRoutes(
     }
   });
 
+  // Arborist Deals (CRM Pipeline)
+  app.get("/api/arborist/deals", requireAuth, requireTier("Arborist Starter"), async (req, res) => {
+    try {
+      const deals = await storage.getArboristDeals(req.userId!);
+      res.json(deals);
+    } catch (error) {
+      console.error("Error fetching arborist deals:", error);
+      res.status(500).json({ message: "Failed to fetch deals" });
+    }
+  });
+
+  app.post("/api/arborist/deals", requireAuth, requireTier("Arborist Starter"), async (req, res) => {
+    try {
+      const deal = await storage.createArboristDeal({ ...req.body, userId: req.userId! });
+      res.json(deal);
+    } catch (error) {
+      console.error("Error creating arborist deal:", error);
+      res.status(500).json({ message: "Failed to create deal" });
+    }
+  });
+
+  app.patch("/api/arborist/deals/:id", requireAuth, requireTier("Arborist Starter"), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid deal ID" });
+      const updated = await storage.updateArboristDeal(id, req.body);
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating arborist deal:", error);
+      res.status(500).json({ message: "Failed to update deal" });
+    }
+  });
+
+  app.delete("/api/arborist/deals/:id", requireAuth, requireTier("Arborist Starter"), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid deal ID" });
+      const deleted = await storage.deleteArboristDeal(id, req.userId!);
+      if (!deleted) return res.status(404).json({ message: "Deal not found" });
+      res.json({ message: "Deal deleted" });
+    } catch (error) {
+      console.error("Error deleting arborist deal:", error);
+      res.status(500).json({ message: "Failed to delete deal" });
+    }
+  });
+
+  // Arborist Estimates
+  app.get("/api/arborist/estimates", requireAuth, requireTier("Arborist Starter"), async (req, res) => {
+    try {
+      const estimates = await storage.getArboristEstimates(req.userId!);
+      res.json(estimates);
+    } catch (error) {
+      console.error("Error fetching arborist estimates:", error);
+      res.status(500).json({ message: "Failed to fetch estimates" });
+    }
+  });
+
+  app.post("/api/arborist/estimates", requireAuth, requireTier("Arborist Starter"), async (req, res) => {
+    try {
+      const { items, taxRate, ...rest } = req.body;
+      const lineItems = items || [];
+      const subtotal = lineItems.reduce((sum: number, item: any) => sum + (item.quantity * item.unitPrice), 0);
+      const tax = subtotal * (taxRate || 0) / 100;
+      const total = subtotal + tax;
+      const estimateNumber = `EST-${Date.now().toString(36).toUpperCase()}`;
+      const estimate = await storage.createArboristEstimate({
+        ...rest, userId: req.userId!, items: lineItems, subtotal, tax, total, estimateNumber,
+      });
+      res.json(estimate);
+    } catch (error) {
+      console.error("Error creating arborist estimate:", error);
+      res.status(500).json({ message: "Failed to create estimate" });
+    }
+  });
+
+  app.patch("/api/arborist/estimates/:id", requireAuth, requireTier("Arborist Starter"), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid estimate ID" });
+      const updated = await storage.updateArboristEstimate(id, req.body);
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating arborist estimate:", error);
+      res.status(500).json({ message: "Failed to update estimate" });
+    }
+  });
+
+  app.delete("/api/arborist/estimates/:id", requireAuth, requireTier("Arborist Starter"), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid estimate ID" });
+      const deleted = await storage.deleteArboristEstimate(id, req.userId!);
+      if (!deleted) return res.status(404).json({ message: "Estimate not found" });
+      res.json({ message: "Estimate deleted" });
+    } catch (error) {
+      console.error("Error deleting arborist estimate:", error);
+      res.status(500).json({ message: "Failed to delete estimate" });
+    }
+  });
+
+  // Arborist Crew Members
+  app.get("/api/arborist/crew", requireAuth, requireTier("Arborist Starter"), async (req, res) => {
+    try {
+      const members = await storage.getArboristCrewMembers(req.userId!);
+      res.json(members);
+    } catch (error) {
+      console.error("Error fetching crew members:", error);
+      res.status(500).json({ message: "Failed to fetch crew" });
+    }
+  });
+
+  app.post("/api/arborist/crew", requireAuth, requireTier("Arborist Starter"), async (req, res) => {
+    try {
+      const member = await storage.createArboristCrewMember({ ...req.body, userId: req.userId! });
+      res.json(member);
+    } catch (error) {
+      console.error("Error creating crew member:", error);
+      res.status(500).json({ message: "Failed to create crew member" });
+    }
+  });
+
+  app.patch("/api/arborist/crew/:id", requireAuth, requireTier("Arborist Starter"), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid crew member ID" });
+      const updated = await storage.updateArboristCrewMember(id, req.body);
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating crew member:", error);
+      res.status(500).json({ message: "Failed to update crew member" });
+    }
+  });
+
+  app.delete("/api/arborist/crew/:id", requireAuth, requireTier("Arborist Starter"), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid crew member ID" });
+      const deleted = await storage.deleteArboristCrewMember(id, req.userId!);
+      if (!deleted) return res.status(404).json({ message: "Crew member not found" });
+      res.json({ message: "Crew member deleted" });
+    } catch (error) {
+      console.error("Error deleting crew member:", error);
+      res.status(500).json({ message: "Failed to delete crew member" });
+    }
+  });
+
+  // Arborist Time Entries
+  app.get("/api/arborist/time-entries", requireAuth, requireTier("Arborist Starter"), async (req, res) => {
+    try {
+      const jobId = req.query.jobId ? parseInt(req.query.jobId as string) : undefined;
+      const entries = await storage.getArboristTimeEntries(req.userId!, jobId);
+      res.json(entries);
+    } catch (error) {
+      console.error("Error fetching time entries:", error);
+      res.status(500).json({ message: "Failed to fetch time entries" });
+    }
+  });
+
+  app.post("/api/arborist/time-entries", requireAuth, requireTier("Arborist Starter"), async (req, res) => {
+    try {
+      const entry = await storage.createArboristTimeEntry({ ...req.body, userId: req.userId! });
+      res.json(entry);
+    } catch (error) {
+      console.error("Error creating time entry:", error);
+      res.status(500).json({ message: "Failed to create time entry" });
+    }
+  });
+
+  app.patch("/api/arborist/time-entries/:id", requireAuth, requireTier("Arborist Starter"), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid time entry ID" });
+      const updated = await storage.updateArboristTimeEntry(id, req.body);
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating time entry:", error);
+      res.status(500).json({ message: "Failed to update time entry" });
+    }
+  });
+
+  app.delete("/api/arborist/time-entries/:id", requireAuth, requireTier("Arborist Starter"), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid time entry ID" });
+      const deleted = await storage.deleteArboristTimeEntry(id, req.userId!);
+      if (!deleted) return res.status(404).json({ message: "Time entry not found" });
+      res.json({ message: "Time entry deleted" });
+    } catch (error) {
+      console.error("Error deleting time entry:", error);
+      res.status(500).json({ message: "Failed to delete time entry" });
+    }
+  });
+
+  // Arborist Inventory
+  app.get("/api/arborist/inventory", requireAuth, requireTier("Arborist Starter"), async (req, res) => {
+    try {
+      const items = await storage.getArboristInventoryItems(req.userId!);
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching inventory:", error);
+      res.status(500).json({ message: "Failed to fetch inventory" });
+    }
+  });
+
+  app.get("/api/arborist/inventory/low-stock", requireAuth, requireTier("Arborist Starter"), async (req, res) => {
+    try {
+      const items = await storage.getArboristLowStockItems(req.userId!);
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching low stock items:", error);
+      res.status(500).json({ message: "Failed to fetch low stock items" });
+    }
+  });
+
+  app.post("/api/arborist/inventory", requireAuth, requireTier("Arborist Starter"), async (req, res) => {
+    try {
+      const item = await storage.createArboristInventoryItem({ ...req.body, userId: req.userId! });
+      res.json(item);
+    } catch (error) {
+      console.error("Error creating inventory item:", error);
+      res.status(500).json({ message: "Failed to create inventory item" });
+    }
+  });
+
+  app.patch("/api/arborist/inventory/:id", requireAuth, requireTier("Arborist Starter"), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid inventory item ID" });
+      const updated = await storage.updateArboristInventoryItem(id, req.body);
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating inventory item:", error);
+      res.status(500).json({ message: "Failed to update inventory item" });
+    }
+  });
+
+  app.delete("/api/arborist/inventory/:id", requireAuth, requireTier("Arborist Starter"), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid inventory item ID" });
+      const deleted = await storage.deleteArboristInventoryItem(id, req.userId!);
+      if (!deleted) return res.status(404).json({ message: "Inventory item not found" });
+      res.json({ message: "Inventory item deleted" });
+    } catch (error) {
+      console.error("Error deleting inventory item:", error);
+      res.status(500).json({ message: "Failed to delete inventory item" });
+    }
+  });
+
   // Campground Booking routes
   app.get("/api/bookings", requireAuth, async (req, res) => {
     try {

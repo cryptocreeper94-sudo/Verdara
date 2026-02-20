@@ -181,6 +181,77 @@ export const arboristInvoices = pgTable("arborist_invoices", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const arboristDeals = pgTable("arborist_deals", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  clientId: integer("client_id").references(() => arboristClients.id),
+  title: text("title").notNull(),
+  value: real("value").default(0),
+  stage: text("stage").default("new"),
+  description: text("description"),
+  expectedCloseDate: text("expected_close_date"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const arboristEstimates = pgTable("arborist_estimates", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  clientId: integer("client_id").references(() => arboristClients.id),
+  estimateNumber: text("estimate_number").notNull(),
+  status: text("status").default("draft"),
+  items: jsonb("items").$type<{ description: string; quantity: number; unitPrice: number }[]>(),
+  subtotal: real("subtotal").default(0),
+  tax: real("tax").default(0),
+  total: real("total").default(0),
+  validUntil: text("valid_until"),
+  notes: text("notes"),
+  siteAddress: text("site_address"),
+  treeSpecies: text("tree_species"),
+  serviceType: text("service_type"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const arboristCrewMembers = pgTable("arborist_crew_members", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email"),
+  phone: text("phone"),
+  role: text("role").default("climber"),
+  hourlyRate: real("hourly_rate"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const arboristTimeEntries = pgTable("arborist_time_entries", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  crewMemberId: integer("crew_member_id").references(() => arboristCrewMembers.id),
+  jobId: integer("job_id").references(() => arboristJobs.id),
+  date: text("date").notNull(),
+  hoursWorked: real("hours_worked").notNull(),
+  overtimeHours: real("overtime_hours").default(0),
+  notes: text("notes"),
+  status: text("status").default("pending"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const arboristInventory = pgTable("arborist_inventory", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  name: text("name").notNull(),
+  category: text("category").default("supplies"),
+  sku: text("sku"),
+  currentQuantity: integer("current_quantity").default(0),
+  unit: text("unit").default("each"),
+  reorderPoint: integer("reorder_point").default(5),
+  costPerUnit: real("cost_per_unit"),
+  supplier: text("supplier"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const catalogLocations = pgTable("catalog_locations", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
@@ -376,6 +447,11 @@ export const insertActivityLocationSchema = createInsertSchema(activityLocations
 export const insertArboristClientSchema = createInsertSchema(arboristClients).omit({ id: true, createdAt: true });
 export const insertArboristJobSchema = createInsertSchema(arboristJobs).omit({ id: true, createdAt: true });
 export const insertArboristInvoiceSchema = createInsertSchema(arboristInvoices).omit({ id: true, createdAt: true });
+export const insertArboristDealSchema = createInsertSchema(arboristDeals).omit({ id: true, createdAt: true });
+export const insertArboristEstimateSchema = createInsertSchema(arboristEstimates).omit({ id: true, createdAt: true });
+export const insertArboristCrewMemberSchema = createInsertSchema(arboristCrewMembers).omit({ id: true, createdAt: true });
+export const insertArboristTimeEntrySchema = createInsertSchema(arboristTimeEntries).omit({ id: true, createdAt: true });
+export const insertArboristInventorySchema = createInsertSchema(arboristInventory).omit({ id: true, createdAt: true });
 export const insertCatalogLocationSchema = createInsertSchema(catalogLocations).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertLocationSubmissionSchema = createInsertSchema(locationSubmissions).omit({ id: true, createdAt: true });
 export const insertCampgroundBookingSchema = createInsertSchema(campgroundBookings).omit({ id: true, createdAt: true });
@@ -404,6 +480,16 @@ export type InsertArboristJob = z.infer<typeof insertArboristJobSchema>;
 export type ArboristJob = typeof arboristJobs.$inferSelect;
 export type InsertArboristInvoice = z.infer<typeof insertArboristInvoiceSchema>;
 export type ArboristInvoice = typeof arboristInvoices.$inferSelect;
+export type InsertArboristDeal = z.infer<typeof insertArboristDealSchema>;
+export type ArboristDeal = typeof arboristDeals.$inferSelect;
+export type InsertArboristEstimate = z.infer<typeof insertArboristEstimateSchema>;
+export type ArboristEstimate = typeof arboristEstimates.$inferSelect;
+export type InsertArboristCrewMember = z.infer<typeof insertArboristCrewMemberSchema>;
+export type ArboristCrewMember = typeof arboristCrewMembers.$inferSelect;
+export type InsertArboristTimeEntry = z.infer<typeof insertArboristTimeEntrySchema>;
+export type ArboristTimeEntry = typeof arboristTimeEntries.$inferSelect;
+export type InsertArboristInventory = z.infer<typeof insertArboristInventorySchema>;
+export type ArboristInventoryItem = typeof arboristInventory.$inferSelect;
 export type InsertCatalogLocation = z.infer<typeof insertCatalogLocationSchema>;
 export type CatalogLocation = typeof catalogLocations.$inferSelect;
 export type InsertLocationSubmission = z.infer<typeof insertLocationSubmissionSchema>;
