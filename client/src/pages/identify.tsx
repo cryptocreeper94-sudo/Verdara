@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, Camera, Image, RotateCw, Crop, Share2, Bookmark, ChevronDown, ChevronRight, Loader2, TreePine, Fish, Leaf, ArrowLeft, Home } from "lucide-react";
+import { Upload, Camera, Image, RotateCw, Crop, Share2, Bookmark, ChevronDown, ChevronRight, Loader2, TreePine, Fish, Leaf, ArrowLeft, Home, AlertCircle, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -8,20 +8,140 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { similarSpecies } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 import { Link } from "wouter";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/use-auth";
 
 type ViewState = "upload" | "analyzing" | "results";
+
+interface IdentifyResult {
+  commonName: string;
+  scientificName: string;
+  confidence: number;
+  category: string;
+  description: string;
+  habitat: string;
+  conservationStatus: string;
+  funFact: string;
+}
 
 export default function Identify() {
   const [view, setView] = useState<ViewState>("upload");
   const [dragOver, setDragOver] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [result, setResult] = useState<IdentifyResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const { user, isLoading: authLoading } = useAuth();
 
-  const startAnalysis = () => {
-    setView("analyzing");
-    setTimeout(() => setView("results"), 3000);
+  const identifyMutation = useMutation({
+    mutationFn: async (imageBase64: string) => {
+      const res = await apiRequest("POST", "/api/identify", { imageBase64 });
+      return res.json() as Promise<IdentifyResult>;
+    },
+    onSuccess: (data) => {
+      setResult(data);
+      setError(null);
+      setView("results");
+    },
+    onError: (err: Error) => {
+      setError(err.message || "Failed to identify species. Please try again.");
+      setView("upload");
+    },
+  });
+
+  const processFile = useCallback((file: File) => {
+    if (!file.type.startsWith("image/")) {
+      setError("Please select a valid image file.");
+      return;
+    }
+    setError(null);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+      setImagePreview(dataUrl);
+      setView("analyzing");
+      identifyMutation.mutate(dataUrl);
+    };
+    reader.readAsDataURL(file);
+  }, [identifyMutation]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) processFile(file);
+    e.target.value = "";
   };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) processFile(file);
+  };
+
+  const resetToUpload = () => {
+    setView("upload");
+    setImagePreview(null);
+    setResult(null);
+    setError(null);
+  };
+
+  if (!authLoading && !user) {
+    return (
+      <div className="max-w-4xl mx-auto px-5 md:px-10 py-8 md:py-12">
+        <div className="lg:hidden flex items-center gap-2 mb-6">
+          <Link href="/explore">
+            <Button size="icon" variant="ghost" data-testid="button-back-identify">
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+          </Link>
+          <Link href="/">
+            <Button size="icon" variant="ghost" data-testid="button-home-identify">
+              <Home className="w-5 h-5" />
+            </Button>
+          </Link>
+        </div>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">AI Species Identification</h1>
+          <p className="text-muted-foreground text-sm mb-10">Upload a photo to identify trees, plants, fish, or wildlife instantly</p>
+        </motion.div>
+        <div className="rounded-2xl bg-card border border-card-border p-10 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-amber-500/10 flex items-center justify-center mx-auto mb-6">
+            <LogIn className="w-8 h-8 text-amber-500" />
+          </div>
+          <h3 className="text-lg font-semibold text-foreground mb-2">Sign in to Identify Species</h3>
+          <p className="text-sm text-muted-foreground mb-6">You need to be logged in to use the AI species identification feature.</p>
+          <Link href="/auth">
+            <Button className="bg-emerald-500 text-white gap-2" data-testid="button-login-prompt">
+              <LogIn className="w-4 h-4" /> Sign In
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-5 md:px-10 py-8 md:py-12">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFileChange}
+        data-testid="input-file-upload"
+      />
+      <input
+        ref={cameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={handleFileChange}
+        data-testid="input-camera-capture"
+      />
+
       <div className="lg:hidden flex items-center gap-2 mb-6">
         <Link href="/explore">
           <Button size="icon" variant="ghost" data-testid="button-back-identify">
@@ -47,10 +167,19 @@ export default function Identify() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
           >
+            {error && (
+              <div className="mb-6 rounded-xl bg-red-500/10 border border-red-500/20 p-4 flex items-start gap-3" data-testid="error-message">
+                <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-red-500">{error}</p>
+                </div>
+              </div>
+            )}
+
             <div
               onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
               onDragLeave={() => setDragOver(false)}
-              onDrop={(e) => { e.preventDefault(); setDragOver(false); startAnalysis(); }}
+              onDrop={handleDrop}
               className={cn(
                 "border-2 border-dashed rounded-2xl p-14 md:p-20 text-center transition-all duration-300",
                 dragOver
@@ -66,10 +195,10 @@ export default function Identify() {
               <p className="text-sm text-muted-foreground mb-8">or use the options below to capture or select an image</p>
 
               <div className="flex flex-wrap items-center justify-center gap-4">
-                <Button onClick={startAnalysis} className="bg-emerald-500 text-white gap-2" data-testid="button-upload-file">
+                <Button onClick={() => fileInputRef.current?.click()} className="bg-emerald-500 text-white gap-2" data-testid="button-upload-file">
                   <Image className="w-4 h-4" /> Choose File
                 </Button>
-                <Button onClick={startAnalysis} variant="outline" className="gap-2" data-testid="button-take-photo">
+                <Button onClick={() => cameraInputRef.current?.click()} variant="outline" className="gap-2" data-testid="button-take-photo">
                   <Camera className="w-4 h-4" /> Take Photo
                 </Button>
               </div>
@@ -102,7 +231,9 @@ export default function Identify() {
             className="text-center py-20"
           >
             <div className="relative w-48 h-48 mx-auto mb-8 rounded-2xl overflow-hidden">
-              <img src="/images/species-pine.jpg" alt="Analyzing" className="w-full h-full object-cover" />
+              {imagePreview && (
+                <img src={imagePreview} alt="Analyzing" className="w-full h-full object-cover" data-testid="img-analyzing-preview" />
+              )}
               <div className="absolute inset-0 bg-emerald-500/20 animate-pulse" />
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-16 h-16 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center">
@@ -122,7 +253,7 @@ export default function Identify() {
           </motion.div>
         )}
 
-        {view === "results" && (
+        {view === "results" && result && (
           <motion.div
             key="results"
             initial={{ opacity: 0, y: 20 }}
@@ -131,12 +262,14 @@ export default function Identify() {
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="relative rounded-2xl overflow-hidden">
-                <img
-                  src="/images/species-pine.jpg"
-                  alt="Eastern White Pine"
-                  className="w-full h-64 md:h-full object-cover"
-                  data-testid="img-identified-species"
-                />
+                {imagePreview && (
+                  <img
+                    src={imagePreview}
+                    alt={result.commonName}
+                    className="w-full h-64 md:h-full object-cover"
+                    data-testid="img-identified-species"
+                  />
+                )}
                 <div className="absolute top-4 right-4 flex gap-2">
                   <Button size="icon" variant="ghost" className="bg-black/30 backdrop-blur-md text-white">
                     <RotateCw className="w-4 h-4" />
@@ -151,47 +284,52 @@ export default function Identify() {
                 <div className="rounded-2xl bg-card border border-card-border p-6" data-testid="card-species-result">
                   <div className="flex items-start justify-between gap-3 mb-5">
                     <div>
-                      <h2 className="text-xl font-bold text-foreground">Eastern White Pine</h2>
-                      <p className="text-sm text-muted-foreground italic mt-1">Pinus strobus</p>
+                      <h2 className="text-xl font-bold text-foreground" data-testid="text-common-name">{result.commonName}</h2>
+                      <p className="text-sm text-muted-foreground italic mt-1" data-testid="text-scientific-name">{result.scientificName}</p>
                     </div>
-                    <Badge className="bg-emerald-500/15 text-emerald-500">Tree</Badge>
+                    <Badge className="bg-emerald-500/15 text-emerald-500" data-testid="badge-category">{result.category}</Badge>
                   </div>
 
                   <div className="mb-6">
                     <div className="flex items-center justify-between mb-2.5">
                       <span className="text-sm font-medium text-foreground">Confidence Score</span>
-                      <span className="text-sm font-bold text-emerald-500">94%</span>
+                      <span className="text-sm font-bold text-emerald-500" data-testid="text-confidence">{Math.round(result.confidence)}%</span>
                     </div>
                     <div className="relative">
-                      <Progress value={94} className="h-3" />
+                      <Progress value={result.confidence} className="h-3" data-testid="progress-confidence" />
                     </div>
                   </div>
 
                   <Accordion type="single" collapsible className="w-full">
-                    <AccordionItem value="characteristics">
-                      <AccordionTrigger className="text-sm font-medium">Characteristics</AccordionTrigger>
+                    <AccordionItem value="description">
+                      <AccordionTrigger className="text-sm font-medium" data-testid="trigger-description">Description</AccordionTrigger>
                       <AccordionContent>
-                        <div className="text-sm text-muted-foreground space-y-3 leading-relaxed">
-                          <p>The Eastern White Pine is the tallest tree in eastern North America, reaching heights of 150-200 feet. It features soft, blue-green needles in bundles of 5, each 2-5 inches long.</p>
-                          <p>The bark is smooth and green-gray on young trees, becoming thick, dark, and deeply furrowed with age.</p>
+                        <div className="text-sm text-muted-foreground space-y-3 leading-relaxed" data-testid="text-description">
+                          <p>{result.description}</p>
                         </div>
                       </AccordionContent>
                     </AccordionItem>
                     <AccordionItem value="habitat">
-                      <AccordionTrigger className="text-sm font-medium">Habitat & Range</AccordionTrigger>
+                      <AccordionTrigger className="text-sm font-medium" data-testid="trigger-habitat">Habitat & Range</AccordionTrigger>
                       <AccordionContent>
-                        <div className="text-sm text-muted-foreground space-y-3 leading-relaxed">
-                          <p>Found throughout eastern North America from Newfoundland to Georgia, west to Minnesota and Iowa. Thrives in well-drained soils at elevations up to 5,000 feet.</p>
-                          <p>Prefers moist, sandy soils but adapts to various conditions. Common in mixed hardwood-conifer forests.</p>
+                        <div className="text-sm text-muted-foreground space-y-3 leading-relaxed" data-testid="text-habitat">
+                          <p>{result.habitat}</p>
                         </div>
                       </AccordionContent>
                     </AccordionItem>
-                    <AccordionItem value="uses">
-                      <AccordionTrigger className="text-sm font-medium">Uses & Significance</AccordionTrigger>
+                    <AccordionItem value="conservation">
+                      <AccordionTrigger className="text-sm font-medium" data-testid="trigger-conservation">Conservation Status</AccordionTrigger>
                       <AccordionContent>
-                        <div className="text-sm text-muted-foreground space-y-3 leading-relaxed">
-                          <p>Historically prized for ship masts during colonial era. Today valued for lumber, pulpwood, and ornamental plantings. The inner bark was used as food by Indigenous peoples.</p>
-                          <p>State tree of Maine and Michigan. Important wildlife habitat providing cover and food for numerous bird and mammal species.</p>
+                        <div className="text-sm text-muted-foreground space-y-3 leading-relaxed" data-testid="text-conservation">
+                          <p>{result.conservationStatus}</p>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="funfact">
+                      <AccordionTrigger className="text-sm font-medium" data-testid="trigger-funfact">Fun Fact</AccordionTrigger>
+                      <AccordionContent>
+                        <div className="text-sm text-muted-foreground space-y-3 leading-relaxed" data-testid="text-funfact">
+                          <p>{result.funFact}</p>
                         </div>
                       </AccordionContent>
                     </AccordionItem>
@@ -239,7 +377,7 @@ export default function Identify() {
             </div>
 
             <div className="mt-8 text-center">
-              <Button variant="outline" onClick={() => setView("upload")} className="gap-2" data-testid="button-identify-another">
+              <Button variant="outline" onClick={resetToUpload} className="gap-2" data-testid="button-identify-another">
                 <Camera className="w-4 h-4" /> Identify Another
               </Button>
             </div>

@@ -13,11 +13,12 @@ import {
   type CampgroundBooking, type InsertCampgroundBooking,
   type CatalogLocation, type InsertCatalogLocation,
   type LocationSubmission, type InsertLocationSubmission,
+  type Review, type InsertReview,
   type Session,
   users, trails, identifications, marketplaceListings,
   tripPlans, campgrounds, activityLog, sessions,
   activityLocations, arboristClients, arboristJobs, arboristInvoices,
-  campgroundBookings, catalogLocations, locationSubmissions
+  campgroundBookings, catalogLocations, locationSubmissions, reviews
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, ilike, or, lt, and, count, sql, asc } from "drizzle-orm";
@@ -112,6 +113,10 @@ export interface IStorage {
   getLocationSubmissions(status?: string): Promise<LocationSubmission[]>;
   createLocationSubmission(submission: InsertLocationSubmission): Promise<LocationSubmission>;
   updateLocationSubmission(id: number, data: Partial<InsertLocationSubmission>): Promise<LocationSubmission | undefined>;
+
+  getReviews(targetType: string, targetId: number): Promise<Review[]>;
+  createReview(review: InsertReview): Promise<Review>;
+  getAverageRating(targetType: string, targetId: number): Promise<{ average: number; count: number }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -597,6 +602,26 @@ export class DatabaseStorage implements IStorage {
   async updateLocationSubmission(id: number, data: Partial<InsertLocationSubmission>): Promise<LocationSubmission | undefined> {
     const [updated] = await db.update(locationSubmissions).set(data as any).where(eq(locationSubmissions.id, id)).returning();
     return updated;
+  }
+
+  async getReviews(targetType: string, targetId: number): Promise<Review[]> {
+    return db.select().from(reviews)
+      .where(and(eq(reviews.targetType, targetType), eq(reviews.targetId, targetId)))
+      .orderBy(desc(reviews.createdAt));
+  }
+
+  async createReview(review: InsertReview): Promise<Review> {
+    const [created] = await db.insert(reviews).values(review as any).returning();
+    return created;
+  }
+
+  async getAverageRating(targetType: string, targetId: number): Promise<{ average: number; count: number }> {
+    const [result] = await db.select({
+      average: sql<number>`COALESCE(AVG(${reviews.rating}), 0)`,
+      count: count(),
+    }).from(reviews)
+      .where(and(eq(reviews.targetType, targetType), eq(reviews.targetId, targetId)));
+    return { average: Number(result?.average ?? 0), count: result?.count ?? 0 };
   }
 }
 

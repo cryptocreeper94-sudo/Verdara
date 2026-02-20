@@ -253,6 +253,18 @@ export const campgroundBookings = pgTable("campground_bookings", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const reviews = pgTable("reviews", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  targetType: text("target_type").notNull(),
+  targetId: integer("target_id").notNull(),
+  rating: integer("rating").notNull(),
+  title: text("title"),
+  content: text("content"),
+  userName: text("user_name").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const passwordSchema = z.string()
   .min(8, "Password must be at least 8 characters")
   .regex(/[A-Z]/, "Password must contain at least 1 capital letter")
@@ -284,6 +296,7 @@ export const insertArboristInvoiceSchema = createInsertSchema(arboristInvoices).
 export const insertCatalogLocationSchema = createInsertSchema(catalogLocations).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertLocationSubmissionSchema = createInsertSchema(locationSubmissions).omit({ id: true, createdAt: true });
 export const insertCampgroundBookingSchema = createInsertSchema(campgroundBookings).omit({ id: true, createdAt: true });
+export const insertReviewSchema = createInsertSchema(reviews).omit({ id: true, createdAt: true });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -314,3 +327,5 @@ export type InsertLocationSubmission = z.infer<typeof insertLocationSubmissionSc
 export type LocationSubmission = typeof locationSubmissions.$inferSelect;
 export type InsertCampgroundBooking = z.infer<typeof insertCampgroundBookingSchema>;
 export type CampgroundBooking = typeof campgroundBookings.$inferSelect;
+export type InsertReview = z.infer<typeof insertReviewSchema>;
+export type Review = typeof reviews.$inferSelect;

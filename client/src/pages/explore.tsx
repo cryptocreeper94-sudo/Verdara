@@ -1,15 +1,19 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   ScanSearch, Mountain, Bike, RockingChair, Tent, Fish, Crosshair,
   Zap, Snowflake, Waves, TreePine, Axe, ShoppingBag, MapPinned,
   Anchor, ShieldAlert, Heart, DollarSign, ChevronRight, ArrowLeft,
-  Search, Compass, Layers, Star, Lock, Navigation, Flame, BookOpen, Package
+  Search, Compass, Layers, Star, Lock, Navigation, Flame, BookOpen, Package,
+  Camera, Map, CloudSun, Clock, Activity, TrendingUp
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Link } from "wouter";
+import { GlassCard } from "@/components/glass-card";
+import { useQuery } from "@tanstack/react-query";
+import { userActivities } from "@/lib/mock-data";
 
 const featureCategories = [
   {
@@ -382,9 +386,45 @@ const bgColorMap: Record<string, string> = {
 
 const totalFeatures = featureCategories.reduce((sum, cat) => sum + cat.featureCount, 0);
 
+const quickActions = [
+  { label: "AI Identify", icon: Camera, href: "/identify", color: "bg-emerald-500" },
+  { label: "Trail Discovery", icon: Map, href: "/trails", color: "bg-amber-500" },
+  { label: "Wood Market", icon: ShoppingBag, href: "/marketplace", color: "bg-slate-500" },
+  { label: "Trip Planner", icon: MapPinned, href: "/planner", color: "bg-emerald-600" },
+];
+
+const activityTypeColors: Record<string, string> = {
+  identification: "text-emerald-400",
+  trail: "text-amber-400",
+  marketplace: "text-slate-400",
+  conservation: "text-emerald-400",
+};
+
+const stagger = {
+  container: {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.08 },
+    },
+  },
+  item: {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+  },
+};
+
 export default function Explore() {
-  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const { data: catalogLocations, isLoading: catalogLoading } = useQuery<any[]>({
+    queryKey: ["/api/catalog", { limit: 4, featured: true }],
+    queryFn: async () => {
+      const res = await fetch("/api/catalog?limit=4&featured=true");
+      if (!res.ok) throw new Error("Failed to fetch catalog");
+      return res.json();
+    },
+  });
 
   const filteredCategories = searchQuery.trim()
     ? featureCategories.filter(
@@ -397,30 +437,62 @@ export default function Explore() {
 
   return (
     <div className="min-h-screen">
-      <div className="relative h-64 md:h-80 overflow-hidden">
+      <div className="relative overflow-hidden">
         <img
-          src="/images/cat-publiclands.jpg"
-          alt="Verdara Explore"
-          className="w-full h-full object-cover"
+          src="/images/hero-landscape.jpg"
+          alt="Verdara Command Center"
+          className="w-full h-72 md:h-80 object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-background" />
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-5 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="flex items-center justify-center gap-2 mb-3">
-              <Compass className="w-6 h-6 text-emerald-400" />
-              <Badge className="bg-emerald-500/20 text-emerald-400">Command Center</Badge>
-            </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg mb-2">
-              Explore Verdara
-            </h1>
-            <p className="text-white/70 text-sm md:text-base max-w-lg">
-              {totalFeatures} features across {featureCategories.length} categories. Your complete outdoor adventure toolkit.
-            </p>
-          </motion.div>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-background" />
+        <div className="absolute inset-0 flex items-center px-5 md:px-10">
+          <div className="w-full flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              className="flex-1"
+            >
+              <div className="flex items-center gap-2 mb-3 flex-wrap">
+                <Compass className="w-5 h-5 text-emerald-400" />
+                <Badge className="bg-emerald-500/20 text-emerald-400">Command Center</Badge>
+              </div>
+              <h1 className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg mb-2" data-testid="text-hero-title">
+                Welcome back, Explorer
+              </h1>
+              <p className="text-white/70 text-sm md:text-base max-w-md mb-4">
+                {totalFeatures} features across {featureCategories.length} categories
+              </p>
+              <div className="flex items-center gap-4 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-emerald-400" />
+                  <span className="text-white/80 text-xs" data-testid="text-stat-features">{totalFeatures} Features</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-amber-400" />
+                  <span className="text-white/80 text-xs" data-testid="text-stat-categories">{featureCategories.length} Categories</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-slate-400" />
+                  <span className="text-white/80 text-xs" data-testid="text-stat-phases">8 Dev Phases</span>
+                </div>
+              </div>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="flex flex-wrap gap-2"
+            >
+              {quickActions.map((action) => (
+                <Link key={action.label} href={action.href}>
+                  <Button className={cn(action.color, "text-white gap-2 text-xs")} data-testid={`button-hero-${action.label.toLowerCase().replace(/\s+/g, "-")}`}>
+                    <action.icon className="w-4 h-4" />
+                    {action.label}
+                  </Button>
+                </Link>
+              ))}
+            </motion.div>
+          </div>
         </div>
       </div>
 
@@ -436,6 +508,26 @@ export default function Explore() {
             data-testid="input-explore-search"
           />
         </div>
+
+        <motion.div
+          variants={stagger.container}
+          initial="hidden"
+          animate="show"
+          className="grid grid-cols-2 md:grid-cols-4 gap-3"
+        >
+          {quickActions.map((action) => (
+            <motion.div key={action.label} variants={stagger.item}>
+              <Link href={action.href}>
+                <GlassCard hover className="p-4 flex flex-col items-center gap-3 text-center" data-testid={`card-quick-${action.label.toLowerCase().replace(/\s+/g, "-")}`}>
+                  <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center", action.color)}>
+                    <action.icon className="w-6 h-6 text-white" />
+                  </div>
+                  <span className="text-sm font-medium text-foreground">{action.label}</span>
+                </GlassCard>
+              </Link>
+            </motion.div>
+          ))}
+        </motion.div>
 
         <Link href="/catalog">
           <motion.div
@@ -462,100 +554,185 @@ export default function Explore() {
           </motion.div>
         </Link>
 
-        <div className="grid grid-cols-3 gap-3 max-w-md mx-auto">
-          <div className="rounded-xl bg-card border border-card-border p-3 text-center">
-            <div className="text-lg font-bold text-emerald-500">{totalFeatures}</div>
-            <div className="text-[11px] text-muted-foreground">Total Features</div>
-          </div>
-          <div className="rounded-xl bg-card border border-card-border p-3 text-center">
-            <div className="text-lg font-bold text-amber-500">{featureCategories.length}</div>
-            <div className="text-[11px] text-muted-foreground">Categories</div>
-          </div>
-          <div className="rounded-xl bg-card border border-card-border p-3 text-center">
-            <div className="text-lg font-bold text-slate-400">8</div>
-            <div className="text-[11px] text-muted-foreground">Dev Phases</div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredCategories.map((cat, i) => (
-            <motion.div
-              key={cat.id}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: i * 0.03 }}
-            >
-              <div
-                className="rounded-2xl overflow-hidden bg-card border border-card-border group cursor-pointer"
-                data-testid={`card-category-${cat.id}`}
-              >
-                <div className="relative h-40">
-                  <img
-                    src={cat.image}
-                    alt={cat.title}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                  <div className="absolute top-3 right-3">
-                    <Badge className={cn(bgColorMap[cat.color], colorMap[cat.color], "text-[10px]")}>
-                      {cat.featureCount} features
-                    </Badge>
-                  </div>
-                  <div className="absolute bottom-3 left-4 right-4">
-                    <div className="flex items-center gap-2.5 mb-1">
-                      <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center bg-black/30 backdrop-blur-md", colorMap[cat.color])}>
-                        <cat.icon className="w-4 h-4" />
-                      </div>
-                      <h3 className="text-white font-semibold text-sm">{cat.title}</h3>
-                    </div>
-                    <p className="text-white/60 text-xs">{cat.subtitle}</p>
-                  </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="lg:col-span-2"
+          >
+            <GlassCard className="p-5" data-testid="card-featured-locations">
+              <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <MapPinned className="w-5 h-5 text-emerald-400" />
+                  <h2 className="text-sm font-semibold text-foreground">Featured Locations</h2>
                 </div>
-
-                <div className="p-4">
-                  <div className="flex items-center justify-between gap-3 mb-3">
-                    <Link href={cat.href}>
-                      <Button className="bg-emerald-500 text-white gap-2 text-xs" data-testid={`button-go-${cat.id}`}>
-                        <Navigation className="w-3.5 h-3.5" /> Open
-                      </Button>
-                    </Link>
-                    <Button
-                      variant="outline"
-                      className="gap-2 text-xs"
-                      onClick={() => setExpandedCategory(expandedCategory === cat.id ? null : cat.id)}
-                      data-testid={`button-expand-${cat.id}`}
-                    >
-                      <Layers className="w-3.5 h-3.5" />
-                      {expandedCategory === cat.id ? "Hide" : "Features"}
-                    </Button>
-                  </div>
-
-                  <AnimatePresence>
-                    {expandedCategory === cat.id && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.25 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="pt-3 border-t border-card-border space-y-1.5">
-                          {cat.features.map((feature, fi) => (
-                            <div key={fi} className="flex items-start gap-2 text-xs">
-                              <Star className="w-3 h-3 text-emerald-500 flex-shrink-0 mt-0.5" />
-                              <span className="text-muted-foreground">{feature}</span>
-                            </div>
-                          ))}
+                <Link href="/catalog">
+                  <Button variant="outline" className="text-xs gap-1" data-testid="button-view-all-locations">
+                    View All <ChevronRight className="w-3.5 h-3.5" />
+                  </Button>
+                </Link>
+              </div>
+              {catalogLoading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="h-28 rounded-xl bg-muted animate-pulse" />
+                  ))}
+                </div>
+              ) : catalogLocations && catalogLocations.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {catalogLocations.slice(0, 4).map((loc: any, i: number) => (
+                    <Link key={loc.id || i} href={`/catalog/${loc.id}`}>
+                      <div className="relative rounded-xl overflow-hidden h-28 group cursor-pointer" data-testid={`card-location-${loc.id || i}`}>
+                        <img
+                          src={loc.imageUrl || loc.image || "/images/trail_1.jpg"}
+                          alt={loc.name}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                        <div className="absolute bottom-2 left-3 right-3">
+                          <p className="text-white text-xs font-semibold truncate">{loc.name}</p>
+                          <p className="text-white/60 text-[10px] truncate">{loc.location || loc.state}</p>
                         </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-28 text-muted-foreground text-sm">
+                  No featured locations available
+                </div>
+              )}
+            </GlassCard>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
+            <GlassCard className="p-5 h-full" data-testid="card-weather-widget">
+              <div className="flex items-center gap-2 mb-4">
+                <CloudSun className="w-5 h-5 text-amber-400" />
+                <h2 className="text-sm font-semibold text-foreground">Weather</h2>
+              </div>
+              <div className="flex flex-col items-center justify-center py-6 gap-3">
+                <CloudSun className="w-16 h-16 text-amber-400/60" />
+                <p className="text-2xl font-bold text-foreground">72°F</p>
+                <p className="text-xs text-muted-foreground">Partly Cloudy</p>
+                <Badge className="bg-amber-500/15 text-amber-400 text-[10px]">Open-Meteo</Badge>
+              </div>
+              <div className="grid grid-cols-3 gap-2 mt-2">
+                <div className="text-center">
+                  <p className="text-[10px] text-muted-foreground">Wind</p>
+                  <p className="text-xs font-medium text-foreground">8 mph</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-[10px] text-muted-foreground">Humidity</p>
+                  <p className="text-xs font-medium text-foreground">45%</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-[10px] text-muted-foreground">UV Index</p>
+                  <p className="text-xs font-medium text-foreground">6</p>
                 </div>
               </div>
-            </motion.div>
-          ))}
+            </GlassCard>
+          </motion.div>
         </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+        >
+          <GlassCard className="p-5" data-testid="card-recent-activity">
+            <div className="flex items-center gap-2 mb-4">
+              <Clock className="w-5 h-5 text-emerald-400" />
+              <h2 className="text-sm font-semibold text-foreground">Recent Activity</h2>
+            </div>
+            <div className="space-y-3">
+              {userActivities.slice(0, 5).map((activity) => (
+                <div key={activity.id} className="flex items-center gap-3" data-testid={`activity-item-${activity.id}`}>
+                  <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">
+                    <img
+                      src={activity.image}
+                      alt={activity.title}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-foreground truncate">{activity.title}</p>
+                    <p className={cn("text-[10px]", activityTypeColors[activity.type] || "text-muted-foreground")}>{activity.date}</p>
+                  </div>
+                  <Badge className={cn(
+                    "text-[10px]",
+                    activity.type === "identification" ? "bg-emerald-500/15 text-emerald-400" :
+                    activity.type === "trail" ? "bg-amber-500/15 text-amber-400" :
+                    activity.type === "marketplace" ? "bg-slate-500/15 text-slate-400" :
+                    "bg-emerald-500/15 text-emerald-400"
+                  )}>
+                    {activity.type}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </GlassCard>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.6 }}
+        >
+          <div className="flex items-center gap-2 mb-4">
+            <Compass className="w-5 h-5 text-emerald-400" />
+            <h2 className="text-sm font-semibold text-foreground">Activity Categories</h2>
+            {searchQuery && (
+              <Badge className="bg-emerald-500/15 text-emerald-400 text-[10px]">
+                {filteredCategories.length} results
+              </Badge>
+            )}
+          </div>
+          <motion.div
+            variants={stagger.container}
+            initial="hidden"
+            animate="show"
+            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3"
+          >
+            {filteredCategories.map((cat) => (
+              <motion.div key={cat.id} variants={stagger.item}>
+                <Link href={cat.href}>
+                  <div
+                    className="relative rounded-xl overflow-hidden h-36 group cursor-pointer"
+                    data-testid={`card-category-${cat.id}`}
+                  >
+                    <img
+                      src={cat.image}
+                      alt={cat.title}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                    <div className="absolute top-2 right-2">
+                      <Badge className={cn(bgColorMap[cat.color], colorMap[cat.color], "text-[10px]")}>
+                        {cat.featureCount}
+                      </Badge>
+                    </div>
+                    <div className="absolute bottom-2 left-3 right-3">
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <cat.icon className={cn("w-3.5 h-3.5", colorMap[cat.color])} />
+                        <h3 className="text-white font-semibold text-xs">{cat.title}</h3>
+                      </div>
+                      <p className="text-white/60 text-[10px] truncate">{cat.subtitle}</p>
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
+          </motion.div>
+        </motion.div>
       </div>
     </div>
   );

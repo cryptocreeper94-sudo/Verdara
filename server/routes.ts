@@ -2,8 +2,9 @@ import type { Express } from "express";
 import { type Server } from "http";
 import { storage } from "./storage";
 import { registerAuthRoutes, requireAuth } from "./auth";
-import { insertTripPlanSchema, insertMarketplaceListingSchema, insertActivityLogSchema, insertArboristClientSchema, insertArboristJobSchema, insertArboristInvoiceSchema, insertCampgroundBookingSchema, insertCatalogLocationSchema, insertLocationSubmissionSchema } from "@shared/schema";
+import { insertTripPlanSchema, insertMarketplaceListingSchema, insertActivityLogSchema, insertArboristClientSchema, insertArboristJobSchema, insertArboristInvoiceSchema, insertCampgroundBookingSchema, insertCatalogLocationSchema, insertLocationSubmissionSchema, insertReviewSchema } from "@shared/schema";
 import Stripe from "stripe";
+import { openai } from "./replit_integrations/image/client";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -909,6 +910,69 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error retrieving checkout session:", error);
       res.status(500).json({ message: "Failed to retrieve checkout session" });
+    }
+  });
+
+  app.get("/api/reviews/:targetType/:targetId", async (req, res) => {
+    try {
+      const { targetType, targetId } = req.params;
+      const reviews = await storage.getReviews(targetType, parseInt(targetId));
+      const stats = await storage.getAverageRating(targetType, parseInt(targetId));
+      res.json({ reviews, stats });
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
+      res.status(500).json({ message: "Failed to fetch reviews" });
+    }
+  });
+
+  app.post("/api/reviews", requireAuth, async (req, res) => {
+    try {
+      const user = await storage.getUser(req.userId!);
+      if (!user) return res.status(401).json({ message: "User not found" });
+      const data = insertReviewSchema.parse({
+        ...req.body,
+        userId: user.id,
+        userName: user.name || user.email.split("@")[0],
+      });
+      const review = await storage.createReview(data);
+      res.status(201).json(review);
+    } catch (error) {
+      console.error("Error creating review:", error);
+      res.status(500).json({ message: "Failed to create review" });
+    }
+  });
+
+  app.post("/api/identify", requireAuth, async (req, res) => {
+    try {
+      const { imageBase64 } = req.body;
+      if (!imageBase64) {
+        return res.status(400).json({ message: "Image data is required" });
+      }
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: "You are a nature identification expert. Identify the species in the image. Return a JSON object with these fields: commonName, scientificName, confidence (0-100), category (tree, flower, plant, fungus, animal, bird, insect, other), description (2-3 sentences about the species), habitat, conservationStatus, funFact. If you cannot identify the species, set commonName to 'Unknown' and confidence to 0.",
+          },
+          {
+            role: "user",
+            content: [
+              { type: "text", text: "Please identify the species in this image." },
+              { type: "image_url", image_url: { url: imageBase64.startsWith("data:") ? imageBase64 : `data:image/jpeg;base64,${imageBase64}` } },
+            ],
+          },
+        ],
+        response_format: { type: "json_object" },
+        max_tokens: 1000,
+      });
+
+      const result = JSON.parse(response.choices[0]?.message?.content || "{}");
+      res.json(result);
+    } catch (error) {
+      console.error("Error identifying species:", error);
+      res.status(500).json({ message: "Failed to identify species" });
     }
   });
 

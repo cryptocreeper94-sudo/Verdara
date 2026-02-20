@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Search, SlidersHorizontal, Star, Heart, MapPin, ArrowUpDown, X, ChevronDown, Navigation, Loader2 } from "lucide-react";
+import LeafletMap from "@/components/leaflet-map";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -9,6 +10,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { Link } from "wouter";
+
+const TRAIL_COORDS: Record<string, [number, number]> = {
+  "Salem, VA": [37.2936, -80.0548],
+  "Zion National Park, UT": [37.2982, -112.9488],
+  "Grand Teton, WY": [43.7904, -110.6818],
+  "Rocky Mountain NP, CO": [40.3428, -105.6836],
+  "Yosemite, CA": [37.7490, -119.5885],
+  "Grand Canyon, AZ": [36.0544, -112.1401],
+  "Mt. Rainier, WA": [46.8523, -121.7603],
+  "Acadia NP, ME": [44.3386, -68.2733],
+  "Sedona, AZ": [34.8697, -111.7610],
+  "Kauai, HI": [22.1649, -159.6502],
+  "Glacier NP, MT": [48.7596, -113.7870],
+  "Hudson Valley, NY": [41.4310, -73.9712],
+  "Leavenworth, WA": [47.5962, -120.6615],
+  "Glenwood Springs, CO": [39.5505, -107.3248],
+};
 
 const difficulties = ["Easy", "Moderate", "Difficult", "Expert"];
 const features = ["Dog-Friendly", "Camping", "Waterfalls", "Lake Views", "Summit", "Wildflowers"];
@@ -44,6 +62,15 @@ export default function Trails() {
     });
   };
 
+  const trailMarkers = useMemo(() => {
+    return allTrails
+      .filter((t: any) => TRAIL_COORDS[t.location])
+      .map((t: any) => {
+        const [lat, lng] = TRAIL_COORDS[t.location];
+        return { lat, lng, title: t.name, popup: `<b>${t.name}</b><br/>${t.location}` };
+      });
+  }, [allTrails]);
+
   const filteredTrails = allTrails
     .filter(t => {
       if (searchQuery && !t.name.toLowerCase().includes(searchQuery.toLowerCase()) && !t.location.toLowerCase().includes(searchQuery.toLowerCase())) return false;
@@ -73,11 +100,17 @@ export default function Trails() {
   return (
     <div className="min-h-screen">
       <div className="relative h-52 md:h-60 overflow-hidden">
-        <img src="/images/map-placeholder.jpg" alt="Trail Map" className="w-full h-full object-cover" data-testid="img-map-placeholder" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
-        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
-          <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-lg">Trail Discovery</h1>
-          <p className="text-white/70 text-sm mt-1.5 drop-shadow">Find your perfect trail from {allTrails.length} options</p>
+        <LeafletMap
+          center={[39.8283, -98.5795]}
+          zoom={4}
+          markers={trailMarkers}
+          className="w-full h-full"
+          style={{ minHeight: "100%" }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background pointer-events-none z-[400]" />
+        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10 pointer-events-none z-[401]">
+          <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-lg" data-testid="text-trail-discovery-heading">Trail Discovery</h1>
+          <p className="text-white/70 text-sm mt-1.5 drop-shadow" data-testid="text-trail-count">Find your perfect trail from {allTrails.length} options</p>
         </div>
       </div>
 

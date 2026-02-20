@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, MessageSquare, HandCoins, ShieldCheck, X, ArrowUpDown, Loader2, Plus, Trash2, Package, CreditCard, CheckCircle2, XCircle, Minus } from "lucide-react";
+import { Search, MessageSquare, HandCoins, ShieldCheck, X, ArrowUpDown, Loader2, Plus, Trash2, Package, CreditCard, CheckCircle2, XCircle, Minus, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -41,6 +41,12 @@ export default function Marketplace() {
       setCheckoutBanner("cancelled");
     }
   }, []);
+
+  useEffect(() => {
+    if (!checkoutBanner) return;
+    const timer = setTimeout(() => setCheckoutBanner(null), 10000);
+    return () => clearTimeout(timer);
+  }, [checkoutBanner]);
 
   const [newSpecies, setNewSpecies] = useState("");
   const [newGrade, setNewGrade] = useState("");
@@ -143,38 +149,61 @@ export default function Marketplace() {
       <AnimatePresence>
         {checkoutBanner === "success" && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-4 mb-6 flex items-center gap-3"
+            initial={{ opacity: 0, y: -20, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.97 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className="rounded-xl bg-gradient-to-r from-emerald-500/15 via-emerald-400/10 to-emerald-500/5 border border-emerald-500/25 p-5 mb-6"
             data-testid="banner-checkout-success"
           >
-            <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0" />
-            <div className="flex-1">
-              <p className="text-sm font-medium text-foreground">Payment successful</p>
-              <p className="text-xs text-muted-foreground">Your order has been placed. The seller will be notified and your purchase is protected by TrustShield Escrow.</p>
+            <div className="flex items-start gap-4">
+              <div className="rounded-full bg-emerald-500/20 p-2.5 flex-shrink-0">
+                <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base font-semibold text-foreground mb-1">Order Confirmed</h3>
+                <p className="text-sm text-muted-foreground">Your payment was processed successfully. The seller has been notified and will prepare your order.</p>
+                <div className="flex flex-wrap items-center gap-3 mt-3">
+                  <Button
+                    size="sm"
+                    className="bg-emerald-500 text-white text-xs gap-1.5"
+                    onClick={() => setCheckoutBanner(null)}
+                    data-testid="button-view-order-details"
+                  >
+                    <Package className="w-3.5 h-3.5" /> View Order Details
+                  </Button>
+                  <Badge className="bg-emerald-500/10 text-emerald-500 gap-1">
+                    <ShieldCheck className="w-3 h-3" /> TrustShield Protected
+                  </Badge>
+                </div>
+              </div>
+              <Button size="icon" variant="ghost" onClick={() => setCheckoutBanner(null)} data-testid="button-dismiss-success">
+                <X className="w-4 h-4" />
+              </Button>
             </div>
-            <Button size="icon" variant="ghost" onClick={() => setCheckoutBanner(null)}>
-              <X className="w-4 h-4" />
-            </Button>
           </motion.div>
         )}
         {checkoutBanner === "cancelled" && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-4 mb-6 flex items-center gap-3"
+            initial={{ opacity: 0, y: -20, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.97 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className="rounded-xl bg-gradient-to-r from-amber-500/15 via-amber-400/10 to-amber-500/5 border border-amber-500/25 p-5 mb-6"
             data-testid="banner-checkout-cancelled"
           >
-            <XCircle className="w-5 h-5 text-amber-500 flex-shrink-0" />
-            <div className="flex-1">
-              <p className="text-sm font-medium text-foreground">Checkout cancelled</p>
-              <p className="text-xs text-muted-foreground">No payment was processed. You can try again anytime.</p>
+            <div className="flex items-start gap-4">
+              <div className="rounded-full bg-amber-500/20 p-2.5 flex-shrink-0">
+                <XCircle className="w-6 h-6 text-amber-500" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base font-semibold text-foreground mb-1">Checkout Cancelled</h3>
+                <p className="text-sm text-muted-foreground">No payment was processed. Your cart is still available and you can try again anytime.</p>
+              </div>
+              <Button size="icon" variant="ghost" onClick={() => setCheckoutBanner(null)} data-testid="button-dismiss-cancelled">
+                <X className="w-4 h-4" />
+              </Button>
             </div>
-            <Button size="icon" variant="ghost" onClick={() => setCheckoutBanner(null)}>
-              <X className="w-4 h-4" />
-            </Button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -478,50 +507,95 @@ export default function Marketplace() {
                       </div>
                     </div>
 
-                    {buyingListingId === listing.id ? (
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-3">
-                          <span className="text-xs text-muted-foreground">Board feet:</span>
-                          <div className="flex items-center gap-2">
-                            <Button size="icon" variant="outline" onClick={() => setBuyQuantity(q => Math.max(1, q - 1))} data-testid={`button-qty-minus-${listing.id}`}>
-                              <Minus className="w-3 h-3" />
+                    <AnimatePresence mode="wait">
+                      {buyingListingId === listing.id ? (
+                        <motion.div
+                          key="order-summary"
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.25 }}
+                          className="space-y-3"
+                        >
+                          <div className="rounded-lg bg-background border border-border p-3">
+                            <div className="flex gap-3 mb-3">
+                              <img
+                                src={listing.image}
+                                alt={listing.species}
+                                className="w-14 h-14 rounded-md object-cover flex-shrink-0"
+                                data-testid={`img-order-thumb-${listing.id}`}
+                              />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-foreground truncate">{listing.species}</p>
+                                <p className="text-xs text-muted-foreground">{listing.grade} Grade</p>
+                                <p className="text-xs text-emerald-500 font-medium mt-0.5">${listing.pricePerBf?.toFixed(2)} /bd ft</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between gap-3 mb-3">
+                              <span className="text-xs text-muted-foreground">Quantity (board feet)</span>
+                              <div className="flex items-center gap-2">
+                                <Button size="icon" variant="outline" onClick={() => setBuyQuantity(q => Math.max(1, q - 1))} data-testid={`button-qty-minus-${listing.id}`}>
+                                  <Minus className="w-3 h-3" />
+                                </Button>
+                                <span className="text-sm font-medium text-foreground w-8 text-center" data-testid={`text-qty-${listing.id}`}>{buyQuantity}</span>
+                                <Button size="icon" variant="outline" onClick={() => setBuyQuantity(q => q + 1)} data-testid={`button-qty-plus-${listing.id}`}>
+                                  <Plus className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            </div>
+                            <div className="border-t border-border pt-2 space-y-1.5">
+                              <div className="flex items-center justify-between gap-3">
+                                <span className="text-xs text-muted-foreground">Subtotal</span>
+                                <span className="text-sm font-semibold text-foreground" data-testid={`text-subtotal-${listing.id}`}>${(listing.pricePerBf * buyQuantity).toFixed(2)}</span>
+                              </div>
+                              <div className="flex items-center justify-between gap-3">
+                                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                  <ShieldCheck className="w-3 h-3 text-emerald-500" /> TrustShield Escrow (0.5%)
+                                </span>
+                                <span className="text-xs text-muted-foreground" data-testid={`text-escrow-fee-${listing.id}`}>${(listing.pricePerBf * buyQuantity * 0.005).toFixed(2)}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Button variant="outline" className="flex-1 text-xs" onClick={() => { setBuyingListingId(null); setBuyQuantity(1); }} data-testid={`button-cancel-order-${listing.id}`}>
+                              Cancel
                             </Button>
-                            <span className="text-sm font-medium text-foreground w-8 text-center" data-testid={`text-qty-${listing.id}`}>{buyQuantity}</span>
-                            <Button size="icon" variant="outline" onClick={() => setBuyQuantity(q => q + 1)} data-testid={`button-qty-plus-${listing.id}`}>
-                              <Plus className="w-3 h-3" />
+                            <Button
+                              className="flex-1 bg-emerald-500 text-white gap-1.5 text-xs"
+                              onClick={() => startCheckout.mutate({ listingId: listing.id, quantity: buyQuantity })}
+                              disabled={startCheckout.isPending}
+                              data-testid={`button-checkout-${listing.id}`}
+                            >
+                              {startCheckout.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CreditCard className="w-3.5 h-3.5" />}
+                              Proceed to Payment
                             </Button>
                           </div>
-                          <span className="text-xs font-semibold text-foreground ml-auto">${(listing.pricePerBf * buyQuantity).toFixed(2)}</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <Button variant="outline" className="flex-1 text-xs" onClick={() => { setBuyingListingId(null); setBuyQuantity(1); }}>
-                            Cancel
+                          <div className="flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground">
+                            <Lock className="w-3 h-3" />
+                            Secure checkout powered by Stripe
+                          </div>
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key="buy-buttons"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="flex items-center gap-3"
+                        >
+                          <Button variant="outline" className="flex-1 gap-1.5 text-xs" data-testid={`button-message-${listing.id}`}>
+                            <MessageSquare className="w-3.5 h-3.5" /> Message
                           </Button>
                           <Button
                             className="flex-1 bg-emerald-500 text-white gap-1.5 text-xs"
-                            onClick={() => startCheckout.mutate({ listingId: listing.id, quantity: buyQuantity })}
-                            disabled={startCheckout.isPending}
-                            data-testid={`button-checkout-${listing.id}`}
+                            onClick={() => { setBuyingListingId(listing.id); setBuyQuantity(1); }}
+                            data-testid={`button-buy-${listing.id}`}
                           >
-                            {startCheckout.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CreditCard className="w-3.5 h-3.5" />}
-                            Pay Now
+                            <CreditCard className="w-3.5 h-3.5" /> Buy Now
                           </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-3">
-                        <Button variant="outline" className="flex-1 gap-1.5 text-xs" data-testid={`button-message-${listing.id}`}>
-                          <MessageSquare className="w-3.5 h-3.5" /> Message
-                        </Button>
-                        <Button
-                          className="flex-1 bg-emerald-500 text-white gap-1.5 text-xs"
-                          onClick={() => { setBuyingListingId(listing.id); setBuyQuantity(1); }}
-                          data-testid={`button-buy-${listing.id}`}
-                        >
-                          <CreditCard className="w-3.5 h-3.5" /> Buy Now
-                        </Button>
-                      </div>
-                    )}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
 
                     <div className="mt-4 pt-4 border-t border-border flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground">
                       <ShieldCheck className="w-3 h-3 text-emerald-500" />

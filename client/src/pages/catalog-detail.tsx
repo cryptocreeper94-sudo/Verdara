@@ -1,19 +1,24 @@
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useRoute, useLocation, Link } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { GlassCard } from "@/components/glass-card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/use-auth";
 import type { CatalogLocation } from "@shared/schema";
 import {
   ArrowLeft, MapPin, Star, Globe, Phone, Shield, Calendar,
   ExternalLink, Share2, Mountain, TreePine, Fish, Target,
   Tent, Bike, Waves, Snowflake, Zap, Ship, Leaf, Map,
-  DollarSign, Users, Loader2, CheckCircle, type LucideIcon
+  DollarSign, Users, Loader2, CheckCircle, MessageSquare, type LucideIcon
 } from "lucide-react";
+import LeafletMap from "@/components/leaflet-map";
 
 const TYPE_COLORS: Record<string, string> = {
   national_park: "bg-emerald-500/20 text-emerald-300",
@@ -103,6 +108,194 @@ const fadeUp = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
 };
+
+interface ReviewData {
+  id: number;
+  userId: number;
+  userName: string;
+  rating: number;
+  title: string;
+  content: string;
+  createdAt: string;
+}
+
+interface ReviewsResponse {
+  reviews: ReviewData[];
+  stats: { average: number; count: number };
+}
+
+function ReviewsSection({ locationId }: { locationId: number }) {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const { toast } = useToast();
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewTitle, setReviewTitle] = useState("");
+  const [reviewContent, setReviewContent] = useState("");
+  const [hoverRating, setHoverRating] = useState(0);
+
+  const { data: reviewsData, isLoading: reviewsLoading } = useQuery<ReviewsResponse>({
+    queryKey: [`/api/reviews/catalog/${locationId}`],
+    enabled: !!locationId,
+  });
+
+  const submitReview = useMutation({
+    mutationFn: async (data: { targetType: string; targetId: number; rating: number; title: string; content: string }) => {
+      const res = await apiRequest("POST", "/api/reviews", data);
+      return res.json();
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [`/api/reviews/catalog/${locationId}`] });
+      setReviewRating(0);
+      setReviewTitle("");
+      setReviewContent("");
+      toast({ title: "Review submitted", description: "Your review has been posted successfully." });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to submit review. Please try again.", variant: "destructive" });
+    },
+  });
+
+  const handleSubmitReview = () => {
+    if (reviewRating === 0 || !reviewTitle.trim() || !reviewContent.trim()) return;
+    submitReview.mutate({
+      targetType: "catalog",
+      targetId: locationId,
+      rating: reviewRating,
+      title: reviewTitle.trim(),
+      content: reviewContent.trim(),
+    });
+  };
+
+  return (
+    <motion.div variants={fadeUp}>
+      <GlassCard className="p-5" data-testid="section-reviews">
+        <div className="flex items-center gap-2 mb-4">
+          <MessageSquare className="w-5 h-5 text-emerald-400" />
+          <h2 className="text-lg font-semibold text-foreground" data-testid="text-reviews-heading">Reviews</h2>
+        </div>
+
+        {reviewsLoading ? (
+          <div className="flex items-center justify-center py-8" data-testid="reviews-loading">
+            <Loader2 className="w-6 h-6 text-emerald-500 animate-spin" />
+          </div>
+        ) : (
+          <>
+            {reviewsData && (
+              <div className="flex items-center gap-3 mb-5 pb-4 border-b border-white/10" data-testid="reviews-stats">
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: 5 }, (_, i) => (
+                    <Star
+                      key={i}
+                      className={cn(
+                        "w-5 h-5",
+                        i < Math.round(reviewsData.stats.average) ? "text-amber-400 fill-amber-400" : "text-slate-600"
+                      )}
+                    />
+                  ))}
+                </div>
+                <span className="text-lg font-semibold text-foreground" data-testid="text-average-rating">
+                  {reviewsData.stats.average.toFixed(1)}
+                </span>
+                <span className="text-sm text-muted-foreground" data-testid="text-review-count">
+                  ({reviewsData.stats.count} {reviewsData.stats.count === 1 ? "review" : "reviews"})
+                </span>
+              </div>
+            )}
+
+            {reviewsData?.reviews && reviewsData.reviews.length > 0 && (
+              <div className="space-y-4 mb-5" data-testid="reviews-list">
+                {reviewsData.reviews.map((review) => (
+                  <div key={review.id} className="border-b border-white/10 pb-4 last:border-b-0" data-testid={`review-item-${review.id}`}>
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                      <span className="text-sm font-medium text-foreground" data-testid={`text-reviewer-name-${review.id}`}>
+                        {review.userName}
+                      </span>
+                      <div className="flex items-center gap-0.5">
+                        {Array.from({ length: 5 }, (_, i) => (
+                          <Star
+                            key={i}
+                            className={cn(
+                              "w-3.5 h-3.5",
+                              i < review.rating ? "text-amber-400 fill-amber-400" : "text-slate-600"
+                            )}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-xs text-muted-foreground" data-testid={`text-review-date-${review.id}`}>
+                        {new Date(review.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <h4 className="text-sm font-semibold text-foreground mb-1" data-testid={`text-review-title-${review.id}`}>
+                      {review.title}
+                    </h4>
+                    <p className="text-sm text-muted-foreground leading-relaxed" data-testid={`text-review-content-${review.id}`}>
+                      {review.content}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {reviewsData?.reviews && reviewsData.reviews.length === 0 && (
+              <p className="text-sm text-muted-foreground mb-5" data-testid="text-no-reviews">
+                No reviews yet. Be the first to leave a review!
+              </p>
+            )}
+
+            {user && (
+              <div className="border-t border-white/10 pt-4" data-testid="review-form">
+                <h3 className="text-sm font-semibold text-foreground mb-3" data-testid="text-write-review-heading">Write a Review</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-1" data-testid="rating-selector">
+                    {Array.from({ length: 5 }, (_, i) => (
+                      <Star
+                        key={i}
+                        className={cn(
+                          "w-6 h-6 cursor-pointer transition-colors",
+                          i < (hoverRating || reviewRating) ? "text-amber-400 fill-amber-400" : "text-slate-600"
+                        )}
+                        onClick={() => setReviewRating(i + 1)}
+                        onMouseEnter={() => setHoverRating(i + 1)}
+                        onMouseLeave={() => setHoverRating(0)}
+                        data-testid={`star-selector-${i + 1}`}
+                      />
+                    ))}
+                  </div>
+                  <Input
+                    placeholder="Review title"
+                    value={reviewTitle}
+                    onChange={(e) => setReviewTitle(e.target.value)}
+                    className="bg-white/5 border-white/20"
+                    data-testid="input-review-title"
+                  />
+                  <Textarea
+                    placeholder="Write your review..."
+                    value={reviewContent}
+                    onChange={(e) => setReviewContent(e.target.value)}
+                    rows={3}
+                    className="bg-white/5 border-white/20 resize-none"
+                    data-testid="textarea-review-content"
+                  />
+                  <Button
+                    className="bg-emerald-500 text-white"
+                    onClick={handleSubmitReview}
+                    disabled={submitReview.isPending || reviewRating === 0 || !reviewTitle.trim() || !reviewContent.trim()}
+                    data-testid="button-submit-review"
+                  >
+                    {submitReview.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    ) : null}
+                    Submit Review
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </GlassCard>
+    </motion.div>
+  );
+}
 
 export default function CatalogDetail() {
   const [, params] = useRoute("/catalog/:slug");
@@ -415,6 +608,8 @@ export default function CatalogDetail() {
                 </GlassCard>
               </motion.div>
             )}
+
+            <ReviewsSection locationId={location.id} />
           </div>
 
           <div className="space-y-6">
@@ -500,11 +695,13 @@ export default function CatalogDetail() {
               <motion.div variants={fadeUp}>
                 <GlassCard className="p-5" data-testid="section-map">
                   <h2 className="text-lg font-semibold text-foreground mb-3">Location</h2>
-                  <div className="bg-slate-800/50 rounded-md p-4 mb-3 text-center">
-                    <Map className="w-8 h-8 text-slate-500 mx-auto mb-2" />
-                    <p className="text-xs text-muted-foreground" data-testid="text-coordinates">
-                      {location.lat.toFixed(4)}, {location.lng.toFixed(4)}
-                    </p>
+                  <div className="rounded-md overflow-hidden mb-3">
+                    <LeafletMap
+                      center={[location.lat, location.lng]}
+                      zoom={12}
+                      markers={[{ lat: location.lat, lng: location.lng, title: location.name }]}
+                      style={{ minHeight: 200 }}
+                    />
                   </div>
                   <a
                     href={`https://www.google.com/maps?q=${location.lat},${location.lng}`}

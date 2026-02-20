@@ -21,13 +21,16 @@ Verdara is built as part of the DarkWave Trust Layer (DWTL) ecosystem, functioni
 - **Authentication:** Custom email/password authentication with bcrypt hashing, cookie-based sessions, and Resend for email verification. Future plans include integration with the Trust Layer ecosystem SSO.
 - **Data & Storage:** PostgreSQL database managed with Drizzle ORM. Includes seeding scripts for trails, campgrounds, marketplace listings, and a catalog of 125+ real US outdoor locations with proximity search.
 - **Core Modules:**
-    - **Catalog:** Nationwide outdoor location catalog with search, browse, and detail pages.
+    - **Command Center:** Bento grid dashboard with quick actions, featured locations, weather widget, recent activity feed, and activity categories. Personalized entry point for the app.
+    - **AI Species Identification:** Real OpenAI Vision API (GPT-4o) integration for identifying trees, plants, fish, and wildlife from camera/upload photos. Returns species name, confidence score, habitat, conservation status, and fun facts.
+    - **Catalog:** Nationwide outdoor location catalog with search, browse, detail pages, interactive Leaflet maps, and user reviews/ratings system.
     - **Campground Booking:** Comprehensive reservation UI and CRUD operations for bookings.
-    - **Marketplace:** Wood economy marketplace with product listings and Stripe checkout integration.
+    - **Marketplace:** Wood economy marketplace with product listings, enhanced Stripe checkout flow (animated order summary, success/cancelled banners, TrustShield escrow), and seller management.
     - **Arborist Pro:** Client management, job scheduling, and invoice creation (full CRUD).
     - **Trip Planner:** Route builder, gear checklists, and weather forecasts.
     - **Price Compare:** Gear price comparison across 62+ affiliate retailers.
     - **Developer Portal:** Provides an 8-phase product roadmap, affiliate network directory, and business suite preview.
+    - **Interactive Maps:** Leaflet-based maps on trails page (showing all trail markers across the US) and catalog detail pages (showing individual location).
 - **Verdara Specific Tech Stack:**
     - Frontend: React 18 + TypeScript, Vite, Tailwind CSS, Shadcn UI, Framer Motion, Wouter routing, TanStack React Query.
     - Backend: Express.js + TypeScript.
