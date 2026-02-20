@@ -1,12 +1,266 @@
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { ArrowLeft, Navigation, MapPin, Mountain, Clock, TrendingUp, Zap, Thermometer, Droplets, Signal, Pause, Play, Flag, ChevronUp, ChevronDown, AlertTriangle, Share2 } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft, Navigation, MapPin, Mountain, Clock, TrendingUp, Zap, Thermometer, Droplets, Signal, Pause, Play, Flag, ChevronUp, ChevronDown, AlertTriangle, Share2, ShieldCheck, MapPinned, Locate } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { Link, useParams } from "wouter";
 import { allTrails } from "@/lib/mock-data";
+
+type PermissionState = "prompt" | "requesting" | "granted" | "denied";
+
+function PermissionGate({ trailName, trailImage, onGranted, onSkip }: {
+  trailName: string;
+  trailImage: string;
+  onGranted: () => void;
+  onSkip: () => void;
+}) {
+  const [permState, setPermState] = useState<PermissionState>("prompt");
+
+  const requestLocationPermission = useCallback(async () => {
+    setPermState("requesting");
+    try {
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          () => {
+            setPermState("granted");
+            setTimeout(onGranted, 800);
+          },
+          (err) => {
+            if (err.code === err.PERMISSION_DENIED) {
+              setPermState("denied");
+            } else {
+              setPermState("granted");
+              setTimeout(onGranted, 800);
+            }
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+      } else {
+        setPermState("denied");
+      }
+    } catch {
+      setPermState("denied");
+    }
+  }, [onGranted]);
+
+  const permissions = [
+    {
+      icon: MapPinned,
+      title: "Location Access",
+      description: "Track your real-time position on the trail",
+      required: true,
+    },
+    {
+      icon: Locate,
+      title: "Background Location",
+      description: "Keep tracking even when your screen is off",
+      required: false,
+    },
+    {
+      icon: Signal,
+      title: "Motion & Activity",
+      description: "Detect pace, elevation changes, and activity type",
+      required: false,
+    },
+  ];
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      <div className="relative h-48 md:h-56 overflow-hidden">
+        <img src={trailImage} alt={trailName} className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-background" />
+        <div className="absolute top-4 left-4">
+          <Link href="/trails">
+            <Button size="icon" variant="ghost" className="bg-black/30 backdrop-blur-md text-white" data-testid="button-back-trails-perm">
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+          </Link>
+        </div>
+        <div className="absolute bottom-4 left-5 right-5">
+          <h1 className="text-xl font-bold text-white drop-shadow-lg">{trailName}</h1>
+          <p className="text-white/70 text-sm mt-1">GPS Trail Tracking</p>
+        </div>
+      </div>
+
+      <div className="flex-1 px-5 md:px-10 py-6 space-y-6">
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-2xl bg-card border border-card-border p-6"
+          data-testid="permissions-card"
+        >
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-11 h-11 rounded-xl bg-emerald-500/15 flex items-center justify-center flex-shrink-0">
+              <ShieldCheck className="w-5 h-5 text-emerald-500" />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold text-foreground">Permissions Required</h2>
+              <p className="text-xs text-muted-foreground">Verdara needs access to track your hike</p>
+            </div>
+          </div>
+
+          <div className="space-y-4 mb-6">
+            {permissions.map((perm, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.1 + i * 0.08 }}
+                className="flex items-start gap-4"
+              >
+                <div className={cn(
+                  "w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5",
+                  perm.required ? "bg-emerald-500/15" : "bg-muted"
+                )}>
+                  <perm.icon className={cn("w-4 h-4", perm.required ? "text-emerald-500" : "text-muted-foreground")} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <h3 className="text-sm font-medium text-foreground">{perm.title}</h3>
+                    {perm.required && (
+                      <Badge className="bg-emerald-500/15 text-emerald-500 text-[10px]">Required</Badge>
+                    )}
+                    {!perm.required && (
+                      <Badge variant="outline" className="text-[10px]">Optional</Badge>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">{perm.description}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          <AnimatePresence mode="wait">
+            {permState === "prompt" && (
+              <motion.div
+                key="prompt"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="space-y-3"
+              >
+                <Button
+                  className="w-full bg-emerald-500 text-white gap-2"
+                  onClick={requestLocationPermission}
+                  data-testid="button-grant-location"
+                >
+                  <MapPinned className="w-4 h-4" /> Enable Location Access
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="w-full text-muted-foreground"
+                  onClick={onSkip}
+                  data-testid="button-skip-permissions"
+                >
+                  Continue with simulated GPS
+                </Button>
+              </motion.div>
+            )}
+
+            {permState === "requesting" && (
+              <motion.div
+                key="requesting"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex flex-col items-center py-4 gap-3"
+              >
+                <div className="w-10 h-10 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin" />
+                <p className="text-sm text-muted-foreground">Waiting for permission...</p>
+                <p className="text-xs text-muted-foreground">Check your browser for a location prompt</p>
+              </motion.div>
+            )}
+
+            {permState === "granted" && (
+              <motion.div
+                key="granted"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex flex-col items-center py-4 gap-3"
+              >
+                <div className="w-12 h-12 rounded-full bg-emerald-500/15 flex items-center justify-center">
+                  <ShieldCheck className="w-6 h-6 text-emerald-500" />
+                </div>
+                <p className="text-sm font-medium text-emerald-500">Location access granted</p>
+                <p className="text-xs text-muted-foreground">Starting GPS tracking...</p>
+              </motion.div>
+            )}
+
+            {permState === "denied" && (
+              <motion.div
+                key="denied"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="space-y-4"
+              >
+                <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-4">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground mb-1">Location access denied</p>
+                      <p className="text-xs text-muted-foreground">
+                        You can still use GPS tracking with simulated data. To enable real tracking, allow location access in your browser settings.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    className="flex-1 gap-2"
+                    onClick={requestLocationPermission}
+                    data-testid="button-retry-permission"
+                  >
+                    Try Again
+                  </Button>
+                  <Button
+                    className="flex-1 bg-emerald-500 text-white gap-2"
+                    onClick={onSkip}
+                    data-testid="button-continue-simulated"
+                  >
+                    Use Simulated GPS
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="rounded-2xl bg-card border border-card-border p-5"
+          data-testid="privacy-info-card"
+        >
+          <div className="flex items-start gap-3">
+            <ShieldCheck className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+            <div>
+              <h3 className="text-sm font-medium text-foreground mb-1">Your privacy matters</h3>
+              <ul className="space-y-1.5 text-xs text-muted-foreground">
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-500 mt-0.5">&#8226;</span>
+                  Location data stays on your device unless you choose to share it
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-500 mt-0.5">&#8226;</span>
+                  You can revoke permissions at any time in your browser settings
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-500 mt-0.5">&#8226;</span>
+                  GPS tracking stops immediately when you end your session
+                </li>
+              </ul>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
 
 const trailWaypoints = [
   { name: "Trailhead Parking", distFromStart: 0, elevation: 6720, type: "trailhead" as const },
@@ -30,11 +284,7 @@ const waypointIcons: Record<string, typeof MapPin> = {
   summit: TrendingUp,
 };
 
-export default function Track() {
-  const params = useParams<{ id: string }>();
-  const trailId = parseInt(params.id || "1");
-  const trail = allTrails.find(t => t.id === trailId) || allTrails[0];
-
+function TrackingView({ trail }: { trail: typeof allTrails[0] }) {
   const totalDistance = 4.4;
   const [currentDistance, setCurrentDistance] = useState(1.2);
   const [isPaused, setIsPaused] = useState(false);
@@ -60,7 +310,6 @@ export default function Track() {
   const currentElevation = elevationProfile[Math.min(currentElevationIndex, elevationProfile.length - 1)];
 
   const nextWaypoint = trailWaypoints.find(wp => wp.distFromStart > currentDistance);
-  const lastPassedWaypoint = [...trailWaypoints].reverse().find(wp => wp.distFromStart <= currentDistance);
 
   const pace = elapsedMinutes / currentDistance;
   const paceMin = Math.floor(pace);
@@ -369,4 +618,25 @@ export default function Track() {
       </div>
     </div>
   );
+}
+
+export default function Track() {
+  const params = useParams<{ id: string }>();
+  const trailId = parseInt(params.id || "1");
+  const trail = allTrails.find(t => t.id === trailId) || allTrails[0];
+
+  const [permissionGranted, setPermissionGranted] = useState(false);
+
+  if (!permissionGranted) {
+    return (
+      <PermissionGate
+        trailName={trail.name}
+        trailImage={trail.image}
+        onGranted={() => setPermissionGranted(true)}
+        onSkip={() => setPermissionGranted(true)}
+      />
+    );
+  }
+
+  return <TrackingView trail={trail} />;
 }
