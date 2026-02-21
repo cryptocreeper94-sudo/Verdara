@@ -397,7 +397,7 @@ export default function PriceCompare() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3 mb-6">
-          <div className="flex-1 min-w-[200px] flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl px-4 py-3">
+          <div className="flex-1 min-w-0 flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl px-4 py-3">
             <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
             <input
               type="text"

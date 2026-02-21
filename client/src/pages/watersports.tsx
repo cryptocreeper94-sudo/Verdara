@@ -118,7 +118,7 @@ export default function Watersports() {
       <div className="px-5 md:px-10 py-6">
         <LivingCatalogBanner />
         <div className="flex flex-wrap items-center gap-3 mb-5">
-          <div className="flex-1 min-w-[200px] flex items-center gap-2.5 bg-card border border-card-border rounded-xl px-4 py-3">
+          <div className="flex-1 min-w-0 flex items-center gap-2.5 bg-card border border-card-border rounded-xl px-4 py-3">
             <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
             <input
               type="text"
@@ -135,7 +135,7 @@ export default function Watersports() {
             )}
           </div>
           <Select value={stateFilter} onValueChange={setStateFilter}>
-            <SelectTrigger className="w-[180px]" data-testid="select-state-filter">
+            <SelectTrigger className="w-full sm:w-[180px]" data-testid="select-state-filter">
               <MapPin className="w-3.5 h-3.5 mr-1.5" />
               <SelectValue placeholder="Filter by state" />
             </SelectTrigger>

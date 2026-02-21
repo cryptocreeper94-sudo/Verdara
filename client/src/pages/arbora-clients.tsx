@@ -110,7 +110,7 @@ export default function ArboraClients() {
       </motion.div>
 
       <div className="flex flex-wrap items-center gap-3 mb-6">
-        <div className="flex-1 min-w-[200px] relative">
+        <div className="flex-1 min-w-0 relative">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "#64748b" }} />
           <Input
             placeholder="Search clients..."

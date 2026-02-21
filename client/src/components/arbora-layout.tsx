@@ -124,7 +124,7 @@ export function ArboraLayout({ children }: { children: React.ReactNode }) {
         <div className="flex-1 overflow-y-auto" style={{ background: "#0a0f1a" }}>
           {children}
         </div>
-        <nav className="flex items-center justify-around border-t py-2 lg:hidden" style={{ background: "#0f172a", borderColor: "rgba(194,112,62,0.2)" }}>
+        <nav className="flex items-center justify-around border-t py-2 safe-area-bottom lg:hidden" style={{ background: "#0f172a", borderColor: "rgba(194,112,62,0.2)" }}>
           {mobileArboraNav.map((item) => {
             const isActive = location === item.path || (item.path !== "/arbora" && location.startsWith(item.path));
             return (

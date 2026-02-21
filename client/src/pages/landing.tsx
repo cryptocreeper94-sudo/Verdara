@@ -219,13 +219,14 @@ export default function Landing({ onGetStarted, onBrowse }: LandingProps) {
               transition={{ delay: 1.2, duration: 0.6 }}
               className="mt-6"
             >
-              <button
+              <Button
+                variant="link"
                 onClick={onBrowse}
-                className="text-sm text-white/50 underline underline-offset-4 decoration-white/20 transition-colors"
+                className="text-sm text-white/50 underline underline-offset-4 decoration-white/20"
                 data-testid="button-hero-browse"
               >
                 or browse the app first
-              </button>
+              </Button>
             </motion.div>
           )}
 

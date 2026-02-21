@@ -213,7 +213,7 @@ export default function Catalog() {
 
       <div className="px-5 md:px-10 py-4 max-w-7xl mx-auto">
         <div className="flex flex-wrap items-end gap-3 mb-4" data-testid="search-bar">
-          <div className="flex-1 min-w-[200px]">
+          <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 bg-card border border-card-border rounded-md px-3 py-2">
               <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
               <input

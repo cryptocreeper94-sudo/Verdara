@@ -1361,6 +1361,86 @@ If the input is already a product name or clear search term, return it as-is.`
     }
   });
 
+  app.post("/api/identify/audio", requireAuth, async (req, res) => {
+    try {
+      const { audioBase64, mimeType } = req.body;
+      if (!audioBase64) {
+        return res.status(400).json({ message: "Audio data is required" });
+      }
+      if (typeof audioBase64 !== "string" || audioBase64.length > 25 * 1024 * 1024) {
+        return res.status(400).json({ message: "Audio file is too large. Please record a shorter clip (under 60 seconds)." });
+      }
+
+      const base64Data = audioBase64.includes(",") ? audioBase64.split(",")[1] : audioBase64;
+      const audioBuffer = Buffer.from(base64Data, "base64");
+      const ext = (mimeType || "audio/webm").includes("mp4") ? "mp4" : "webm";
+      const { toFile } = await import("openai");
+      const audioFile = await toFile(audioBuffer, `recording.${ext}`, { type: mimeType || "audio/webm" });
+
+      let transcription = "";
+      try {
+        const whisperRes = await openai.audio.transcriptions.create({
+          model: "whisper-1",
+          file: audioFile,
+          prompt: "This is a recording of animal sounds, bird calls, insect noises, or wildlife vocalizations captured outdoors in nature.",
+        });
+        transcription = whisperRes.text;
+      } catch (whisperErr) {
+        console.error("Whisper transcription failed:", whisperErr);
+        transcription = "";
+      }
+
+      const analysisResponse = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: `You are an expert wildlife bioacoustics specialist who identifies animals by their sounds. A user has recorded an audio clip outdoors. The audio transcription (if available) may contain onomatopoeia, background noise descriptions, or garbled text from animal vocalizations — use it as clues.
+
+Analyze the transcription and recording context to determine what animal, bird, insect, frog, or other creature is most likely making the sound.
+
+Return a JSON object with these fields:
+- commonName: The common name of the species (e.g., "Northern Cardinal", "American Bullfrog", "Gray Tree Frog")
+- scientificName: The Latin binomial name
+- confidence: A number 0-100 representing how confident you are
+- category: One of: bird, mammal, amphibian, reptile, insect, fish, other
+- description: 2-3 sentences about the species and the sound it makes
+- habitat: Where this species is typically found
+- conservationStatus: IUCN status or general conservation info
+- funFact: An interesting fact about this species
+- soundDescription: A brief description of what the sound typically sounds like (e.g., "A clear, whistled 'cheer-cheer-cheer' followed by a rapid trill")
+
+If the audio doesn't appear to contain identifiable animal sounds, set commonName to "Unknown" and confidence to 0, and provide helpful feedback in the description about what kinds of sounds work best.`,
+          },
+          {
+            role: "user",
+            content: `I recorded this sound outdoors and want to identify the animal making it.${transcription ? `\n\nAudio transcription: "${transcription}"` : "\n\nThe audio transcription was empty or unclear — the sound may be non-vocal (e.g., insect buzzing, rustling, drumming)."}\n\nPlease identify the species based on this sound recording.`,
+          },
+        ],
+        response_format: { type: "json_object" },
+        max_tokens: 1000,
+      });
+
+      const result = JSON.parse(analysisResponse.choices[0]?.message?.content || "{}");
+
+      if (result.commonName && result.commonName !== "Unknown") {
+        stampToChain(req.userId!, "audio_species_identification", `Audio ID: ${result.commonName} (${result.scientificName}) — ${result.confidence}% confidence`, {
+          commonName: result.commonName,
+          scientificName: result.scientificName,
+          confidence: result.confidence,
+          category: result.category,
+          conservationStatus: result.conservationStatus,
+          identificationMethod: "audio",
+        });
+      }
+
+      res.json(result);
+    } catch (error) {
+      console.error("Error identifying species from audio:", error);
+      res.status(500).json({ message: "Failed to identify species from audio" });
+    }
+  });
+
   app.get("/api/blog", async (req, res) => {
     try {
       const { status, category, tag, featured, limit, offset, q } = req.query;

@@ -103,17 +103,17 @@ export function AppLayout({ children, onShowAuth }: { children: React.ReactNode;
 
         <div className={cn("p-3 border-t border-sidebar-border", !sidebarOpen ? "flex flex-col items-center gap-2" : "space-y-2")}>
           {!isAuthenticated && onShowAuth && (
-            <button
+            <Button
               onClick={onShowAuth}
               data-testid="button-sidebar-login"
               className={cn(
-                "flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-semibold bg-emerald-500 text-white transition-colors",
-                !sidebarOpen && "justify-center px-2"
+                "flex items-center gap-3 w-full rounded-lg text-sm font-semibold bg-emerald-500 text-white",
+                !sidebarOpen && "justify-center"
               )}
             >
               <LogIn className="w-5 h-5 flex-shrink-0" />
               {sidebarOpen && <span>Log In / Sign Up</span>}
-            </button>
+            </Button>
           )}
           <div className={cn("flex gap-2", !sidebarOpen ? "flex-col items-center" : "items-center")}>
             <Button
