@@ -69,58 +69,49 @@ export default function Home() {
   const appStats = stats as { trails: number; campgrounds: number; listings: number; activityLocations: number; totalFeatures: number } | undefined;
 
   const heroContainerRef = useRef<HTMLDivElement>(null);
-  const videoIndexRef = useRef(Math.floor(Math.random() * HERO_VIDEOS.length));
+  const startIndexRef = useRef(Math.floor(Math.random() * HERO_VIDEOS.length));
+  const initialSrc = HERO_VIDEOS[startIndexRef.current];
 
   useEffect(() => {
     const container = heroContainerRef.current;
     if (!container) return;
+    const videoEl = container.querySelector("video") as HTMLVideoElement | null;
+    if (!videoEl) return;
 
     let cancelled = false;
+    let currentIndex = startIndexRef.current;
 
-    const startVideo = (index: number) => {
+    videoEl.muted = true;
+    videoEl.defaultMuted = true;
+
+    const onEnded = () => {
       if (cancelled) return;
-
-      const videoEl = container.querySelector("video");
-      if (!videoEl) return;
-
-      videoEl.src = HERO_VIDEOS[index];
-      videoEl.muted = true;
-      videoEl.defaultMuted = true;
+      currentIndex = (currentIndex + 1) % HERO_VIDEOS.length;
+      videoEl.src = HERO_VIDEOS[currentIndex];
       videoEl.load();
+      videoEl.muted = true;
+      videoEl.play().catch(() => {});
+    };
+    videoEl.addEventListener("ended", onEnded);
 
-      const onEnded = () => {
-        videoEl.removeEventListener("ended", onEnded);
-        const nextIndex = (index + 1) % HERO_VIDEOS.length;
-        videoIndexRef.current = nextIndex;
-        startVideo(nextIndex);
-      };
-      videoEl.addEventListener("ended", onEnded);
-
-      let attempts = 0;
-      const tryPlay = () => {
-        if (cancelled || !videoEl.paused || attempts >= 10) return;
-        attempts++;
-        videoEl.muted = true;
-        const p = videoEl.play();
-        if (p && p.catch) p.catch(() => {});
-      };
-
-      videoEl.addEventListener("canplay", tryPlay, { once: true });
-      videoEl.addEventListener("loadeddata", tryPlay, { once: true });
-      tryPlay();
-      setTimeout(tryPlay, 200);
-      setTimeout(tryPlay, 1000);
-      setTimeout(tryPlay, 3000);
+    let attempts = 0;
+    const tryPlay = () => {
+      if (cancelled || !videoEl.paused || attempts >= 15) return;
+      attempts++;
+      videoEl.muted = true;
+      videoEl.play().catch(() => {});
     };
 
-    startVideo(videoIndexRef.current);
+    videoEl.addEventListener("canplay", tryPlay, { once: true });
+    videoEl.addEventListener("loadeddata", tryPlay, { once: true });
+    videoEl.addEventListener("loadedmetadata", tryPlay, { once: true });
+    tryPlay();
+    const timers = [100, 300, 600, 1000, 2000, 4000].map(ms => setTimeout(tryPlay, ms));
 
     const onInteraction = () => {
-      const videoEl = container.querySelector("video");
-      if (videoEl && videoEl.paused) {
+      if (videoEl.paused) {
         videoEl.muted = true;
-        const p = videoEl.play();
-        if (p && p.catch) p.catch(() => {});
+        videoEl.play().catch(() => {});
       }
     };
     document.addEventListener("touchstart", onInteraction, { once: true, passive: true });
@@ -128,6 +119,8 @@ export default function Home() {
 
     return () => {
       cancelled = true;
+      timers.forEach(clearTimeout);
+      videoEl.removeEventListener("ended", onEnded);
       document.removeEventListener("touchstart", onInteraction);
       document.removeEventListener("click", onInteraction);
     };
@@ -139,7 +132,7 @@ export default function Home() {
         <div
           ref={heroContainerRef}
           dangerouslySetInnerHTML={{
-            __html: `<video autoplay muted playsinline webkit-playsinline preload="auto" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;" poster="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&h=1080&fit=crop"></video>`
+            __html: `<video autoplay muted playsinline webkit-playsinline preload="auto" src="${initialSrc}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;" poster="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&h=1080&fit=crop" type="video/mp4"></video>`
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-background" style={{ zIndex: 2 }} />
