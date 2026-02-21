@@ -80,8 +80,8 @@ const roadmapPhases: RoadmapPhase[] = [
     title: "Monetization",
     status: "in-progress",
     features: [
-      "Price Compare with 60+ retailer integrations",
-      "Affiliate program network (7 networks, 62+ brands)",
+      "Price Compare with 90+ retailer integrations (knives, firearms, gear)",
+      "Affiliate program network (8 networks, 90+ brands)",
       "Subscription tiers (Free/Explorer/Pro Adventurer/Elite)",
       "Revenue analytics dashboard",
     ],
@@ -171,7 +171,7 @@ const affiliateNetworks: AffiliateNetwork[] = [
     signupUrl: "https://app.impact.com/signup",
     signupFee: "Free",
     paymentTerms: "NET 30-60",
-    brands: ["REI", "Bass Pro", "Backcountry", "Dick's"],
+    brands: ["REI", "Bass Pro", "Backcountry", "Dick's", "Arc'teryx"],
     priority: "HIGH",
   },
   {
@@ -180,7 +180,7 @@ const affiliateNetworks: AffiliateNetwork[] = [
     signupUrl: "https://www.avantlink.com/affiliate-signup",
     signupFee: "Free",
     paymentTerms: "Monthly, 30-day hold",
-    brands: ["Simms", "Big Agnes", "NRS", "evo", "Black Diamond"],
+    brands: ["Simms", "Big Agnes", "NRS", "evo", "Black Diamond", "BladeHQ", "Benchmade", "Spyderco", "PSA", "Primary Arms", "EuroOptic", "Lucky Gunner"],
     priority: "HIGH",
   },
   {
@@ -189,7 +189,7 @@ const affiliateNetworks: AffiliateNetwork[] = [
     signupUrl: "https://www.awin.com/us/publishers",
     signupFee: "$1 (refunded)",
     paymentTerms: "Monthly, NET 30",
-    brands: ["Moosejaw", "Chain Reaction Cycles"],
+    brands: ["Moosejaw", "Chain Reaction Cycles", "Patagonia", "The North Face"],
     priority: "MEDIUM",
   },
   {
@@ -198,7 +198,7 @@ const affiliateNetworks: AffiliateNetwork[] = [
     signupUrl: "https://www.shareasale.com/newsignup.cfm",
     signupFee: "Free",
     paymentTerms: "Monthly, on the 20th",
-    brands: ["Sierra", "Karl's", "Fishing brands"],
+    brands: ["Sierra", "Karl's", "KnifeCenter", "SMKW", "Buds Gun Shop", "Cheaper Than Dirt", "Bereli"],
     priority: "MEDIUM",
   },
   {
@@ -207,7 +207,7 @@ const affiliateNetworks: AffiliateNetwork[] = [
     signupUrl: "https://signup.cj.com/member/signup/publisher/",
     signupFee: "Free",
     paymentTerms: "Monthly, NET 20",
-    brands: ["Academy", "Midway USA", "Brownells"],
+    brands: ["Academy", "Midway USA", "Brownells", "OpticsPlanet", "Husqvarna"],
     priority: "MEDIUM",
   },
   {
@@ -226,6 +226,15 @@ const affiliateNetworks: AffiliateNetwork[] = [
     signupFee: "Free",
     paymentTerms: "Monthly",
     brands: ["General retail"],
+    priority: "LOW",
+  },
+  {
+    name: "FlexOffers",
+    website: "flexoffers.com",
+    signupUrl: "https://www.flexoffers.com/publishers/",
+    signupFee: "Free",
+    paymentTerms: "Monthly, NET 60",
+    brands: ["Rad Power Bikes"],
     priority: "LOW",
   },
 ];
@@ -247,10 +256,15 @@ const topPartners: TopPartner[] = [
   { rank: 4, retailer: "Simms Fishing", commission: "10%", avgOrder: "$200", estPerSale: "$20", cookie: "30-90d", priority: "HIGH" },
   { rank: 5, retailer: "REI", commission: "5%", avgOrder: "$120", estPerSale: "$6", cookie: "15d", priority: "HIGH" },
   { rank: 6, retailer: "BOTE", commission: "5-8%", avgOrder: "$1,000", estPerSale: "$50-80", cookie: "30d", priority: "MEDIUM" },
-  { rank: 7, retailer: "Arc'teryx", commission: "3-5%", avgOrder: "$400", estPerSale: "$12-20", cookie: "14-30d", priority: "MEDIUM" },
-  { rank: 8, retailer: "Big Agnes", commission: "8%", avgOrder: "$250", estPerSale: "$20", cookie: "30d", priority: "MEDIUM" },
-  { rank: 9, retailer: "First Lite", commission: "8-10%", avgOrder: "$150", estPerSale: "$12-15", cookie: "30d", priority: "MEDIUM" },
-  { rank: 10, retailer: "Bass Pro Shops", commission: "5%", avgOrder: "$100", estPerSale: "$5", cookie: "14d", priority: "HIGH" },
+  { rank: 7, retailer: "Benchmade (Knives)", commission: "5-8%", avgOrder: "$175", estPerSale: "$9-14", cookie: "30d", priority: "HIGH" },
+  { rank: 8, retailer: "Palmetto State Armory", commission: "3-5%", avgOrder: "$350", estPerSale: "$11-18", cookie: "14d", priority: "HIGH" },
+  { rank: 9, retailer: "BladeHQ (Knives)", commission: "5-8%", avgOrder: "$120", estPerSale: "$6-10", cookie: "30d", priority: "HIGH" },
+  { rank: 10, retailer: "Arc'teryx", commission: "3-5%", avgOrder: "$400", estPerSale: "$12-20", cookie: "14-30d", priority: "MEDIUM" },
+  { rank: 11, retailer: "Big Agnes", commission: "8%", avgOrder: "$250", estPerSale: "$20", cookie: "30d", priority: "MEDIUM" },
+  { rank: 12, retailer: "First Lite", commission: "8-10%", avgOrder: "$150", estPerSale: "$12-15", cookie: "30d", priority: "MEDIUM" },
+  { rank: 13, retailer: "Primary Arms", commission: "3-5%", avgOrder: "$200", estPerSale: "$6-10", cookie: "30d", priority: "MEDIUM" },
+  { rank: 14, retailer: "We Knife Co", commission: "8-12%", avgOrder: "$150", estPerSale: "$12-18", cookie: "30d", priority: "MEDIUM" },
+  { rank: 15, retailer: "Bass Pro Shops", commission: "1-5%", avgOrder: "$100", estPerSale: "$1-5", cookie: "14d", priority: "HIGH" },
 ];
 
 const platformStats = [
@@ -258,8 +272,8 @@ const platformStats = [
   { label: "Categories", value: "24", icon: Target },
   { label: "Locations", value: "170+", icon: Map },
   { label: "States", value: "41", icon: Globe },
-  { label: "Affiliate Partners", value: "62+", icon: Network },
-  { label: "Affiliate Networks", value: "7", icon: ShieldCheck },
+  { label: "Affiliate Partners", value: "90+", icon: Network },
+  { label: "Affiliate Networks", value: "8", icon: ShieldCheck },
 ];
 
 const businessTools = [
@@ -296,7 +310,7 @@ export default function DeveloperPortal() {
   useEffect(() => {
     document.title = "Developer Portal - Verdara by DarkWave Studios";
     const metaDesc = document.querySelector('meta[name="description"]');
-    if (metaDesc) metaDesc.setAttribute("content", "Verdara Developer Portal: 8-phase product roadmap, 62+ affiliate partner directory across 7 networks, business intelligence preview, and platform resources for DarkWave Studios.");
+    if (metaDesc) metaDesc.setAttribute("content", "Verdara Developer Portal: 9-phase product roadmap, 90+ affiliate partner directory across 8 networks including knives and firearms, business intelligence preview, and platform resources for DarkWave Studios.");
     return () => { document.title = "Verdara - AI-Powered Outdoor Recreation Super-App | DarkWave Studios"; };
   }, []);
 
@@ -514,7 +528,7 @@ export default function DeveloperPortal() {
               </h2>
             </div>
             <p className="text-sm text-muted-foreground ml-[52px]">
-              7 networks hosting 62+ outdoor brands
+              8 networks hosting 90+ outdoor, knife, and firearms brands
             </p>
           </motion.div>
 
