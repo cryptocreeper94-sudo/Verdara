@@ -68,96 +68,91 @@ export default function Home() {
   const { data: stats } = useQuery({ queryKey: ['/api/stats'] });
   const appStats = stats as { trails: number; campgrounds: number; listings: number; activityLocations: number; totalFeatures: number } | undefined;
 
-  const [activeSlot, setActiveSlot] = useState<0 | 1>(0);
-  const [videoSources, setVideoSources] = useState(() => {
-    const start = Math.floor(Math.random() * HERO_VIDEOS.length);
-    return [HERO_VIDEOS[start], HERO_VIDEOS[(start + 1) % HERO_VIDEOS.length]];
-  });
-  const [opacities, setOpacities] = useState<[number, number]>([1, 0]);
-  const videoARef = useRef<HTMLVideoElement>(null);
-  const videoBRef = useRef<HTMLVideoElement>(null);
-  const nextIndexRef = useRef(2);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [videoIndex, setVideoIndex] = useState(() => Math.floor(Math.random() * HERO_VIDEOS.length));
+  const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
-    const activeRef = activeSlot === 0 ? videoARef : videoBRef;
-    if (activeRef.current) {
-      activeRef.current.muted = true;
-      activeRef.current.play().catch(() => {});
-    }
-  }, [activeSlot]);
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.src = HERO_VIDEOS[videoIndex];
+    video.load();
+    video.muted = true;
+
+    const attemptPlay = () => {
+      if (!video.paused) {
+        setIsPlaying(true);
+        return;
+      }
+      video.play().then(() => {
+        setIsPlaying(true);
+      }).catch(() => {
+        setIsPlaying(false);
+      });
+    };
+
+    const onCanPlay = () => attemptPlay();
+    video.addEventListener("canplay", onCanPlay);
+    attemptPlay();
+
+    const retryTimer = setTimeout(attemptPlay, 500);
+    const retryTimer2 = setTimeout(attemptPlay, 1500);
+
+    return () => {
+      video.removeEventListener("canplay", onCanPlay);
+      clearTimeout(retryTimer);
+      clearTimeout(retryTimer2);
+    };
+  }, [videoIndex]);
 
   useEffect(() => {
+    if (isPlaying) return;
     const tryPlay = () => {
-      const ref = activeSlot === 0 ? videoARef : videoBRef;
-      if (ref.current && ref.current.paused) {
-        ref.current.muted = true;
-        ref.current.play().catch(() => {});
+      const video = videoRef.current;
+      if (video && video.paused) {
+        video.muted = true;
+        video.play().then(() => setIsPlaying(true)).catch(() => {});
       }
     };
     document.addEventListener("click", tryPlay, { once: true });
-    document.addEventListener("scroll", tryPlay, { once: true });
     document.addEventListener("touchstart", tryPlay, { once: true });
+    document.addEventListener("scroll", tryPlay, { once: true });
     return () => {
       document.removeEventListener("click", tryPlay);
-      document.removeEventListener("scroll", tryPlay);
       document.removeEventListener("touchstart", tryPlay);
+      document.removeEventListener("scroll", tryPlay);
     };
-  }, [activeSlot]);
+  }, [isPlaying]);
 
   const handleVideoEnded = useCallback(() => {
-    const nextSlot = activeSlot === 0 ? 1 : 0;
-    const incomingRef = nextSlot === 0 ? videoARef : videoBRef;
+    setVideoIndex(prev => (prev + 1) % HERO_VIDEOS.length);
+  }, []);
 
-    if (incomingRef.current) {
-      incomingRef.current.currentTime = 0;
-      incomingRef.current.play().catch(() => {});
+  const handleTapToPlay = useCallback(() => {
+    const video = videoRef.current;
+    if (video && video.paused) {
+      video.muted = true;
+      video.play().then(() => setIsPlaying(true)).catch(() => {});
     }
-
-    setOpacities(nextSlot === 0 ? [1, 0] : [0, 1]);
-    setActiveSlot(nextSlot as 0 | 1);
-
-    const prepareSlot = activeSlot;
-    const nextVidIndex = nextIndexRef.current % HERO_VIDEOS.length;
-    nextIndexRef.current++;
-    setVideoSources(prev => {
-      const next = [...prev];
-      next[prepareSlot] = HERO_VIDEOS[nextVidIndex];
-      return next;
-    });
-  }, [activeSlot]);
+  }, []);
 
   return (
     <div className="min-h-screen">
-      <section className="relative h-[75vh] md:h-[80vh] overflow-hidden" data-testid="hero-section">
+      <section className="relative h-[75vh] md:h-[80vh] overflow-hidden" data-testid="hero-section" onClick={handleTapToPlay}>
         <video
-          ref={videoARef}
+          ref={videoRef}
           className="absolute inset-0 w-full h-full object-cover"
-          src={videoSources[0]}
-          autoPlay
           muted
-          loop={false}
           playsInline
           preload="auto"
           poster="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&h=1080&fit=crop"
-          onEnded={activeSlot === 0 ? handleVideoEnded : undefined}
-          style={{ opacity: opacities[0], transition: "opacity 1.5s ease-in-out", zIndex: activeSlot === 0 ? 2 : 1 }}
+          onEnded={handleVideoEnded}
+          style={{ zIndex: 1 }}
         />
-        <video
-          ref={videoBRef}
-          className="absolute inset-0 w-full h-full object-cover"
-          src={videoSources[1]}
-          autoPlay
-          muted
-          loop={false}
-          playsInline
-          preload="auto"
-          poster="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&h=1080&fit=crop"
-          onEnded={activeSlot === 1 ? handleVideoEnded : undefined}
-          style={{ opacity: opacities[1], transition: "opacity 1.5s ease-in-out", zIndex: activeSlot === 1 ? 2 : 1 }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-background" style={{ zIndex: 3 }} />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-background" style={{ zIndex: 2 }} />
 
-        <div className="relative flex flex-col items-center justify-center h-full px-6 text-center" style={{ zIndex: 4 }}>
+        <div className="relative flex flex-col items-center justify-center h-full px-6 text-center" style={{ zIndex: 3 }}>
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
