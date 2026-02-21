@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import type { CatalogLocation } from "@shared/schema";
 import {
   Compass, Search, MapPin, Star, Heart, X, Loader2,
-  Mountain, Trees, Filter, Navigation, CheckCircle
+  Mountain, Trees, Filter, Navigation, CheckCircle, RefreshCw
 } from "lucide-react";
 
 const TYPE_COLORS: Record<string, string> = {
@@ -194,7 +194,7 @@ export default function Catalog() {
           <p className="text-sm text-muted-foreground mb-4" data-testid="text-page-subtitle">
             170+ verified locations across 41 states
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 mb-4">
             <Badge variant="secondary" className="text-xs" data-testid="badge-total-locations">
               <Mountain className="w-3 h-3 mr-1" />
               {allLocations.length || "170+"} Locations
@@ -207,6 +207,12 @@ export default function Catalog() {
               <Trees className="w-3 h-3 mr-1" />
               {uniqueTypes.size || 13} Activity Types
             </Badge>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20" data-testid="banner-living-catalog">
+            <RefreshCw className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+            <p className="text-xs text-emerald-300/90">
+              <span className="font-semibold">Living Catalog</span> — Continuously updated with new locations across all categories. Our goal: the most complete outdoor recreation guide in the country.
+            </p>
           </div>
         </div>
       </div>

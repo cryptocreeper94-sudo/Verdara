@@ -1566,5 +1566,48 @@ If the audio doesn't appear to contain identifiable animal sounds, set commonNam
     }
   });
 
+  app.post("/api/assistant/chat", async (req, res) => {
+    try {
+      const { messages } = req.body;
+      if (!messages || !Array.isArray(messages)) {
+        return res.status(400).json({ message: "Messages array is required" });
+      }
+
+      const systemPrompt = `You are Evergreen, Verdara's friendly AI outdoor recreation assistant. You're a cheerful, knowledgeable nature guide who helps people discover outdoor adventures, identify wildlife and plants, plan trips, find the best trails, campgrounds, fishing spots, and more.
+
+Your personality:
+- Warm, enthusiastic, and encouraging about getting outdoors
+- Knowledgeable about hiking, camping, fishing, climbing, wildlife, wild edibles, state parks, national parks, and all outdoor activities
+- You give practical, helpful advice with specific recommendations
+- You occasionally use nature-related puns or expressions
+- Keep responses concise but informative (2-3 paragraphs max unless asked for detail)
+- You know about Verdara's features: AI species identification (photo & sound), catalog of 145+ outdoor locations, trip planner, price comparison for gear, marketplace, and arborist tools
+- If asked about features, guide users to the relevant section of the app
+
+Important: You are NOT a medical professional. For any health/safety emergencies, always advise calling 911 or contacting local authorities.`;
+
+      const trimmedMessages = messages.slice(-20).map((m: any) => ({
+        role: m.role === "user" ? "user" as const : "assistant" as const,
+        content: String(m.content).slice(0, 2000),
+      }));
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: systemPrompt },
+          ...trimmedMessages,
+        ],
+        max_tokens: 800,
+        temperature: 0.7,
+      });
+
+      const reply = response.choices[0]?.message?.content || "I'm not sure how to help with that. Could you try asking in a different way?";
+      res.json({ reply });
+    } catch (error) {
+      console.error("Assistant chat error:", error);
+      res.status(500).json({ message: "Evergreen is taking a nap. Please try again in a moment!" });
+    }
+  });
+
   return httpServer;
 }

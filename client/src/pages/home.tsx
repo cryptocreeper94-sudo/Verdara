@@ -4,9 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { WeatherWidget } from "@/components/weather-widget";
 import { activityCategories } from "@/lib/mock-data";
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
+
+const HERO_VIDEOS = [
+  "/videos/hero-flyover-1.mp4",
+  "/videos/hero-flyover-2.mp4",
+  "/videos/hero-flyover-3.mp4",
+  "/videos/hero-flyover-4.mp4",
+  "/videos/hero-flyover-5.mp4",
+  "/videos/hero-flyover-6.mp4",
+];
 
 function AnimatedCounter({ target, label, suffix = "" }: { target: number; label: string; suffix?: string }) {
   const [count, setCount] = useState(0);
@@ -59,16 +68,63 @@ export default function Home() {
   const { data: stats } = useQuery({ queryKey: ['/api/stats'] });
   const appStats = stats as { trails: number; campgrounds: number; listings: number; activityLocations: number; totalFeatures: number } | undefined;
 
+  const [activeSlot, setActiveSlot] = useState<0 | 1>(0);
+  const [videoSources, setVideoSources] = useState(() => {
+    const start = Math.floor(Math.random() * HERO_VIDEOS.length);
+    return [HERO_VIDEOS[start], HERO_VIDEOS[(start + 1) % HERO_VIDEOS.length]];
+  });
+  const [opacities, setOpacities] = useState<[number, number]>([1, 0]);
+  const videoARef = useRef<HTMLVideoElement>(null);
+  const videoBRef = useRef<HTMLVideoElement>(null);
+  const nextIndexRef = useRef(2);
+
+  const handleVideoEnded = useCallback(() => {
+    const nextSlot = activeSlot === 0 ? 1 : 0;
+    const incomingRef = nextSlot === 0 ? videoARef : videoBRef;
+
+    if (incomingRef.current) {
+      incomingRef.current.currentTime = 0;
+      incomingRef.current.play().catch(() => {});
+    }
+
+    setOpacities(nextSlot === 0 ? [1, 0] : [0, 1]);
+    setActiveSlot(nextSlot as 0 | 1);
+
+    const prepareSlot = activeSlot;
+    const nextVidIndex = nextIndexRef.current % HERO_VIDEOS.length;
+    nextIndexRef.current++;
+    setVideoSources(prev => {
+      const next = [...prev];
+      next[prepareSlot] = HERO_VIDEOS[nextVidIndex];
+      return next;
+    });
+  }, [activeSlot]);
+
   return (
     <div className="min-h-screen">
       <section className="relative h-[75vh] md:h-[80vh] overflow-hidden" data-testid="hero-section">
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: "url(/images/hero-landscape.jpg)" }}
+        <video
+          ref={videoARef}
+          className="absolute inset-0 w-full h-full object-cover"
+          src={videoSources[0]}
+          autoPlay={activeSlot === 0}
+          muted
+          playsInline
+          onEnded={activeSlot === 0 ? handleVideoEnded : undefined}
+          style={{ opacity: opacities[0], transition: "opacity 1.5s ease-in-out", zIndex: activeSlot === 0 ? 2 : 1 }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-background" />
+        <video
+          ref={videoBRef}
+          className="absolute inset-0 w-full h-full object-cover"
+          src={videoSources[1]}
+          muted
+          playsInline
+          onEnded={activeSlot === 1 ? handleVideoEnded : undefined}
+          style={{ opacity: opacities[1], transition: "opacity 1.5s ease-in-out", zIndex: activeSlot === 1 ? 2 : 1 }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-background" style={{ zIndex: 3 }} />
 
-        <div className="relative z-10 flex flex-col items-center justify-center h-full px-6 text-center">
+        <div className="relative flex flex-col items-center justify-center h-full px-6 text-center" style={{ zIndex: 4 }}>
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}

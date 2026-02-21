@@ -8,6 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
+import { AiAssistant } from "./ai-assistant";
 
 const sidebarNav = [
   { path: "/", label: "Command Center", icon: Compass, authRequired: false },
@@ -164,6 +165,7 @@ export function AppLayout({ children, onShowAuth }: { children: React.ReactNode;
         <main className="flex-1 overflow-y-auto pb-20 lg:pb-0">
           {children}
         </main>
+        <AiAssistant />
 
         <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-t border-border">
           <div className="flex items-center justify-around py-2 px-1 safe-area-bottom">
