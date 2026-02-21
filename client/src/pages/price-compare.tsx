@@ -13,6 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 interface Retailer {
   name: string;
   url: string;
+  searchUrl: string;
   categories: string[];
   status: "active";
   network: string;
@@ -21,109 +22,109 @@ interface Retailer {
 }
 
 const retailers: Retailer[] = [
-  { name: "REI", url: "https://www.rei.com", categories: ["Camping", "Hiking", "Climbing", "Cycling", "Water Sports", "Winter"], status: "active", network: "Impact", commission: "5%", cookie: "15 days" },
-  { name: "Bass Pro Shops", url: "https://www.basspro.com", categories: ["Fishing", "Hunting", "Camping", "Boating", "Firearms & Ammo"], status: "active", network: "Impact", commission: "1-5%", cookie: "14 days" },
-  { name: "Cabela's", url: "https://www.cabelas.com", categories: ["Hunting", "Fishing", "Camping", "Shooting", "Firearms & Ammo"], status: "active", network: "Impact", commission: "1-5%", cookie: "14 days" },
-  { name: "Backcountry", url: "https://www.backcountry.com", categories: ["Skiing", "Climbing", "Hiking", "Cycling"], status: "active", network: "Impact", commission: "4-12%", cookie: "30 days" },
-  { name: "Moosejaw", url: "https://www.moosejaw.com", categories: ["Hiking", "Camping", "Climbing", "Winter"], status: "active", network: "Awin", commission: "6-8%", cookie: "10 days" },
-  { name: "Sierra Trading Post", url: "https://www.sierra.com", categories: ["Hiking", "Running", "Camping", "Cycling"], status: "active", network: "ShareASale", commission: "5-7%", cookie: "14 days" },
-  { name: "Sportsman's Warehouse", url: "https://www.sportsmans.com", categories: ["Hunting", "Fishing", "Camping", "Shooting", "Firearms & Ammo", "Knives & Blades"], status: "active", network: "AvantLink", commission: "3-5%", cookie: "14 days" },
-  { name: "Academy Sports", url: "https://www.academy.com", categories: ["Camping", "Fishing", "Hunting", "Cycling"], status: "active", network: "CJ", commission: "4%", cookie: "7 days" },
-  { name: "Dick's Sporting Goods", url: "https://www.dickssportinggoods.com", categories: ["Camping", "Hiking", "Cycling", "Water Sports"], status: "active", network: "Impact", commission: "2-5%", cookie: "3-14 days" },
-  { name: "Amazon Outdoors", url: "https://www.amazon.com", categories: ["Camping", "Hiking", "Fishing", "Hunting", "Knives & Blades", "Firearms & Ammo"], status: "active", network: "Direct", commission: "3%", cookie: "24 hours" },
+  { name: "REI", url: "https://www.rei.com", searchUrl: "https://www.rei.com/search?q={q}", categories: ["Camping", "Hiking", "Climbing", "Cycling", "Water Sports", "Winter"], status: "active", network: "Impact", commission: "5%", cookie: "15 days" },
+  { name: "Bass Pro Shops", url: "https://www.basspro.com", searchUrl: "https://www.basspro.com/shop/en/search?q={q}", categories: ["Fishing", "Hunting", "Camping", "Boating", "Firearms & Ammo"], status: "active", network: "Impact", commission: "1-5%", cookie: "14 days" },
+  { name: "Cabela's", url: "https://www.cabelas.com", searchUrl: "https://www.cabelas.com/shop/en/search?q={q}", categories: ["Hunting", "Fishing", "Camping", "Shooting", "Firearms & Ammo"], status: "active", network: "Impact", commission: "1-5%", cookie: "14 days" },
+  { name: "Backcountry", url: "https://www.backcountry.com", searchUrl: "https://www.backcountry.com/search?q={q}", categories: ["Skiing", "Climbing", "Hiking", "Cycling"], status: "active", network: "Impact", commission: "4-12%", cookie: "30 days" },
+  { name: "Moosejaw", url: "https://www.moosejaw.com", searchUrl: "https://www.moosejaw.com/search?q={q}", categories: ["Hiking", "Camping", "Climbing", "Winter"], status: "active", network: "Awin", commission: "6-8%", cookie: "10 days" },
+  { name: "Sierra Trading Post", url: "https://www.sierra.com", searchUrl: "https://www.sierra.com/s~{q}/", categories: ["Hiking", "Running", "Camping", "Cycling"], status: "active", network: "ShareASale", commission: "5-7%", cookie: "14 days" },
+  { name: "Sportsman's Warehouse", url: "https://www.sportsmans.com", searchUrl: "https://www.sportsmans.com/search?q={q}", categories: ["Hunting", "Fishing", "Camping", "Shooting", "Firearms & Ammo", "Knives & Blades"], status: "active", network: "AvantLink", commission: "3-5%", cookie: "14 days" },
+  { name: "Academy Sports", url: "https://www.academy.com", searchUrl: "https://www.academy.com/search?query={q}", categories: ["Camping", "Fishing", "Hunting", "Cycling"], status: "active", network: "CJ", commission: "4%", cookie: "7 days" },
+  { name: "Dick's Sporting Goods", url: "https://www.dickssportinggoods.com", searchUrl: "https://www.dickssportinggoods.com/search?searchTerm={q}", categories: ["Camping", "Hiking", "Cycling", "Water Sports"], status: "active", network: "Impact", commission: "2-5%", cookie: "3-14 days" },
+  { name: "Amazon Outdoors", url: "https://www.amazon.com", searchUrl: "https://www.amazon.com/s?k={q}", categories: ["Camping", "Hiking", "Fishing", "Hunting", "Knives & Blades", "Firearms & Ammo"], status: "active", network: "Direct", commission: "3%", cookie: "24 hours" },
 
-  { name: "Kelty", url: "https://www.kelty.com", categories: ["Camping", "Hiking"], status: "active", network: "AvantLink", commission: "8-10%", cookie: "30 days" },
-  { name: "Big Agnes", url: "https://www.bigagnes.com", categories: ["Camping", "Hiking"], status: "active", network: "AvantLink", commission: "8%", cookie: "30 days" },
-  { name: "MSR", url: "https://www.msrgear.com", categories: ["Camping", "Hiking", "Winter"], status: "active", network: "AvantLink", commission: "6-8%", cookie: "30 days" },
-  { name: "Gregory Packs", url: "https://www.gregorypacks.com", categories: ["Hiking", "Camping"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
-  { name: "Osprey Packs", url: "https://www.osprey.com", categories: ["Hiking", "Camping"], status: "active", network: "AvantLink", commission: "5-7%", cookie: "30 days" },
-  { name: "Therm-a-Rest", url: "https://www.thermarest.com", categories: ["Camping"], status: "active", network: "AvantLink", commission: "6-8%", cookie: "30 days" },
+  { name: "Kelty", url: "https://www.kelty.com", searchUrl: "https://www.kelty.com/search/?q={q}", categories: ["Camping", "Hiking"], status: "active", network: "AvantLink", commission: "8-10%", cookie: "30 days" },
+  { name: "Big Agnes", url: "https://www.bigagnes.com", searchUrl: "https://www.bigagnes.com/search?q={q}", categories: ["Camping", "Hiking"], status: "active", network: "AvantLink", commission: "8%", cookie: "30 days" },
+  { name: "MSR", url: "https://www.msrgear.com", searchUrl: "https://www.msrgear.com/search?q={q}", categories: ["Camping", "Hiking", "Winter"], status: "active", network: "AvantLink", commission: "6-8%", cookie: "30 days" },
+  { name: "Gregory Packs", url: "https://www.gregorypacks.com", searchUrl: "https://www.gregorypacks.com/search?q={q}", categories: ["Hiking", "Camping"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
+  { name: "Osprey Packs", url: "https://www.osprey.com", searchUrl: "https://www.osprey.com/search?q={q}", categories: ["Hiking", "Camping"], status: "active", network: "AvantLink", commission: "5-7%", cookie: "30 days" },
+  { name: "Therm-a-Rest", url: "https://www.thermarest.com", searchUrl: "https://www.thermarest.com/search?q={q}", categories: ["Camping"], status: "active", network: "AvantLink", commission: "6-8%", cookie: "30 days" },
 
-  { name: "Tackle Warehouse", url: "https://www.tacklewarehouse.com", categories: ["Fishing"], status: "active", network: "AvantLink", commission: "5-7%", cookie: "14 days" },
-  { name: "FishUSA", url: "https://www.fishusa.com", categories: ["Fishing"], status: "active", network: "ShareASale", commission: "5-8%", cookie: "30 days" },
-  { name: "Karl's Bait & Tackle", url: "https://www.karlsbaittackle.com", categories: ["Fishing"], status: "active", network: "ShareASale", commission: "8-10%", cookie: "30 days" },
-  { name: "Simms Fishing", url: "https://www.simmsfishing.com", categories: ["Fishing"], status: "active", network: "AvantLink", commission: "10%", cookie: "30-90 days" },
-  { name: "Orvis", url: "https://www.orvis.com", categories: ["Fishing", "Hunting"], status: "active", network: "Rakuten", commission: "5-10%", cookie: "14 days" },
-  { name: "Telluride Angler", url: "https://www.tellurideanglercom", categories: ["Fishing"], status: "active", network: "AvantLink", commission: "8-10%", cookie: "120 days" },
-  { name: "Trident Fly Fishing", url: "https://www.tridentflyfishing.com", categories: ["Fishing"], status: "active", network: "AvantLink", commission: "8%", cookie: "30 days" },
+  { name: "Tackle Warehouse", url: "https://www.tacklewarehouse.com", searchUrl: "https://www.tacklewarehouse.com/search?q={q}", categories: ["Fishing"], status: "active", network: "AvantLink", commission: "5-7%", cookie: "14 days" },
+  { name: "FishUSA", url: "https://www.fishusa.com", searchUrl: "https://www.fishusa.com/search?q={q}", categories: ["Fishing"], status: "active", network: "ShareASale", commission: "5-8%", cookie: "30 days" },
+  { name: "Karl's Bait & Tackle", url: "https://www.karlsbaittackle.com", searchUrl: "https://www.karlsbaittackle.com/search?q={q}", categories: ["Fishing"], status: "active", network: "ShareASale", commission: "8-10%", cookie: "30 days" },
+  { name: "Simms Fishing", url: "https://www.simmsfishing.com", searchUrl: "https://www.simmsfishing.com/search?q={q}", categories: ["Fishing"], status: "active", network: "AvantLink", commission: "10%", cookie: "30-90 days" },
+  { name: "Orvis", url: "https://www.orvis.com", searchUrl: "https://www.orvis.com/search?q={q}", categories: ["Fishing", "Hunting"], status: "active", network: "Rakuten", commission: "5-10%", cookie: "14 days" },
+  { name: "Telluride Angler", url: "https://www.tellurideangler.com", searchUrl: "https://www.tellurideangler.com/search?q={q}", categories: ["Fishing"], status: "active", network: "AvantLink", commission: "8-10%", cookie: "120 days" },
+  { name: "Trident Fly Fishing", url: "https://www.tridentflyfishing.com", searchUrl: "https://www.tridentflyfishing.com/search?q={q}", categories: ["Fishing"], status: "active", network: "AvantLink", commission: "8%", cookie: "30 days" },
 
-  { name: "Midway USA", url: "https://www.midwayusa.com", categories: ["Hunting", "Shooting", "Firearms & Ammo"], status: "active", network: "CJ", commission: "3-5%", cookie: "7 days" },
-  { name: "Brownells", url: "https://www.brownells.com", categories: ["Hunting", "Shooting", "Firearms & Ammo", "Knives & Blades"], status: "active", network: "CJ", commission: "3-5%", cookie: "14 days" },
-  { name: "Natchez Shooters", url: "https://www.natchezss.com", categories: ["Hunting", "Shooting", "Firearms & Ammo"], status: "active", network: "AvantLink", commission: "3-5%", cookie: "14 days" },
-  { name: "KUIU", url: "https://www.kuiu.com", categories: ["Hunting"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
-  { name: "First Lite", url: "https://www.firstlite.com", categories: ["Hunting"], status: "active", network: "AvantLink", commission: "8-10%", cookie: "30 days" },
-  { name: "Sitka Gear", url: "https://www.sitkagear.com", categories: ["Hunting"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
-  { name: "Vortex Optics", url: "https://www.vortexoptics.com", categories: ["Hunting", "Shooting", "Firearms & Ammo"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
+  { name: "Midway USA", url: "https://www.midwayusa.com", searchUrl: "https://www.midwayusa.com/s?q={q}", categories: ["Hunting", "Shooting", "Firearms & Ammo"], status: "active", network: "CJ", commission: "3-5%", cookie: "7 days" },
+  { name: "Brownells", url: "https://www.brownells.com", searchUrl: "https://www.brownells.com/search?q={q}", categories: ["Hunting", "Shooting", "Firearms & Ammo", "Knives & Blades"], status: "active", network: "CJ", commission: "3-5%", cookie: "14 days" },
+  { name: "Natchez Shooters", url: "https://www.natchezss.com", searchUrl: "https://www.natchezss.com/catalogsearch/result/?q={q}", categories: ["Hunting", "Shooting", "Firearms & Ammo"], status: "active", network: "AvantLink", commission: "3-5%", cookie: "14 days" },
+  { name: "KUIU", url: "https://www.kuiu.com", searchUrl: "https://www.kuiu.com/search?q={q}", categories: ["Hunting"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
+  { name: "First Lite", url: "https://www.firstlite.com", searchUrl: "https://www.firstlite.com/search?q={q}", categories: ["Hunting"], status: "active", network: "AvantLink", commission: "8-10%", cookie: "30 days" },
+  { name: "Sitka Gear", url: "https://www.sitkagear.com", searchUrl: "https://www.sitkagear.com/search?q={q}", categories: ["Hunting"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
+  { name: "Vortex Optics", url: "https://www.vortexoptics.com", searchUrl: "https://www.vortexoptics.com/search?q={q}", categories: ["Hunting", "Shooting", "Firearms & Ammo"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
 
-  { name: "Black Diamond", url: "https://www.blackdiamondequipment.com", categories: ["Climbing", "Skiing"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
-  { name: "Petzl", url: "https://www.petzl.com", categories: ["Climbing"], status: "active", network: "AvantLink", commission: "5-7%", cookie: "30 days" },
-  { name: "La Sportiva", url: "https://www.lasportiva.com", categories: ["Climbing", "Hiking"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
-  { name: "Mammut", url: "https://www.mammut.com", categories: ["Climbing", "Hiking"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
-  { name: "Mystery Ranch", url: "https://www.mysteryranch.com", categories: ["Climbing", "Hiking", "Hunting"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
+  { name: "Black Diamond", url: "https://www.blackdiamondequipment.com", searchUrl: "https://www.blackdiamondequipment.com/en_US/search?q={q}", categories: ["Climbing", "Skiing"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
+  { name: "Petzl", url: "https://www.petzl.com", searchUrl: "https://www.petzl.com/US/en/search?q={q}", categories: ["Climbing"], status: "active", network: "AvantLink", commission: "5-7%", cookie: "30 days" },
+  { name: "La Sportiva", url: "https://www.lasportiva.com", searchUrl: "https://www.lasportiva.com/en-us/search?q={q}", categories: ["Climbing", "Hiking"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
+  { name: "Mammut", url: "https://www.mammut.com", searchUrl: "https://www.mammut.com/us/en/search?q={q}", categories: ["Climbing", "Hiking"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
+  { name: "Mystery Ranch", url: "https://www.mysteryranch.com", searchUrl: "https://www.mysteryranch.com/search?q={q}", categories: ["Climbing", "Hiking", "Hunting"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
 
-  { name: "Patagonia", url: "https://www.patagonia.com", categories: ["Hiking", "Climbing", "Winter", "Apparel"], status: "active", network: "Awin", commission: "3-5%", cookie: "14 days" },
-  { name: "The North Face", url: "https://www.thenorthface.com", categories: ["Hiking", "Climbing", "Winter", "Apparel"], status: "active", network: "Awin", commission: "3-5%", cookie: "14 days" },
-  { name: "Columbia", url: "https://www.columbia.com", categories: ["Hiking", "Fishing", "Winter", "Apparel"], status: "active", network: "CJ", commission: "3-5%", cookie: "14 days" },
-  { name: "Arc'teryx", url: "https://www.arcteryx.com", categories: ["Climbing", "Hiking", "Winter", "Apparel"], status: "active", network: "Impact", commission: "3-5%", cookie: "14 days" },
+  { name: "Patagonia", url: "https://www.patagonia.com", searchUrl: "https://www.patagonia.com/search/?q={q}", categories: ["Hiking", "Climbing", "Winter", "Apparel"], status: "active", network: "Awin", commission: "3-5%", cookie: "14 days" },
+  { name: "The North Face", url: "https://www.thenorthface.com", searchUrl: "https://www.thenorthface.com/en-us/search?q={q}", categories: ["Hiking", "Climbing", "Winter", "Apparel"], status: "active", network: "Awin", commission: "3-5%", cookie: "14 days" },
+  { name: "Columbia", url: "https://www.columbia.com", searchUrl: "https://www.columbia.com/search?q={q}", categories: ["Hiking", "Fishing", "Winter", "Apparel"], status: "active", network: "CJ", commission: "3-5%", cookie: "14 days" },
+  { name: "Arc'teryx", url: "https://www.arcteryx.com", searchUrl: "https://www.arcteryx.com/search?q={q}", categories: ["Climbing", "Hiking", "Winter", "Apparel"], status: "active", network: "Impact", commission: "3-5%", cookie: "14 days" },
 
-  { name: "Jenson USA", url: "https://www.jensonusa.com", categories: ["Cycling"], status: "active", network: "AvantLink", commission: "5-7%", cookie: "30 days" },
-  { name: "Competitive Cyclist", url: "https://www.competitivecyclist.com", categories: ["Cycling"], status: "active", network: "Impact", commission: "4-8%", cookie: "30 days" },
-  { name: "Chain Reaction Cycles", url: "https://www.chainreactioncycles.com", categories: ["Cycling"], status: "active", network: "Awin", commission: "3-5%", cookie: "30 days" },
-  { name: "Trek Bikes", url: "https://www.trekbikes.com", categories: ["Cycling"], status: "active", network: "Impact", commission: "3-5%", cookie: "14 days" },
+  { name: "Jenson USA", url: "https://www.jensonusa.com", searchUrl: "https://www.jensonusa.com/search?q={q}", categories: ["Cycling"], status: "active", network: "AvantLink", commission: "5-7%", cookie: "30 days" },
+  { name: "Competitive Cyclist", url: "https://www.competitivecyclist.com", searchUrl: "https://www.competitivecyclist.com/search?q={q}", categories: ["Cycling"], status: "active", network: "Impact", commission: "4-8%", cookie: "30 days" },
+  { name: "Chain Reaction Cycles", url: "https://www.chainreactioncycles.com", searchUrl: "https://www.chainreactioncycles.com/search?q={q}", categories: ["Cycling"], status: "active", network: "Awin", commission: "3-5%", cookie: "30 days" },
+  { name: "Trek Bikes", url: "https://www.trekbikes.com", searchUrl: "https://www.trekbikes.com/us/en_US/search/?q={q}", categories: ["Cycling"], status: "active", network: "Impact", commission: "3-5%", cookie: "14 days" },
 
-  { name: "NRS", url: "https://www.nrs.com", categories: ["Water Sports"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
-  { name: "Aqua-Bound", url: "https://www.aquabound.com", categories: ["Water Sports"], status: "active", network: "AvantLink", commission: "8-10%", cookie: "30 days" },
-  { name: "Werner Paddles", url: "https://www.wernerpaddles.com", categories: ["Water Sports"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
-  { name: "BOTE", url: "https://www.boteboard.com", categories: ["Water Sports"], status: "active", network: "ShareASale", commission: "5-8%", cookie: "30 days" },
+  { name: "NRS", url: "https://www.nrs.com", searchUrl: "https://www.nrs.com/search?q={q}", categories: ["Water Sports"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
+  { name: "Aqua-Bound", url: "https://www.aquabound.com", searchUrl: "https://www.aquabound.com/search?q={q}", categories: ["Water Sports"], status: "active", network: "AvantLink", commission: "8-10%", cookie: "30 days" },
+  { name: "Werner Paddles", url: "https://www.wernerpaddles.com", searchUrl: "https://www.wernerpaddles.com/search?q={q}", categories: ["Water Sports"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
+  { name: "BOTE", url: "https://www.boteboard.com", searchUrl: "https://www.boteboard.com/search?q={q}", categories: ["Water Sports"], status: "active", network: "ShareASale", commission: "5-8%", cookie: "30 days" },
 
-  { name: "evo", url: "https://www.evo.com", categories: ["Winter", "Cycling", "Camping"], status: "active", network: "AvantLink", commission: "5%", cookie: "30 days" },
-  { name: "The House", url: "https://www.the-house.com", categories: ["Winter", "Water Sports"], status: "active", network: "CJ", commission: "5-8%", cookie: "14 days" },
-  { name: "Christy Sports", url: "https://www.christysports.com", categories: ["Winter"], status: "active", network: "AvantLink", commission: "4-6%", cookie: "30 days" },
+  { name: "evo", url: "https://www.evo.com", searchUrl: "https://www.evo.com/search?q={q}", categories: ["Winter", "Cycling", "Camping"], status: "active", network: "AvantLink", commission: "5%", cookie: "30 days" },
+  { name: "The House", url: "https://www.the-house.com", searchUrl: "https://www.the-house.com/search?q={q}", categories: ["Winter", "Water Sports"], status: "active", network: "CJ", commission: "5-8%", cookie: "14 days" },
+  { name: "Christy Sports", url: "https://www.christysports.com", searchUrl: "https://www.christysports.com/search?q={q}", categories: ["Winter"], status: "active", network: "AvantLink", commission: "4-6%", cookie: "30 days" },
 
-  { name: "Survival Frog", url: "https://www.survivalfrog.com", categories: ["Survival"], status: "active", network: "ShareASale", commission: "10-15%", cookie: "60 days" },
-  { name: "BePrepared", url: "https://www.beprepared.com", categories: ["Survival"], status: "active", network: "ShareASale", commission: "8-12%", cookie: "30 days" },
-  { name: "My Patriot Supply", url: "https://www.mypatriotsupply.com", categories: ["Survival"], status: "active", network: "AvantLink", commission: "8-15%", cookie: "30 days" },
-  { name: "ReadyWise", url: "https://www.readywise.com", categories: ["Survival", "Camping"], status: "active", network: "AvantLink", commission: "12%", cookie: "30 days" },
+  { name: "Survival Frog", url: "https://www.survivalfrog.com", searchUrl: "https://www.survivalfrog.com/search?q={q}", categories: ["Survival"], status: "active", network: "ShareASale", commission: "10-15%", cookie: "60 days" },
+  { name: "BePrepared", url: "https://www.beprepared.com", searchUrl: "https://www.beprepared.com/search?q={q}", categories: ["Survival"], status: "active", network: "ShareASale", commission: "8-12%", cookie: "30 days" },
+  { name: "My Patriot Supply", url: "https://www.mypatriotsupply.com", searchUrl: "https://www.mypatriotsupply.com/search?q={q}", categories: ["Survival"], status: "active", network: "AvantLink", commission: "8-15%", cookie: "30 days" },
+  { name: "ReadyWise", url: "https://www.readywise.com", searchUrl: "https://www.readywise.com/search?q={q}", categories: ["Survival", "Camping"], status: "active", network: "AvantLink", commission: "12%", cookie: "30 days" },
 
-  { name: "Rad Power Bikes", url: "https://www.radpowerbikes.com", categories: ["E-Mobility"], status: "active", network: "FlexOffers", commission: "3-6%", cookie: "30 days" },
-  { name: "Lectric eBikes", url: "https://www.lectricebikes.com", categories: ["E-Mobility"], status: "active", network: "Direct", commission: "3%", cookie: "30 days" },
-  { name: "Aventon", url: "https://www.aventon.com", categories: ["E-Mobility"], status: "active", network: "ShareASale", commission: "5-8%", cookie: "30 days" },
-  { name: "Juiced Bikes", url: "https://www.juicedbikes.com", categories: ["E-Mobility"], status: "active", network: "ShareASale", commission: "3-5%", cookie: "30 days" },
+  { name: "Rad Power Bikes", url: "https://www.radpowerbikes.com", searchUrl: "https://www.radpowerbikes.com/search?q={q}", categories: ["E-Mobility"], status: "active", network: "FlexOffers", commission: "3-6%", cookie: "30 days" },
+  { name: "Lectric eBikes", url: "https://www.lectricebikes.com", searchUrl: "https://www.lectricebikes.com/search?q={q}", categories: ["E-Mobility"], status: "active", network: "Direct", commission: "3%", cookie: "30 days" },
+  { name: "Aventon", url: "https://www.aventon.com", searchUrl: "https://www.aventon.com/search?q={q}", categories: ["E-Mobility"], status: "active", network: "ShareASale", commission: "5-8%", cookie: "30 days" },
+  { name: "Juiced Bikes", url: "https://www.juicedbikes.com", searchUrl: "https://www.juicedbikes.com/search?q={q}", categories: ["E-Mobility"], status: "active", network: "ShareASale", commission: "3-5%", cookie: "30 days" },
 
-  { name: "Husqvarna", url: "https://www.husqvarna.com", categories: ["Arborist"], status: "active", network: "CJ", commission: "3-5%", cookie: "14 days" },
-  { name: "Sherrill Tree", url: "https://www.sherrilltree.com", categories: ["Arborist"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
-  { name: "WesSpur", url: "https://www.wesspur.com", categories: ["Arborist"], status: "active", network: "Direct", commission: "5-8%", cookie: "30 days" },
+  { name: "Husqvarna", url: "https://www.husqvarna.com", searchUrl: "https://www.husqvarna.com/us/search/?q={q}", categories: ["Arborist"], status: "active", network: "CJ", commission: "3-5%", cookie: "14 days" },
+  { name: "Sherrill Tree", url: "https://www.sherrilltree.com", searchUrl: "https://www.sherrilltree.com/search?q={q}", categories: ["Arborist"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
+  { name: "WesSpur", url: "https://www.wesspur.com", searchUrl: "https://www.wesspur.com/search?q={q}", categories: ["Arborist"], status: "active", network: "Direct", commission: "5-8%", cookie: "30 days" },
 
-  { name: "BladeHQ", url: "https://www.bladehq.com", categories: ["Knives & Blades", "Survival"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
-  { name: "KnifeCenter", url: "https://www.knifecenter.com", categories: ["Knives & Blades"], status: "active", network: "ShareASale", commission: "5-8%", cookie: "30 days" },
-  { name: "SMKW", url: "https://www.smkw.com", categories: ["Knives & Blades"], status: "active", network: "ShareASale", commission: "5-7%", cookie: "30 days" },
-  { name: "Benchmade", url: "https://www.benchmade.com", categories: ["Knives & Blades", "Survival"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
-  { name: "Spyderco", url: "https://www.spyderco.com", categories: ["Knives & Blades"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
-  { name: "CRKT", url: "https://www.crkt.com", categories: ["Knives & Blades", "Camping"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
-  { name: "Buck Knives", url: "https://www.buckknives.com", categories: ["Knives & Blades", "Hunting"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
-  { name: "Ka-Bar", url: "https://www.kabar.com", categories: ["Knives & Blades", "Survival"], status: "active", network: "Direct", commission: "5-8%", cookie: "30 days" },
-  { name: "Cold Steel", url: "https://www.coldsteel.com", categories: ["Knives & Blades", "Survival"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
-  { name: "Kershaw", url: "https://www.kershawknives.com", categories: ["Knives & Blades"], status: "active", network: "Direct", commission: "5-7%", cookie: "30 days" },
-  { name: "Zero Tolerance", url: "https://www.ztknives.com", categories: ["Knives & Blades"], status: "active", network: "Direct", commission: "5-8%", cookie: "30 days" },
-  { name: "Helle Knives", url: "https://www.helle.com", categories: ["Knives & Blades"], status: "active", network: "Direct", commission: "5-8%", cookie: "30 days" },
-  { name: "Gerber Gear", url: "https://www.gerbergear.com", categories: ["Knives & Blades", "Survival", "Camping"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
-  { name: "SOG Knives", url: "https://www.sogknives.com", categories: ["Knives & Blades", "Survival"], status: "active", network: "AvantLink", commission: "5-10%", cookie: "30 days" },
-  { name: "Leatherman", url: "https://www.leatherman.com", categories: ["Knives & Blades", "Survival", "Camping"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
-  { name: "We Knife Co", url: "https://www.weknife.com", categories: ["Knives & Blades"], status: "active", network: "Direct", commission: "8-12%", cookie: "30 days" },
-  { name: "Civivi", url: "https://www.civivi.com", categories: ["Knives & Blades"], status: "active", network: "Direct", commission: "8-12%", cookie: "30 days" },
+  { name: "BladeHQ", url: "https://www.bladehq.com", searchUrl: "https://www.bladehq.com/cat--All--1?search={q}", categories: ["Knives & Blades", "Survival"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
+  { name: "KnifeCenter", url: "https://www.knifecenter.com", searchUrl: "https://www.knifecenter.com/search?search={q}", categories: ["Knives & Blades"], status: "active", network: "ShareASale", commission: "5-8%", cookie: "30 days" },
+  { name: "SMKW", url: "https://www.smkw.com", searchUrl: "https://www.smkw.com/search?q={q}", categories: ["Knives & Blades"], status: "active", network: "ShareASale", commission: "5-7%", cookie: "30 days" },
+  { name: "Benchmade", url: "https://www.benchmade.com", searchUrl: "https://www.benchmade.com/search?q={q}", categories: ["Knives & Blades", "Survival"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
+  { name: "Spyderco", url: "https://www.spyderco.com", searchUrl: "https://www.spyderco.com/catalog/?search={q}", categories: ["Knives & Blades"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
+  { name: "CRKT", url: "https://www.crkt.com", searchUrl: "https://www.crkt.com/search?q={q}", categories: ["Knives & Blades", "Camping"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
+  { name: "Buck Knives", url: "https://www.buckknives.com", searchUrl: "https://www.buckknives.com/search/?q={q}", categories: ["Knives & Blades", "Hunting"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
+  { name: "Ka-Bar", url: "https://www.kabar.com", searchUrl: "https://www.kabar.com/search?q={q}", categories: ["Knives & Blades", "Survival"], status: "active", network: "Direct", commission: "5-8%", cookie: "30 days" },
+  { name: "Cold Steel", url: "https://www.coldsteel.com", searchUrl: "https://www.coldsteel.com/search?q={q}", categories: ["Knives & Blades", "Survival"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
+  { name: "Kershaw", url: "https://www.kershawknives.com", searchUrl: "https://www.kershawknives.com/search?q={q}", categories: ["Knives & Blades"], status: "active", network: "Direct", commission: "5-7%", cookie: "30 days" },
+  { name: "Zero Tolerance", url: "https://www.ztknives.com", searchUrl: "https://www.ztknives.com/search?q={q}", categories: ["Knives & Blades"], status: "active", network: "Direct", commission: "5-8%", cookie: "30 days" },
+  { name: "Helle Knives", url: "https://www.helle.com", searchUrl: "https://www.helle.com/search?q={q}", categories: ["Knives & Blades"], status: "active", network: "Direct", commission: "5-8%", cookie: "30 days" },
+  { name: "Gerber Gear", url: "https://www.gerbergear.com", searchUrl: "https://www.gerbergear.com/search?q={q}", categories: ["Knives & Blades", "Survival", "Camping"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
+  { name: "SOG Knives", url: "https://www.sogknives.com", searchUrl: "https://www.sogknives.com/search?q={q}", categories: ["Knives & Blades", "Survival"], status: "active", network: "AvantLink", commission: "5-10%", cookie: "30 days" },
+  { name: "Leatherman", url: "https://www.leatherman.com", searchUrl: "https://www.leatherman.com/search?q={q}", categories: ["Knives & Blades", "Survival", "Camping"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
+  { name: "We Knife Co", url: "https://www.weknife.com", searchUrl: "https://www.weknife.com/search?q={q}", categories: ["Knives & Blades"], status: "active", network: "Direct", commission: "8-12%", cookie: "30 days" },
+  { name: "Civivi", url: "https://www.civivi.com", searchUrl: "https://www.civivi.com/search?q={q}", categories: ["Knives & Blades"], status: "active", network: "Direct", commission: "8-12%", cookie: "30 days" },
 
-  { name: "Palmetto State Armory", url: "https://palmettostatearmory.com", categories: ["Firearms & Ammo", "Shooting"], status: "active", network: "AvantLink", commission: "3-5%", cookie: "14 days" },
-  { name: "Primary Arms", url: "https://www.primaryarms.com", categories: ["Firearms & Ammo", "Shooting", "Hunting"], status: "active", network: "AvantLink", commission: "3-5%", cookie: "30 days" },
-  { name: "OpticsPlanet", url: "https://www.opticsplanet.com", categories: ["Firearms & Ammo", "Shooting", "Hunting"], status: "active", network: "CJ", commission: "3-5%", cookie: "30 days" },
-  { name: "Guns.com", url: "https://www.guns.com", categories: ["Firearms & Ammo"], status: "active", network: "Direct", commission: "2-4%", cookie: "14 days" },
-  { name: "Buds Gun Shop", url: "https://www.budsgunshop.com", categories: ["Firearms & Ammo", "Shooting"], status: "active", network: "ShareASale", commission: "2-4%", cookie: "14 days" },
-  { name: "Cheaper Than Dirt", url: "https://www.cheaperthandirt.com", categories: ["Firearms & Ammo", "Shooting", "Survival"], status: "active", network: "ShareASale", commission: "3-5%", cookie: "14 days" },
-  { name: "EuroOptic", url: "https://www.eurooptic.com", categories: ["Firearms & Ammo", "Shooting", "Hunting"], status: "active", network: "AvantLink", commission: "3-5%", cookie: "30 days" },
-  { name: "Bereli", url: "https://www.bereli.com", categories: ["Firearms & Ammo", "Shooting"], status: "active", network: "ShareASale", commission: "5-8%", cookie: "30 days" },
-  { name: "Lucky Gunner", url: "https://www.luckygunner.com", categories: ["Firearms & Ammo"], status: "active", network: "AvantLink", commission: "3-5%", cookie: "30 days" },
-  { name: "Grabagun", url: "https://grabagun.com", categories: ["Firearms & Ammo", "Shooting"], status: "active", network: "AvantLink", commission: "2-4%", cookie: "14 days" },
-  { name: "Rainier Arms", url: "https://www.rainierarms.com", categories: ["Firearms & Ammo", "Shooting"], status: "active", network: "AvantLink", commission: "3-5%", cookie: "30 days" },
-  { name: "Aero Precision", url: "https://www.aeroprecisionusa.com", categories: ["Firearms & Ammo"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
+  { name: "Palmetto State Armory", url: "https://palmettostatearmory.com", searchUrl: "https://palmettostatearmory.com/catalogsearch/result/?q={q}", categories: ["Firearms & Ammo", "Shooting"], status: "active", network: "AvantLink", commission: "3-5%", cookie: "14 days" },
+  { name: "Primary Arms", url: "https://www.primaryarms.com", searchUrl: "https://www.primaryarms.com/search?keywords={q}", categories: ["Firearms & Ammo", "Shooting", "Hunting"], status: "active", network: "AvantLink", commission: "3-5%", cookie: "30 days" },
+  { name: "OpticsPlanet", url: "https://www.opticsplanet.com", searchUrl: "https://www.opticsplanet.com/s/{q}", categories: ["Firearms & Ammo", "Shooting", "Hunting"], status: "active", network: "CJ", commission: "3-5%", cookie: "30 days" },
+  { name: "Guns.com", url: "https://www.guns.com", searchUrl: "https://www.guns.com/search?keyword={q}", categories: ["Firearms & Ammo"], status: "active", network: "Direct", commission: "2-4%", cookie: "14 days" },
+  { name: "Buds Gun Shop", url: "https://www.budsgunshop.com", searchUrl: "https://www.budsgunshop.com/search?q={q}", categories: ["Firearms & Ammo", "Shooting"], status: "active", network: "ShareASale", commission: "2-4%", cookie: "14 days" },
+  { name: "Cheaper Than Dirt", url: "https://www.cheaperthandirt.com", searchUrl: "https://www.cheaperthandirt.com/catalogsearch/result/?q={q}", categories: ["Firearms & Ammo", "Shooting", "Survival"], status: "active", network: "ShareASale", commission: "3-5%", cookie: "14 days" },
+  { name: "EuroOptic", url: "https://www.eurooptic.com", searchUrl: "https://www.eurooptic.com/search?q={q}", categories: ["Firearms & Ammo", "Shooting", "Hunting"], status: "active", network: "AvantLink", commission: "3-5%", cookie: "30 days" },
+  { name: "Bereli", url: "https://www.bereli.com", searchUrl: "https://www.bereli.com/search?q={q}", categories: ["Firearms & Ammo", "Shooting"], status: "active", network: "ShareASale", commission: "5-8%", cookie: "30 days" },
+  { name: "Lucky Gunner", url: "https://www.luckygunner.com", searchUrl: "https://www.luckygunner.com/search#{q}", categories: ["Firearms & Ammo"], status: "active", network: "AvantLink", commission: "3-5%", cookie: "30 days" },
+  { name: "Grabagun", url: "https://grabagun.com", searchUrl: "https://grabagun.com/catalogsearch/result/?q={q}", categories: ["Firearms & Ammo", "Shooting"], status: "active", network: "AvantLink", commission: "2-4%", cookie: "14 days" },
+  { name: "Rainier Arms", url: "https://www.rainierarms.com", searchUrl: "https://www.rainierarms.com/search?q={q}", categories: ["Firearms & Ammo", "Shooting"], status: "active", network: "AvantLink", commission: "3-5%", cookie: "30 days" },
+  { name: "Aero Precision", url: "https://www.aeroprecisionusa.com", searchUrl: "https://www.aeroprecisionusa.com/search?q={q}", categories: ["Firearms & Ammo"], status: "active", network: "AvantLink", commission: "5-8%", cookie: "30 days" },
 ];
 
 const categoryConfig: Record<string, { icon: typeof Tent; products: number; color: string }> = {
@@ -150,9 +151,9 @@ const categoryConfig: Record<string, { icon: typeof Tent; products: number; colo
 const defaultCategoryConfig = { icon: Package, products: 50, color: "emerald" };
 
 const steps = [
-  { icon: Search, title: "Search Products", description: "Search across 90+ outdoor retailers to find the gear you need." },
-  { icon: BarChart3, title: "Compare Prices", description: "See side-by-side pricing from multiple retailers in one view." },
-  { icon: Bell, title: "Get Alerts", description: "Set price alerts and get notified when gear drops to your target price." },
+  { icon: Search, title: "Search a Product", description: "Type the product you want — like 'Benchmade Bugout' or 'camping tent' — in the search bar above." },
+  { icon: ArrowRight, title: "Tap a Retailer", description: "Each retailer card links directly to that product on their site, so you can see their price instantly." },
+  { icon: Bell, title: "Get Price Alerts", description: "Set a price drop alert and we'll email you when your gear goes on sale at any retailer." },
 ];
 
 const stagger = {
@@ -174,6 +175,7 @@ export default function PriceCompare() {
   }, []);
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [productQuery, setProductQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [alertEmail, setAlertEmail] = useState("");
   const [alertProduct, setAlertProduct] = useState("");
@@ -181,6 +183,18 @@ export default function PriceCompare() {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(() => new Set(["Camping", "Knives & Blades", "Firearms & Ammo"]));
 
   const query = searchQuery.toLowerCase();
+
+  const getRetailerLink = (retailer: Retailer) => {
+    if (productQuery.trim()) {
+      const encoded = encodeURIComponent(productQuery.trim());
+      if (retailer.searchUrl.includes("{q}")) {
+        return retailer.searchUrl.replace("{q}", encoded);
+      }
+      const sep = retailer.url.includes("?") ? "&" : "?";
+      return `${retailer.url}${sep}q=${encoded}`;
+    }
+    return retailer.url;
+  };
 
   const allCategories = useMemo(() => {
     const catSet = new Set<string>();
@@ -265,12 +279,48 @@ export default function PriceCompare() {
       </div>
 
       <div className="px-5 md:px-10 py-6">
+        <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 backdrop-blur-xl p-4 mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Search className="w-4 h-4 text-emerald-400" />
+            <span className="text-sm font-semibold text-foreground">What are you looking for?</span>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex-1 flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+              <Package className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+              <input
+                type="text"
+                placeholder="Type a product (e.g. Benchmade Bugout, camping tent, 9mm ammo...)"
+                value={productQuery}
+                onChange={(e) => setProductQuery(e.target.value)}
+                className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
+                data-testid="input-product-search"
+              />
+              {productQuery && (
+                <button onClick={() => setProductQuery("")} data-testid="button-clear-product-search">
+                  <X className="w-4 h-4 text-muted-foreground" />
+                </button>
+              )}
+            </div>
+          </div>
+          {productQuery.trim() && (
+            <motion.p
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-xs text-emerald-400 mt-2 flex items-center gap-1.5"
+              data-testid="text-product-search-hint"
+            >
+              <ArrowRight className="w-3 h-3" />
+              Tap any retailer below to search for "{productQuery.trim()}" on their site
+            </motion.p>
+          )}
+        </div>
+
         <div className="flex flex-wrap items-center gap-3 mb-6">
           <div className="flex-1 min-w-[200px] flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl px-4 py-3">
             <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
             <input
               type="text"
-              placeholder="Search retailers, categories, or gear..."
+              placeholder="Filter retailers or categories..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
@@ -410,10 +460,14 @@ export default function PriceCompare() {
                         {section.retailers.map((retailer) => (
                           <a
                             key={`${section.label}-${retailer.name}`}
-                            href={retailer.url}
+                            href={getRetailerLink(retailer)}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="block rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl p-4 hover-elevate cursor-pointer"
+                            className={`block rounded-xl border p-4 hover-elevate cursor-pointer backdrop-blur-xl ${
+                              productQuery.trim()
+                                ? "border-emerald-500/20 bg-emerald-500/5"
+                                : "border-white/10 bg-white/5"
+                            }`}
                             data-testid={`card-retailer-${retailer.name.toLowerCase().replace(/['\s]+/g, "-")}`}
                           >
                             <div className="flex items-center gap-3 mb-3">
@@ -443,8 +497,12 @@ export default function PriceCompare() {
                             <p className="text-[11px] text-muted-foreground mb-1" data-testid={`text-affiliate-info-${retailer.name.toLowerCase().replace(/['\s]+/g, "-")}`}>
                               {retailer.network} · {retailer.commission} · {retailer.cookie} cookie
                             </p>
-                            <span className="text-xs font-medium text-emerald-400 flex items-center gap-1" data-testid={`link-visit-${retailer.name.toLowerCase().replace(/['\s]+/g, "-")}`}>
-                              Visit Store <ExternalLink className="w-3 h-3" />
+                            <span className={`text-xs font-medium flex items-center gap-1 ${productQuery.trim() ? "text-emerald-300" : "text-emerald-400"}`} data-testid={`link-visit-${retailer.name.toLowerCase().replace(/['\s]+/g, "-")}`}>
+                              {productQuery.trim() ? (
+                                <>Search "{productQuery.trim()}" <ArrowRight className="w-3 h-3" /></>
+                              ) : (
+                                <>Visit Store <ExternalLink className="w-3 h-3" /></>
+                              )}
                             </span>
                           </a>
                         ))}
