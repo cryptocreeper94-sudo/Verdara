@@ -133,14 +133,14 @@ export default function Landing({ onGetStarted, onBrowse }: LandingProps) {
   const nextVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    document.title = "Verdara - AI-Powered Outdoor Recreation | DarkWave Studios";
+    document.title = "Verdara - Your Complete Outdoor Recreation Platform | DarkWave Studios";
     const meta = document.querySelector('meta[name="description"]');
     if (meta) {
-      meta.setAttribute("content", "Verdara is the AI-powered outdoor recreation super-app. Identify species, discover trails, plan trips, and shop a blockchain-verified marketplace across 24 activity categories.");
+      meta.setAttribute("content", "Verdara is the ultimate outdoor recreation super-app. Identify species, discover trails, plan trips, and shop a blockchain-verified marketplace across 24 activity categories.");
     } else {
       const newMeta = document.createElement("meta");
       newMeta.name = "description";
-      newMeta.content = "Verdara is the AI-powered outdoor recreation super-app. Identify species, discover trails, plan trips, and shop a blockchain-verified marketplace across 24 activity categories.";
+      newMeta.content = "Verdara is the ultimate outdoor recreation super-app. Identify species, discover trails, plan trips, and shop a blockchain-verified marketplace across 24 activity categories.";
       document.head.appendChild(newMeta);
     }
     return () => {
@@ -274,10 +274,10 @@ export default function Landing({ onGetStarted, onBrowse }: LandingProps) {
               Verdara
             </h1>
             <p className="text-lg md:text-xl lg:text-2xl text-white/80 max-w-2xl mx-auto mb-4 leading-relaxed">
-              AI-Powered Outdoor Recreation
+              Your Complete Outdoor Recreation Platform
             </p>
             <p className="text-sm md:text-base text-white/60 max-w-xl mx-auto mb-10">
-              Identify species. Discover trails. Plan trips. Track adventures. All powered by AI and backed by blockchain verification.
+              Identify species. Discover trails. Plan trips. Track adventures. All in one place.
             </p>
           </motion.div>
 
