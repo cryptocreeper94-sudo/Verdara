@@ -151,9 +151,9 @@ const categoryConfig: Record<string, { icon: typeof Tent; products: number; colo
 const defaultCategoryConfig = { icon: Package, products: 50, color: "emerald" };
 
 const steps = [
-  { icon: Search, title: "Search a Product", description: "Type the product you want — like 'Benchmade Bugout' or 'camping tent' — in the search bar above." },
-  { icon: ArrowRight, title: "Tap a Retailer", description: "Each retailer card links directly to that product on their site, so you can see their price instantly." },
-  { icon: Bell, title: "Get Price Alerts", description: "Set a price drop alert and we'll email you when your gear goes on sale at any retailer." },
+  { icon: Search, title: "Type what you need", description: "Enter any product — like hiking boots, a Yeti cooler, or fillet knife — in the search bar." },
+  { icon: ArrowRight, title: "Pick a store", description: "Each store card takes you straight to that product on their website so you can see their price." },
+  { icon: Bell, title: "Set a price alert", description: "Want to wait for a deal? Set an alert and we'll email you when the price drops." },
 ];
 
 const stagger = {
@@ -282,14 +282,14 @@ export default function PriceCompare() {
         <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 backdrop-blur-xl p-4 mb-6">
           <div className="flex items-center gap-2 mb-3">
             <Search className="w-4 h-4 text-emerald-400" />
-            <span className="text-sm font-semibold text-foreground">What are you looking for?</span>
+            <span className="text-sm font-semibold text-foreground">Search for a product</span>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1 flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
               <Package className="w-4 h-4 text-emerald-400 flex-shrink-0" />
               <input
                 type="text"
-                placeholder="Type a product (e.g. Benchmade Bugout, camping tent, 9mm ammo...)"
+                placeholder="hiking boots, Yeti cooler, 5.56 ammo, fillet knife..."
                 value={productQuery}
                 onChange={(e) => setProductQuery(e.target.value)}
                 className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
@@ -310,7 +310,7 @@ export default function PriceCompare() {
               data-testid="text-product-search-hint"
             >
               <ArrowRight className="w-3 h-3" />
-              Tap any retailer below to search for "{productQuery.trim()}" on their site
+              Click any store below to find "{productQuery.trim()}" on their site
             </motion.p>
           )}
         </div>
@@ -320,7 +320,7 @@ export default function PriceCompare() {
             <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
             <input
               type="text"
-              placeholder="Filter retailers or categories..."
+              placeholder="Find a store or category..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
@@ -499,9 +499,9 @@ export default function PriceCompare() {
                             </p>
                             <span className={`text-xs font-medium flex items-center gap-1 ${productQuery.trim() ? "text-emerald-300" : "text-emerald-400"}`} data-testid={`link-visit-${retailer.name.toLowerCase().replace(/['\s]+/g, "-")}`}>
                               {productQuery.trim() ? (
-                                <>Search "{productQuery.trim()}" <ArrowRight className="w-3 h-3" /></>
+                                <>Find "{productQuery.trim()}" here <ArrowRight className="w-3 h-3" /></>
                               ) : (
-                                <>Visit Store <ExternalLink className="w-3 h-3" /></>
+                                <>Shop here <ExternalLink className="w-3 h-3" /></>
                               )}
                             </span>
                           </a>
