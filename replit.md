@@ -59,6 +59,29 @@ Verdara is built as part of the DarkWave Trust Layer (DWTL) ecosystem, functioni
 - All category pages display a "Living Catalog" banner indicating daily updates.
 - Service worker cache version must be bumped when replacing images (currently v3).
 
+**Complete Outdoor Guide / Encyclopedia Vision:**
+- Every catalog location (state parks, national parks, trails, campgrounds, fishing spots, etc.) should have an encyclopedia-quality entry with:
+  - Rich multi-paragraph description covering landscape, geography, history, and unique character
+  - Complete list of available services (visitor centers, restrooms, camping, lodges, rentals, guided tours, etc.)
+  - Ideal outdoor sports & activities (fishing, hiking, rock climbing, kayaking, mountain biking, hunting, bird watching, etc.) with specifics (e.g., "trophy largemouth bass fishing in spring")
+  - Seasonal recommendations (best time to visit, seasonal closures, peak seasons)
+  - Wildlife & flora highlights
+  - Difficulty levels for trails/activities
+  - Accessibility information
+  - Custom photorealistic AI-generated hero image unique to each location (no generic stock photos)
+- Current status: 145 catalog locations (10 state parks, 15 national parks, 15 fishing, 10 camping, 10 climbing, 10 hunting, 10 public lands, 9 charter, 9 winter, 9 watersports, 8 e-mobility, 8 MTB, 7 conservation, 5 foraging, 2 prairie, 2 coastal, 2 wetlands, 2 desert, 2 caves). Descriptions are being enhanced in batches from short summaries to full encyclopedia entries.
+- Enhancement priority order: State Parks → National Parks → Fishing → Camping → all remaining categories
+- Each batch: rewrite descriptions to 3-5 detailed paragraphs + generate custom photorealistic image
+
+**Downloadable PDF Outdoor Guide (Future Revenue Stream):**
+- Goal: Package the complete Verdara catalog into a premium downloadable PDF guide — "The Complete Outdoor Guide"
+- Content: All catalog locations with full descriptions, photos, maps, seasonal guides, activity recommendations
+- Revenue model: Sell as a standalone digital product (one-time purchase or included with higher subscription tiers)
+- Format: Professional layout, chapter organization by region/state/activity type, index, and table of contents
+- Updates: New editions released periodically as the catalog grows (quarterly or annually)
+- Cross-sell: Link back to app for AI identification, real-time weather, booking, and community features
+- Implementation: Consider PDF generation library (e.g., jsPDF, Puppeteer PDF rendering) when ready to build
+
 **Subscription Tiers (Stripe):**
 - Free Explorer (level 0): Free — browse catalog, basic trails, community, 3 AI IDs/month
 - Outdoor Explorer (level 1): $19.99/yr — unlimited AI ID, trip planner, price compare, wild edibles, TrustVault
