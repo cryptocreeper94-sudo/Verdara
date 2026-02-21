@@ -68,49 +68,66 @@ export default function Home() {
   const { data: stats } = useQuery({ queryKey: ['/api/stats'] });
   const appStats = stats as { trails: number; campgrounds: number; listings: number; activityLocations: number; totalFeatures: number } | undefined;
 
-  const [heroVideoSrc] = useState(() => HERO_VIDEOS[Math.floor(Math.random() * HERO_VIDEOS.length)]);
   const heroContainerRef = useRef<HTMLDivElement>(null);
+  const videoIndexRef = useRef(Math.floor(Math.random() * HERO_VIDEOS.length));
 
   useEffect(() => {
     const container = heroContainerRef.current;
     if (!container) return;
 
-    const videoEl = container.querySelector("video");
-    if (!videoEl) return;
+    let cancelled = false;
 
-    videoEl.muted = true;
-    videoEl.defaultMuted = true;
+    const startVideo = (index: number) => {
+      if (cancelled) return;
 
-    let attempts = 0;
-    const maxAttempts = 10;
+      const videoEl = container.querySelector("video");
+      if (!videoEl) return;
 
-    const tryPlay = () => {
-      if (!videoEl.paused || attempts >= maxAttempts) return;
-      attempts++;
+      videoEl.src = HERO_VIDEOS[index];
       videoEl.muted = true;
-      const p = videoEl.play();
-      if (p && p.catch) p.catch(() => {});
+      videoEl.defaultMuted = true;
+      videoEl.load();
+
+      const onEnded = () => {
+        videoEl.removeEventListener("ended", onEnded);
+        const nextIndex = (index + 1) % HERO_VIDEOS.length;
+        videoIndexRef.current = nextIndex;
+        startVideo(nextIndex);
+      };
+      videoEl.addEventListener("ended", onEnded);
+
+      let attempts = 0;
+      const tryPlay = () => {
+        if (cancelled || !videoEl.paused || attempts >= 10) return;
+        attempts++;
+        videoEl.muted = true;
+        const p = videoEl.play();
+        if (p && p.catch) p.catch(() => {});
+      };
+
+      videoEl.addEventListener("canplay", tryPlay, { once: true });
+      videoEl.addEventListener("loadeddata", tryPlay, { once: true });
+      tryPlay();
+      setTimeout(tryPlay, 200);
+      setTimeout(tryPlay, 1000);
+      setTimeout(tryPlay, 3000);
     };
 
-    videoEl.addEventListener("loadedmetadata", tryPlay);
-    videoEl.addEventListener("canplay", tryPlay);
-    videoEl.addEventListener("loadeddata", tryPlay);
-
-    const timers = [100, 500, 1000, 2000, 3000, 5000].map(ms => setTimeout(tryPlay, ms));
+    startVideo(videoIndexRef.current);
 
     const onInteraction = () => {
-      videoEl.muted = true;
-      const p = videoEl.play();
-      if (p && p.catch) p.catch(() => {});
+      const videoEl = container.querySelector("video");
+      if (videoEl && videoEl.paused) {
+        videoEl.muted = true;
+        const p = videoEl.play();
+        if (p && p.catch) p.catch(() => {});
+      }
     };
     document.addEventListener("touchstart", onInteraction, { once: true, passive: true });
     document.addEventListener("click", onInteraction, { once: true });
 
     return () => {
-      timers.forEach(clearTimeout);
-      videoEl.removeEventListener("loadedmetadata", tryPlay);
-      videoEl.removeEventListener("canplay", tryPlay);
-      videoEl.removeEventListener("loadeddata", tryPlay);
+      cancelled = true;
       document.removeEventListener("touchstart", onInteraction);
       document.removeEventListener("click", onInteraction);
     };
@@ -122,7 +139,7 @@ export default function Home() {
         <div
           ref={heroContainerRef}
           dangerouslySetInnerHTML={{
-            __html: `<video autoplay muted playsinline webkit-playsinline preload="auto" loop src="${heroVideoSrc}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;" poster="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&h=1080&fit=crop"></video>`
+            __html: `<video autoplay muted playsinline webkit-playsinline preload="auto" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;" poster="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&h=1080&fit=crop"></video>`
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-background" style={{ zIndex: 2 }} />
