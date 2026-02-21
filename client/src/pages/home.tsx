@@ -8,13 +8,13 @@ import { useRef, useEffect, useState } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 
-const HERO_VIDEOS = [
-  "/videos/hero-flyover-1.mp4",
-  "/videos/hero-flyover-2.mp4",
-  "/videos/hero-flyover-3.mp4",
-  "/videos/hero-flyover-4.mp4",
-  "/videos/hero-flyover-5.mp4",
-  "/videos/hero-flyover-6.mp4",
+const HERO_IMAGES = [
+  "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&h=1080&fit=crop",
+  "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&h=1080&fit=crop",
+  "https://images.unsplash.com/photo-1472396961693-142e6e269027?w=1920&h=1080&fit=crop",
+  "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1920&h=1080&fit=crop",
+  "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=1920&h=1080&fit=crop",
+  "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&h=1080&fit=crop",
 ];
 
 function AnimatedCounter({ target, label, suffix = "" }: { target: number; label: string; suffix?: string }) {
@@ -68,73 +68,39 @@ export default function Home() {
   const { data: stats } = useQuery({ queryKey: ['/api/stats'] });
   const appStats = stats as { trails: number; campgrounds: number; listings: number; activityLocations: number; totalFeatures: number } | undefined;
 
-  const heroContainerRef = useRef<HTMLDivElement>(null);
-  const startIndexRef = useRef(Math.floor(Math.random() * HERO_VIDEOS.length));
-  const initialSrc = HERO_VIDEOS[startIndexRef.current];
+  const [activeImage, setActiveImage] = useState(0);
 
   useEffect(() => {
-    const container = heroContainerRef.current;
-    if (!container) return;
-    const videoEl = container.querySelector("video") as HTMLVideoElement | null;
-    if (!videoEl) return;
-
-    let cancelled = false;
-    let currentIndex = startIndexRef.current;
-
-    videoEl.muted = true;
-    videoEl.defaultMuted = true;
-
-    const onEnded = () => {
-      if (cancelled) return;
-      currentIndex = (currentIndex + 1) % HERO_VIDEOS.length;
-      videoEl.src = HERO_VIDEOS[currentIndex];
-      videoEl.load();
-      videoEl.muted = true;
-      videoEl.play().catch(() => {});
-    };
-    videoEl.addEventListener("ended", onEnded);
-
-    let attempts = 0;
-    const tryPlay = () => {
-      if (cancelled || !videoEl.paused || attempts >= 15) return;
-      attempts++;
-      videoEl.muted = true;
-      videoEl.play().catch(() => {});
-    };
-
-    videoEl.addEventListener("canplay", tryPlay, { once: true });
-    videoEl.addEventListener("loadeddata", tryPlay, { once: true });
-    videoEl.addEventListener("loadedmetadata", tryPlay, { once: true });
-    tryPlay();
-    const timers = [100, 300, 600, 1000, 2000, 4000].map(ms => setTimeout(tryPlay, ms));
-
-    const onInteraction = () => {
-      if (videoEl.paused) {
-        videoEl.muted = true;
-        videoEl.play().catch(() => {});
-      }
-    };
-    document.addEventListener("touchstart", onInteraction, { once: true, passive: true });
-    document.addEventListener("click", onInteraction, { once: true });
-
-    return () => {
-      cancelled = true;
-      timers.forEach(clearTimeout);
-      videoEl.removeEventListener("ended", onEnded);
-      document.removeEventListener("touchstart", onInteraction);
-      document.removeEventListener("click", onInteraction);
-    };
+    const interval = setInterval(() => {
+      setActiveImage(prev => (prev + 1) % HERO_IMAGES.length);
+    }, 6000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
     <div className="min-h-screen">
       <section className="relative h-[75vh] md:h-[80vh] overflow-hidden" data-testid="hero-section">
-        <div
-          ref={heroContainerRef}
-          dangerouslySetInnerHTML={{
-            __html: `<video autoplay muted playsinline webkit-playsinline preload="auto" src="${initialSrc}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;" poster="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&h=1080&fit=crop" type="video/mp4"></video>`
-          }}
-        />
+        {HERO_IMAGES.map((src, i) => (
+          <div
+            key={i}
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `url(${src})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              opacity: activeImage === i ? 1 : 0,
+              transition: "opacity 1.5s ease-in-out",
+              zIndex: 1,
+              animation: activeImage === i ? "kenBurns 6s ease-in-out forwards" : "none",
+            }}
+          />
+        ))}
+        <style>{`
+          @keyframes kenBurns {
+            0% { transform: scale(1) translateY(0); }
+            100% { transform: scale(1.08) translateY(-1%); }
+          }
+        `}</style>
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-background" style={{ zIndex: 2 }} />
 
         <div className="relative flex flex-col items-center justify-center h-full px-6 text-center" style={{ zIndex: 3 }}>
