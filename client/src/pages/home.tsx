@@ -78,6 +78,32 @@ export default function Home() {
   const videoBRef = useRef<HTMLVideoElement>(null);
   const nextIndexRef = useRef(2);
 
+  useEffect(() => {
+    const activeRef = activeSlot === 0 ? videoARef : videoBRef;
+    if (activeRef.current) {
+      activeRef.current.muted = true;
+      activeRef.current.play().catch(() => {});
+    }
+  }, [activeSlot]);
+
+  useEffect(() => {
+    const tryPlay = () => {
+      const ref = activeSlot === 0 ? videoARef : videoBRef;
+      if (ref.current && ref.current.paused) {
+        ref.current.muted = true;
+        ref.current.play().catch(() => {});
+      }
+    };
+    document.addEventListener("click", tryPlay, { once: true });
+    document.addEventListener("scroll", tryPlay, { once: true });
+    document.addEventListener("touchstart", tryPlay, { once: true });
+    return () => {
+      document.removeEventListener("click", tryPlay);
+      document.removeEventListener("scroll", tryPlay);
+      document.removeEventListener("touchstart", tryPlay);
+    };
+  }, [activeSlot]);
+
   const handleVideoEnded = useCallback(() => {
     const nextSlot = activeSlot === 0 ? 1 : 0;
     const incomingRef = nextSlot === 0 ? videoARef : videoBRef;
@@ -107,9 +133,12 @@ export default function Home() {
           ref={videoARef}
           className="absolute inset-0 w-full h-full object-cover"
           src={videoSources[0]}
-          autoPlay={activeSlot === 0}
+          autoPlay
           muted
+          loop={false}
           playsInline
+          preload="auto"
+          poster="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&h=1080&fit=crop"
           onEnded={activeSlot === 0 ? handleVideoEnded : undefined}
           style={{ opacity: opacities[0], transition: "opacity 1.5s ease-in-out", zIndex: activeSlot === 0 ? 2 : 1 }}
         />
@@ -117,8 +146,12 @@ export default function Home() {
           ref={videoBRef}
           className="absolute inset-0 w-full h-full object-cover"
           src={videoSources[1]}
+          autoPlay
           muted
+          loop={false}
           playsInline
+          preload="auto"
+          poster="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&h=1080&fit=crop"
           onEnded={activeSlot === 1 ? handleVideoEnded : undefined}
           style={{ opacity: opacities[1], transition: "opacity 1.5s ease-in-out", zIndex: activeSlot === 1 ? 2 : 1 }}
         />
