@@ -1285,6 +1285,39 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/search/interpret", async (req, res) => {
+    try {
+      const { query } = req.body;
+      if (!query || typeof query !== "string" || query.trim().length < 3) {
+        return res.status(400).json({ error: "Please enter at least a few words" });
+      }
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: `You convert natural language shopping queries into concise product search terms that work well on retail websites. Return ONLY the search terms, nothing else. Keep it short (1-5 words). Examples:
+- "something to keep my coffee hot on the trail" → "insulated travel mug"
+- "best knife for cleaning fish" → "fillet knife"
+- "warm jacket for winter camping" → "insulated camping jacket"
+- "I need new boots for hiking in the rain" → "waterproof hiking boots"
+- "ammo for my AR-15" → "5.56 NATO ammo"
+- "a good tent for 4 people" → "4 person tent"
+If the input is already a product name or clear search term, return it as-is.`
+          },
+          { role: "user", content: query.trim() }
+        ],
+        max_tokens: 30,
+        temperature: 0.3,
+      });
+      const searchTerm = response.choices[0]?.message?.content?.trim() || query.trim();
+      res.json({ original: query.trim(), searchTerm });
+    } catch (error) {
+      console.error("Search interpret error:", error);
+      res.json({ original: req.body.query?.trim(), searchTerm: req.body.query?.trim() });
+    }
+  });
+
   app.post("/api/identify", requireAuth, async (req, res) => {
     try {
       const { imageBase64 } = req.body;

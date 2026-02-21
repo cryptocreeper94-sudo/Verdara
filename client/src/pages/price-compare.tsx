@@ -1,10 +1,10 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   DollarSign, Search, X, Tent, Mountain, Fish, Snowflake, Bike, Waves,
   Target, ArrowRight, Bell, BarChart3, ExternalLink, Mail, Shield,
   Zap, TreePine, Sword, Crosshair, ChevronDown, ChevronUp, SlidersHorizontal,
-  Package, Shirt, ShieldAlert, Scaling
+  Package, Shirt, ShieldAlert, Scaling, Sparkles, Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -176,17 +176,72 @@ export default function PriceCompare() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [productQuery, setProductQuery] = useState("");
+  const [interpretedTerm, setInterpretedTerm] = useState("");
+  const [isInterpreting, setIsInterpreting] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [alertEmail, setAlertEmail] = useState("");
   const [alertProduct, setAlertProduct] = useState("");
   const [alertSubmitted, setAlertSubmitted] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(() => new Set(["Camping", "Knives & Blades", "Firearms & Ammo"]));
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const requestIdRef = useRef(0);
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      if (abortRef.current) abortRef.current.abort();
+    };
+  }, []);
 
   const query = searchQuery.toLowerCase();
 
+  const interpretQuery = useCallback(async (raw: string, reqId: number) => {
+    if (!raw.trim() || raw.trim().length < 3) {
+      setInterpretedTerm("");
+      return;
+    }
+    if (abortRef.current) abortRef.current.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    setIsInterpreting(true);
+    try {
+      const res = await fetch("/api/search/interpret", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: raw }),
+        signal: controller.signal,
+      });
+      const data = await res.json();
+      if (reqId === requestIdRef.current && data.searchTerm) {
+        setInterpretedTerm(data.searchTerm);
+      }
+    } catch (e: any) {
+      if (e?.name === "AbortError") return;
+      if (reqId === requestIdRef.current) setInterpretedTerm(raw.trim());
+    } finally {
+      if (reqId === requestIdRef.current) setIsInterpreting(false);
+    }
+  }, []);
+
+  const handleProductInput = useCallback((value: string) => {
+    setProductQuery(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!value.trim()) {
+      setInterpretedTerm("");
+      setIsInterpreting(false);
+      if (abortRef.current) abortRef.current.abort();
+      return;
+    }
+    const id = ++requestIdRef.current;
+    debounceRef.current = setTimeout(() => interpretQuery(value, id), 600);
+  }, [interpretQuery]);
+
+  const activeSearchTerm = interpretedTerm || productQuery.trim();
+
   const getRetailerLink = (retailer: Retailer) => {
-    if (productQuery.trim()) {
-      const encoded = encodeURIComponent(productQuery.trim());
+    if (activeSearchTerm) {
+      const encoded = encodeURIComponent(activeSearchTerm);
       if (retailer.searchUrl.includes("{q}")) {
         return retailer.searchUrl.replace("{q}", encoded);
       }
@@ -289,30 +344,56 @@ export default function PriceCompare() {
               <Package className="w-4 h-4 text-emerald-400 flex-shrink-0" />
               <input
                 type="text"
-                placeholder="hiking boots, Yeti cooler, 5.56 ammo, fillet knife..."
+                placeholder="something to keep my coffee hot on the trail, best knife for cleaning fish..."
                 value={productQuery}
-                onChange={(e) => setProductQuery(e.target.value)}
+                onChange={(e) => handleProductInput(e.target.value)}
                 className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
                 data-testid="input-product-search"
               />
-              {productQuery && (
-                <button onClick={() => setProductQuery("")} data-testid="button-clear-product-search">
+              {isInterpreting && (
+                <Loader2 className="w-4 h-4 text-emerald-400 animate-spin flex-shrink-0" />
+              )}
+              {productQuery && !isInterpreting && (
+                <button onClick={() => { setProductQuery(""); setInterpretedTerm(""); }} data-testid="button-clear-product-search">
                   <X className="w-4 h-4 text-muted-foreground" />
                 </button>
               )}
             </div>
           </div>
-          {productQuery.trim() && (
-            <motion.p
-              initial={{ opacity: 0, y: -5 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-xs text-emerald-400 mt-2 flex items-center gap-1.5"
-              data-testid="text-product-search-hint"
-            >
-              <ArrowRight className="w-3 h-3" />
-              Click any store below to find "{productQuery.trim()}" on their site
-            </motion.p>
-          )}
+          <AnimatePresence mode="wait">
+            {isInterpreting && productQuery.trim() && (
+              <motion.p
+                key="interpreting"
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="text-xs text-muted-foreground mt-2 flex items-center gap-1.5"
+              >
+                <Sparkles className="w-3 h-3 text-emerald-400" />
+                Understanding what you need...
+              </motion.p>
+            )}
+            {!isInterpreting && activeSearchTerm && productQuery.trim() && (
+              <motion.div
+                key="result"
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="mt-2 space-y-1"
+              >
+                {interpretedTerm && interpretedTerm.toLowerCase() !== productQuery.trim().toLowerCase() && (
+                  <p className="text-xs text-emerald-400 flex items-center gap-1.5" data-testid="text-interpreted-term">
+                    <Sparkles className="w-3 h-3" />
+                    Searching for: <span className="font-semibold">"{interpretedTerm}"</span>
+                  </p>
+                )}
+                <p className="text-xs text-muted-foreground flex items-center gap-1.5" data-testid="text-product-search-hint">
+                  <ArrowRight className="w-3 h-3 text-emerald-400" />
+                  Click any store below to find it on their site
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 mb-6">
@@ -464,7 +545,7 @@ export default function PriceCompare() {
                             target="_blank"
                             rel="noopener noreferrer"
                             className={`block rounded-xl border p-4 hover-elevate cursor-pointer backdrop-blur-xl ${
-                              productQuery.trim()
+                              activeSearchTerm
                                 ? "border-emerald-500/20 bg-emerald-500/5"
                                 : "border-white/10 bg-white/5"
                             }`}
@@ -497,9 +578,9 @@ export default function PriceCompare() {
                             <p className="text-[11px] text-muted-foreground mb-1" data-testid={`text-affiliate-info-${retailer.name.toLowerCase().replace(/['\s]+/g, "-")}`}>
                               {retailer.network} · {retailer.commission} · {retailer.cookie} cookie
                             </p>
-                            <span className={`text-xs font-medium flex items-center gap-1 ${productQuery.trim() ? "text-emerald-300" : "text-emerald-400"}`} data-testid={`link-visit-${retailer.name.toLowerCase().replace(/['\s]+/g, "-")}`}>
-                              {productQuery.trim() ? (
-                                <>Find "{productQuery.trim()}" here <ArrowRight className="w-3 h-3" /></>
+                            <span className={`text-xs font-medium flex items-center gap-1 ${activeSearchTerm ? "text-emerald-300" : "text-emerald-400"}`} data-testid={`link-visit-${retailer.name.toLowerCase().replace(/['\s]+/g, "-")}`}>
+                              {activeSearchTerm ? (
+                                <>Find "{activeSearchTerm}" here <ArrowRight className="w-3 h-3" /></>
                               ) : (
                                 <>Shop here <ExternalLink className="w-3 h-3" /></>
                               )}
