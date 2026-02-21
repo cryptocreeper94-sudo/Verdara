@@ -10,13 +10,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-const HERO_IMAGES = [
-  "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&h=1080&fit=crop",
-  "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&h=1080&fit=crop",
-  "https://images.unsplash.com/photo-1472396961693-142e6e269027?w=1920&h=1080&fit=crop",
-  "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1920&h=1080&fit=crop",
-  "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=1920&h=1080&fit=crop",
-  "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&h=1080&fit=crop",
+import heroVideo1 from "../assets/videos/hero-flyover-1.mp4";
+import heroVideo2 from "../assets/videos/hero-flyover-2.mp4";
+import heroVideo3 from "../assets/videos/hero-flyover-3.mp4";
+import heroVideo4 from "../assets/videos/hero-flyover-4.mp4";
+import heroVideo5 from "../assets/videos/hero-flyover-5.mp4";
+import heroVideo6 from "../assets/videos/hero-flyover-6.mp4";
+
+const HERO_VIDEOS = [
+  { src: heroVideo1, label: "Mountain Vista" },
+  { src: heroVideo2, label: "Forest Canopy" },
+  { src: heroVideo3, label: "River Valley" },
+  { src: heroVideo4, label: "Sunset Ridge" },
+  { src: heroVideo5, label: "Alpine Meadow" },
+  { src: heroVideo6, label: "Wilderness Trail" },
 ];
 
 const stagger = {
@@ -117,7 +124,13 @@ export default function Landing({ onGetStarted, onBrowse }: LandingProps) {
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
-  const [activeHero, setActiveHero] = useState(0);
+
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+  const [nextVideoIndex, setNextVideoIndex] = useState(1);
+  const [isVideoTransitioning, setIsVideoTransitioning] = useState(false);
+  const [videoMuted, setVideoMuted] = useState(true);
+  const currentVideoRef = useRef<HTMLVideoElement>(null);
+  const nextVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     document.title = "Verdara - AI-Powered Outdoor Recreation | DarkWave Studios";
@@ -136,20 +149,37 @@ export default function Landing({ onGetStarted, onBrowse }: LandingProps) {
   }, []);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveHero(prev => (prev + 1) % HERO_IMAGES.length);
-    }, 6000);
-    return () => clearInterval(interval);
-  }, []);
+    const handleVideoEnd = () => {
+      setIsVideoTransitioning(true);
+      setTimeout(() => {
+        setCurrentVideoIndex(nextVideoIndex);
+        setNextVideoIndex((nextVideoIndex + 1) % HERO_VIDEOS.length);
+        setIsVideoTransitioning(false);
+      }, 400);
+    };
+    const video = currentVideoRef.current;
+    if (video) {
+      video.addEventListener('ended', handleVideoEnd);
+      return () => video.removeEventListener('ended', handleVideoEnd);
+    }
+  }, [nextVideoIndex, videoMuted]);
+
+  useEffect(() => {
+    if (nextVideoRef.current) {
+      nextVideoRef.current.load();
+    }
+  }, [nextVideoIndex]);
+
+  useEffect(() => {
+    if (currentVideoRef.current && !isVideoTransitioning) {
+      const video = currentVideoRef.current;
+      video.volume = 0;
+      video.play().catch(() => {});
+    }
+  }, [currentVideoIndex, isVideoTransitioning, videoMuted]);
 
   return (
     <div className="min-h-screen bg-slate-950 dark" data-testid="page-landing">
-      <style>{`
-        @keyframes heroKenBurns {
-          0% { transform: scale(1); }
-          100% { transform: scale(1.1); }
-        }
-      `}</style>
       <nav className="fixed top-0 left-0 right-0 z-50 px-5 md:px-10 py-4 bg-black/20 backdrop-blur-xl border-b border-white/5">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
@@ -179,21 +209,54 @@ export default function Landing({ onGetStarted, onBrowse }: LandingProps) {
       </nav>
 
       <section ref={heroRef} className="relative h-screen overflow-hidden" data-testid="landing-hero">
-        {HERO_IMAGES.map((src, i) => (
-          <div
-            key={i}
-            className="absolute inset-0"
-            style={{
-              backgroundImage: `url(${src})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              opacity: activeHero === i ? 1 : 0,
-              transition: "opacity 1.5s ease-in-out",
-              animation: activeHero === i ? "heroKenBurns 6s ease-in-out forwards" : "none",
-            }}
-          />
-        ))}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/80" />
+        <div className="absolute inset-0 bg-black">
+          <video
+            ref={currentVideoRef}
+            key={`current-${currentVideoIndex}`}
+            autoPlay
+            muted={videoMuted}
+            playsInline
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${isVideoTransitioning ? 'opacity-0' : 'opacity-100'}`}
+          >
+            <source src={HERO_VIDEOS[currentVideoIndex].src} type="video/mp4" />
+          </video>
+
+          <video
+            ref={nextVideoRef}
+            key={`next-${nextVideoIndex}`}
+            muted={videoMuted}
+            playsInline
+            preload="auto"
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${isVideoTransitioning ? 'opacity-100' : 'opacity-0'}`}
+          >
+            <source src={HERO_VIDEOS[nextVideoIndex].src} type="video/mp4" />
+          </video>
+
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black" />
+        </div>
+
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex gap-2">
+          {HERO_VIDEOS.map((v, idx) => (
+            <button
+              key={idx}
+              onClick={() => {
+                if (idx !== currentVideoIndex) {
+                  setNextVideoIndex(idx);
+                  setIsVideoTransitioning(true);
+                  setTimeout(() => {
+                    setCurrentVideoIndex(idx);
+                    setNextVideoIndex((idx + 1) % HERO_VIDEOS.length);
+                    setIsVideoTransitioning(false);
+                  }, 700);
+                }
+              }}
+              className={currentVideoIndex === idx
+                ? 'w-8 h-2 bg-white rounded-full transition-all duration-300'
+                : 'w-2 h-2 bg-white/40 rounded-full hover:bg-white/60 transition-all duration-300'}
+              data-testid={`dot-hero-${idx}`}
+            />
+          ))}
+        </div>
 
         <motion.div
           className="relative z-10 flex flex-col items-center justify-center h-full px-6 text-center"

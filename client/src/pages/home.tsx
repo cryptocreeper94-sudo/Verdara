@@ -69,32 +69,10 @@ export default function Home() {
   const appStats = stats as { trails: number; campgrounds: number; listings: number; activityLocations: number; totalFeatures: number } | undefined;
 
   const [activeImage, setActiveImage] = useState(0);
-  const [imageStatus, setImageStatus] = useState<string[]>([]);
-  const [showDebug, setShowDebug] = useState(true);
-  const [tick, setTick] = useState(0);
-
-  useEffect(() => {
-    const statuses: string[] = [];
-    HERO_IMAGES.forEach((src, i) => {
-      const img = new Image();
-      img.onload = () => {
-        statuses[i] = "loaded";
-        setImageStatus([...statuses]);
-      };
-      img.onerror = () => {
-        statuses[i] = "FAILED";
-        setImageStatus([...statuses]);
-      };
-      statuses[i] = "loading...";
-      img.src = src;
-    });
-    setImageStatus([...statuses]);
-  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveImage(prev => (prev + 1) % HERO_IMAGES.length);
-      setTick(t => t + 1);
     }, 6000);
     return () => clearInterval(interval);
   }, []);
@@ -123,29 +101,6 @@ export default function Home() {
             100% { transform: scale(1.08) translateY(-1%); }
           }
         `}</style>
-        {showDebug && (
-          <div
-            onClick={() => setShowDebug(false)}
-            style={{
-              position: "absolute", top: 8, left: 8, zIndex: 99,
-              background: "rgba(0,0,0,0.85)", color: "#0f0", padding: "8px 12px",
-              borderRadius: 8, fontSize: 11, fontFamily: "monospace", maxWidth: "90vw",
-              lineHeight: 1.4,
-            }}
-          >
-            <div>HERO DEBUG (tap to close)</div>
-            <div>Active: {activeImage} / Tick: {tick}</div>
-            <div>Images: {HERO_IMAGES.length}</div>
-            {imageStatus.map((s, i) => (
-              <div key={i} style={{ color: s === "loaded" ? "#0f0" : s === "FAILED" ? "#f00" : "#ff0" }}>
-                [{i}] {s} {activeImage === i ? "◄ SHOWING" : ""}
-              </div>
-            ))}
-            <div style={{ marginTop: 4, color: "#aaa" }}>
-              Build: {new Date().toISOString().slice(0, 16)}
-            </div>
-          </div>
-        )}
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-background" style={{ zIndex: 2 }} />
 
         <div className="relative flex flex-col items-center justify-center h-full px-6 text-center" style={{ zIndex: 3 }}>
