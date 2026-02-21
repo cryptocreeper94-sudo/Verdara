@@ -70,79 +70,64 @@ export default function Home() {
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const [videoIndex, setVideoIndex] = useState(() => Math.floor(Math.random() * HERO_VIDEOS.length));
-  const [isPlaying, setIsPlaying] = useState(false);
+
+  const videoRefCallback = useCallback((el: HTMLVideoElement | null) => {
+    if (el) {
+      (videoRef as any).current = el;
+      el.setAttribute("muted", "");
+      el.setAttribute("playsinline", "");
+      el.setAttribute("autoplay", "");
+      el.setAttribute("webkit-playsinline", "");
+      el.muted = true;
+      el.defaultMuted = true;
+    }
+  }, []);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
+    video.muted = true;
+    video.defaultMuted = true;
+    video.setAttribute("muted", "");
     video.src = HERO_VIDEOS[videoIndex];
     video.load();
-    video.muted = true;
 
+    let cancelled = false;
     const attemptPlay = () => {
-      if (!video.paused) {
-        setIsPlaying(true);
-        return;
-      }
-      video.play().then(() => {
-        setIsPlaying(true);
-      }).catch(() => {
-        setIsPlaying(false);
-      });
+      if (cancelled || !video.paused) return;
+      video.muted = true;
+      video.play().catch(() => {});
     };
 
-    const onCanPlay = () => attemptPlay();
-    video.addEventListener("canplay", onCanPlay);
+    video.addEventListener("canplay", attemptPlay);
+    video.addEventListener("loadeddata", attemptPlay);
     attemptPlay();
-
-    const retryTimer = setTimeout(attemptPlay, 500);
-    const retryTimer2 = setTimeout(attemptPlay, 1500);
+    const t1 = setTimeout(attemptPlay, 300);
+    const t2 = setTimeout(attemptPlay, 800);
+    const t3 = setTimeout(attemptPlay, 2000);
 
     return () => {
-      video.removeEventListener("canplay", onCanPlay);
-      clearTimeout(retryTimer);
-      clearTimeout(retryTimer2);
+      cancelled = true;
+      video.removeEventListener("canplay", attemptPlay);
+      video.removeEventListener("loadeddata", attemptPlay);
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
     };
   }, [videoIndex]);
-
-  useEffect(() => {
-    if (isPlaying) return;
-    const tryPlay = () => {
-      const video = videoRef.current;
-      if (video && video.paused) {
-        video.muted = true;
-        video.play().then(() => setIsPlaying(true)).catch(() => {});
-      }
-    };
-    document.addEventListener("click", tryPlay, { once: true });
-    document.addEventListener("touchstart", tryPlay, { once: true });
-    document.addEventListener("scroll", tryPlay, { once: true });
-    return () => {
-      document.removeEventListener("click", tryPlay);
-      document.removeEventListener("touchstart", tryPlay);
-      document.removeEventListener("scroll", tryPlay);
-    };
-  }, [isPlaying]);
 
   const handleVideoEnded = useCallback(() => {
     setVideoIndex(prev => (prev + 1) % HERO_VIDEOS.length);
   }, []);
 
-  const handleTapToPlay = useCallback(() => {
-    const video = videoRef.current;
-    if (video && video.paused) {
-      video.muted = true;
-      video.play().then(() => setIsPlaying(true)).catch(() => {});
-    }
-  }, []);
-
   return (
     <div className="min-h-screen">
-      <section className="relative h-[75vh] md:h-[80vh] overflow-hidden" data-testid="hero-section" onClick={handleTapToPlay}>
+      <section className="relative h-[75vh] md:h-[80vh] overflow-hidden" data-testid="hero-section">
         <video
-          ref={videoRef}
+          ref={videoRefCallback}
           className="absolute inset-0 w-full h-full object-cover"
+          autoPlay
           muted
           playsInline
           preload="auto"
