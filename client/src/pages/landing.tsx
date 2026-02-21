@@ -10,6 +10,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
+const HERO_IMAGES = [
+  "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&h=1080&fit=crop",
+  "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&h=1080&fit=crop",
+  "https://images.unsplash.com/photo-1472396961693-142e6e269027?w=1920&h=1080&fit=crop",
+  "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1920&h=1080&fit=crop",
+  "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=1920&h=1080&fit=crop",
+  "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&h=1080&fit=crop",
+];
+
 const stagger = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
@@ -107,8 +116,8 @@ interface LandingProps {
 export default function Landing({ onGetStarted, onBrowse }: LandingProps) {
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
-  const heroY = useTransform(scrollYProgress, [0, 1], [0, 200]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+  const [activeHero, setActiveHero] = useState(0);
 
   useEffect(() => {
     document.title = "Verdara - AI-Powered Outdoor Recreation | DarkWave Studios";
@@ -126,8 +135,21 @@ export default function Landing({ onGetStarted, onBrowse }: LandingProps) {
     };
   }, []);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveHero(prev => (prev + 1) % HERO_IMAGES.length);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="min-h-screen bg-slate-950 dark" data-testid="page-landing">
+      <style>{`
+        @keyframes heroKenBurns {
+          0% { transform: scale(1); }
+          100% { transform: scale(1.1); }
+        }
+      `}</style>
       <nav className="fixed top-0 left-0 right-0 z-50 px-5 md:px-10 py-4 bg-black/20 backdrop-blur-xl border-b border-white/5">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
@@ -157,13 +179,20 @@ export default function Landing({ onGetStarted, onBrowse }: LandingProps) {
       </nav>
 
       <section ref={heroRef} className="relative h-screen overflow-hidden" data-testid="landing-hero">
-        <motion.div className="absolute inset-0" style={{ y: heroY }}>
-          <img
-            src="/images/landing-hero.jpg"
-            alt="Wilderness adventure"
-            className="w-full h-[120%] object-cover"
+        {HERO_IMAGES.map((src, i) => (
+          <div
+            key={i}
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `url(${src})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              opacity: activeHero === i ? 1 : 0,
+              transition: "opacity 1.5s ease-in-out",
+              animation: activeHero === i ? "heroKenBurns 6s ease-in-out forwards" : "none",
+            }}
           />
-        </motion.div>
+        ))}
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/80" />
 
         <motion.div
