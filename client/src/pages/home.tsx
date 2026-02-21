@@ -68,78 +68,63 @@ export default function Home() {
   const { data: stats } = useQuery({ queryKey: ['/api/stats'] });
   const appStats = stats as { trails: number; campgrounds: number; listings: number; activityLocations: number; totalFeatures: number } | undefined;
 
-  const containerRef = useRef<HTMLDivElement>(null);
-  const videoIndexRef = useRef(Math.floor(Math.random() * HERO_VIDEOS.length));
+  const [heroVideoSrc] = useState(() => HERO_VIDEOS[Math.floor(Math.random() * HERO_VIDEOS.length)]);
+  const heroContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const container = containerRef.current;
+    const container = heroContainerRef.current;
     if (!container) return;
 
-    let cancelled = false;
-    let currentVideo: HTMLVideoElement | null = null;
+    const videoEl = container.querySelector("video");
+    if (!videoEl) return;
 
-    const createAndPlayVideo = (index: number) => {
-      if (cancelled) return;
+    videoEl.muted = true;
+    videoEl.defaultMuted = true;
 
-      const video = document.createElement("video");
-      video.muted = true;
-      video.defaultMuted = true;
-      video.playsInline = true;
-      video.autoplay = true;
-      video.preload = "auto";
-      video.setAttribute("muted", "");
-      video.setAttribute("playsinline", "");
-      video.setAttribute("autoplay", "");
-      video.setAttribute("webkit-playsinline", "");
-      video.style.cssText = "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;";
-      video.poster = "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&h=1080&fit=crop";
-      video.src = HERO_VIDEOS[index];
+    let attempts = 0;
+    const maxAttempts = 10;
 
-      video.addEventListener("ended", () => {
-        if (cancelled) return;
-        const nextIndex = (index + 1) % HERO_VIDEOS.length;
-        videoIndexRef.current = nextIndex;
-        if (currentVideo && container.contains(currentVideo)) {
-          container.removeChild(currentVideo);
-        }
-        createAndPlayVideo(nextIndex);
-      });
-
-      if (currentVideo && container.contains(currentVideo)) {
-        container.removeChild(currentVideo);
-      }
-      currentVideo = video;
-      container.insertBefore(video, container.firstChild);
-
-      const tryPlay = () => {
-        if (cancelled || !video.paused) return;
-        video.muted = true;
-        video.play().catch(() => {});
-      };
-
-      video.addEventListener("canplay", tryPlay, { once: true });
-      video.addEventListener("loadeddata", tryPlay, { once: true });
-      tryPlay();
-      setTimeout(tryPlay, 200);
-      setTimeout(tryPlay, 1000);
-      setTimeout(tryPlay, 3000);
+    const tryPlay = () => {
+      if (!videoEl.paused || attempts >= maxAttempts) return;
+      attempts++;
+      videoEl.muted = true;
+      const p = videoEl.play();
+      if (p && p.catch) p.catch(() => {});
     };
 
-    createAndPlayVideo(videoIndexRef.current);
+    videoEl.addEventListener("loadedmetadata", tryPlay);
+    videoEl.addEventListener("canplay", tryPlay);
+    videoEl.addEventListener("loadeddata", tryPlay);
+
+    const timers = [100, 500, 1000, 2000, 3000, 5000].map(ms => setTimeout(tryPlay, ms));
+
+    const onInteraction = () => {
+      videoEl.muted = true;
+      const p = videoEl.play();
+      if (p && p.catch) p.catch(() => {});
+    };
+    document.addEventListener("touchstart", onInteraction, { once: true, passive: true });
+    document.addEventListener("click", onInteraction, { once: true });
 
     return () => {
-      cancelled = true;
-      if (currentVideo && container.contains(currentVideo)) {
-        currentVideo.pause();
-        currentVideo.src = "";
-        container.removeChild(currentVideo);
-      }
+      timers.forEach(clearTimeout);
+      videoEl.removeEventListener("loadedmetadata", tryPlay);
+      videoEl.removeEventListener("canplay", tryPlay);
+      videoEl.removeEventListener("loadeddata", tryPlay);
+      document.removeEventListener("touchstart", onInteraction);
+      document.removeEventListener("click", onInteraction);
     };
   }, []);
 
   return (
     <div className="min-h-screen">
-      <section ref={containerRef} className="relative h-[75vh] md:h-[80vh] overflow-hidden" data-testid="hero-section">
+      <section className="relative h-[75vh] md:h-[80vh] overflow-hidden" data-testid="hero-section">
+        <div
+          ref={heroContainerRef}
+          dangerouslySetInnerHTML={{
+            __html: `<video autoplay muted playsinline webkit-playsinline preload="auto" loop src="${heroVideoSrc}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;" poster="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&h=1080&fit=crop"></video>`
+          }}
+        />
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-background" style={{ zIndex: 2 }} />
 
         <div className="relative flex flex-col items-center justify-center h-full px-6 text-center" style={{ zIndex: 3 }}>
