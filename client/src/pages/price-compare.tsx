@@ -408,9 +408,12 @@ export default function PriceCompare() {
                     >
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                         {section.retailers.map((retailer) => (
-                          <div
+                          <a
                             key={`${section.label}-${retailer.name}`}
-                            className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl p-4 hover-elevate"
+                            href={retailer.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl p-4 hover-elevate cursor-pointer"
                             data-testid={`card-retailer-${retailer.name.toLowerCase().replace(/['\s]+/g, "-")}`}
                           >
                             <div className="flex items-center gap-3 mb-3">
@@ -423,6 +426,7 @@ export default function PriceCompare() {
                                 </h3>
                                 <span className="text-[10px] text-emerald-400">Active</span>
                               </div>
+                              <ExternalLink className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
                             </div>
                             <div className="flex flex-wrap gap-1 mb-3">
                               {retailer.categories.slice(0, 3).map((cat) => (
@@ -436,16 +440,13 @@ export default function PriceCompare() {
                                 </Badge>
                               )}
                             </div>
-                            <p className="text-[11px] text-muted-foreground mb-3" data-testid={`text-affiliate-info-${retailer.name.toLowerCase().replace(/['\s]+/g, "-")}`}>
+                            <p className="text-[11px] text-muted-foreground mb-1" data-testid={`text-affiliate-info-${retailer.name.toLowerCase().replace(/['\s]+/g, "-")}`}>
                               {retailer.network} · {retailer.commission} · {retailer.cookie} cookie
                             </p>
-                            <a href={retailer.url} target="_blank" rel="noopener noreferrer" data-testid={`link-visit-${retailer.name.toLowerCase().replace(/['\s]+/g, "-")}`}>
-                              <Button variant="default" size="sm" className="w-full gap-1.5 text-xs" data-testid={`button-visit-${retailer.name.toLowerCase().replace(/['\s]+/g, "-")}`}>
-                                Visit Store
-                                <ExternalLink className="w-3 h-3" />
-                              </Button>
-                            </a>
-                          </div>
+                            <span className="text-xs font-medium text-emerald-400 flex items-center gap-1" data-testid={`link-visit-${retailer.name.toLowerCase().replace(/['\s]+/g, "-")}`}>
+                              Visit Store <ExternalLink className="w-3 h-3" />
+                            </span>
+                          </a>
                         ))}
                       </div>
                     </motion.div>
