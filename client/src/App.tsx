@@ -59,6 +59,8 @@ import ArboraEquipment from "@/pages/arbora-equipment";
 import NotFound from "@/pages/not-found";
 import { Loader2, TreePine } from "lucide-react";
 import { useState } from "react";
+import { AnimatePresence } from "framer-motion";
+import { OnboardingModal, useOnboarding } from "@/components/onboarding-modal";
 
 
 function AppContent() {
@@ -66,6 +68,7 @@ function AppContent() {
   const [location, setLocation] = useLocation();
   const [showAuth, setShowAuth] = useState(false);
   const [browsing, setBrowsing] = useState(false);
+  const { showOnboarding, dismissOnboarding } = useOnboarding();
 
   if (isLoading) {
     return (
@@ -89,7 +92,12 @@ function AppContent() {
   }
 
   if (location === "/signal-chat") {
-    return <SignalChat />;
+    return (
+      <>
+        <AnimatePresence>{showOnboarding && <OnboardingModal onDismiss={dismissOnboarding} />}</AnimatePresence>
+        <SignalChat />
+      </>
+    );
   }
 
   if (location.startsWith("/arbora")) {
@@ -114,6 +122,7 @@ function AppContent() {
 
   return (
     <AppLayout onShowAuth={() => setShowAuth(true)}>
+      <AnimatePresence>{showOnboarding && <OnboardingModal onDismiss={dismissOnboarding} />}</AnimatePresence>
       <Switch>
         <Route path="/" component={Explore} />
         <Route path="/trails" component={Trails} />
