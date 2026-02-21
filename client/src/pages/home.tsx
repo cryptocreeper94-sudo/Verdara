@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { WeatherWidget } from "@/components/weather-widget";
 import { activityCategories } from "@/lib/mock-data";
-import { useRef, useEffect, useState, useCallback } from "react";
+import { useRef, useEffect, useState } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 
@@ -68,73 +68,78 @@ export default function Home() {
   const { data: stats } = useQuery({ queryKey: ['/api/stats'] });
   const appStats = stats as { trails: number; campgrounds: number; listings: number; activityLocations: number; totalFeatures: number } | undefined;
 
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [videoIndex, setVideoIndex] = useState(() => Math.floor(Math.random() * HERO_VIDEOS.length));
-
-  const videoRefCallback = useCallback((el: HTMLVideoElement | null) => {
-    if (el) {
-      (videoRef as any).current = el;
-      el.setAttribute("muted", "");
-      el.setAttribute("playsinline", "");
-      el.setAttribute("autoplay", "");
-      el.setAttribute("webkit-playsinline", "");
-      el.muted = true;
-      el.defaultMuted = true;
-    }
-  }, []);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const videoIndexRef = useRef(Math.floor(Math.random() * HERO_VIDEOS.length));
 
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    video.muted = true;
-    video.defaultMuted = true;
-    video.setAttribute("muted", "");
-    video.src = HERO_VIDEOS[videoIndex];
-    video.load();
+    const container = containerRef.current;
+    if (!container) return;
 
     let cancelled = false;
-    const attemptPlay = () => {
-      if (cancelled || !video.paused) return;
+    let currentVideo: HTMLVideoElement | null = null;
+
+    const createAndPlayVideo = (index: number) => {
+      if (cancelled) return;
+
+      const video = document.createElement("video");
       video.muted = true;
-      video.play().catch(() => {});
+      video.defaultMuted = true;
+      video.playsInline = true;
+      video.autoplay = true;
+      video.preload = "auto";
+      video.setAttribute("muted", "");
+      video.setAttribute("playsinline", "");
+      video.setAttribute("autoplay", "");
+      video.setAttribute("webkit-playsinline", "");
+      video.style.cssText = "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;";
+      video.poster = "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&h=1080&fit=crop";
+      video.src = HERO_VIDEOS[index];
+
+      video.addEventListener("ended", () => {
+        if (cancelled) return;
+        const nextIndex = (index + 1) % HERO_VIDEOS.length;
+        videoIndexRef.current = nextIndex;
+        if (currentVideo && container.contains(currentVideo)) {
+          container.removeChild(currentVideo);
+        }
+        createAndPlayVideo(nextIndex);
+      });
+
+      if (currentVideo && container.contains(currentVideo)) {
+        container.removeChild(currentVideo);
+      }
+      currentVideo = video;
+      container.insertBefore(video, container.firstChild);
+
+      const tryPlay = () => {
+        if (cancelled || !video.paused) return;
+        video.muted = true;
+        video.play().catch(() => {});
+      };
+
+      video.addEventListener("canplay", tryPlay, { once: true });
+      video.addEventListener("loadeddata", tryPlay, { once: true });
+      tryPlay();
+      setTimeout(tryPlay, 200);
+      setTimeout(tryPlay, 1000);
+      setTimeout(tryPlay, 3000);
     };
 
-    video.addEventListener("canplay", attemptPlay);
-    video.addEventListener("loadeddata", attemptPlay);
-    attemptPlay();
-    const t1 = setTimeout(attemptPlay, 300);
-    const t2 = setTimeout(attemptPlay, 800);
-    const t3 = setTimeout(attemptPlay, 2000);
+    createAndPlayVideo(videoIndexRef.current);
 
     return () => {
       cancelled = true;
-      video.removeEventListener("canplay", attemptPlay);
-      video.removeEventListener("loadeddata", attemptPlay);
-      clearTimeout(t1);
-      clearTimeout(t2);
-      clearTimeout(t3);
+      if (currentVideo && container.contains(currentVideo)) {
+        currentVideo.pause();
+        currentVideo.src = "";
+        container.removeChild(currentVideo);
+      }
     };
-  }, [videoIndex]);
-
-  const handleVideoEnded = useCallback(() => {
-    setVideoIndex(prev => (prev + 1) % HERO_VIDEOS.length);
   }, []);
 
   return (
     <div className="min-h-screen">
-      <section className="relative h-[75vh] md:h-[80vh] overflow-hidden" data-testid="hero-section">
-        <video
-          ref={videoRefCallback}
-          className="absolute inset-0 w-full h-full object-cover"
-          autoPlay
-          muted
-          playsInline
-          preload="auto"
-          poster="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&h=1080&fit=crop"
-          onEnded={handleVideoEnded}
-          style={{ zIndex: 1 }}
-        />
+      <section ref={containerRef} className="relative h-[75vh] md:h-[80vh] overflow-hidden" data-testid="hero-section">
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-background" style={{ zIndex: 2 }} />
 
         <div className="relative flex flex-col items-center justify-center h-full px-6 text-center" style={{ zIndex: 3 }}>
