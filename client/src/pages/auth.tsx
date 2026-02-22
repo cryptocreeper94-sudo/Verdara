@@ -43,10 +43,11 @@ type LoginValues = z.infer<typeof loginSchema>;
 type RegisterValues = z.infer<typeof registerSchema>;
 
 export default function AuthPage({ onBack }: { onBack?: () => void }) {
-  const [mode, setMode] = useState<"login" | "register">("login");
+  const [mode, setMode] = useState<"login" | "register" | "ecosystem">("login");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [ssoLoading, setSsoLoading] = useState(false);
+  const [ecosystemLoading, setEcosystemLoading] = useState(false);
   const { login, register: registerUser } = useAuth();
   const { toast } = useToast();
   const [, navigate] = useLocation();
@@ -197,6 +198,45 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
     );
   }
 
+  async function onEcosystemLogin(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const identifier = (formData.get("identifier") as string)?.trim();
+    const credential = (formData.get("credential") as string)?.trim();
+
+    if (!identifier || !credential) {
+      toast({ title: "Missing Fields", description: "Please enter your Trust Layer ID or email and your credential.", variant: "destructive" });
+      return;
+    }
+
+    setEcosystemLoading(true);
+    trackAuthEvent("ecosystem_login_attempt", { identifier: identifier.includes("@") ? identifier : "tlid" });
+
+    try {
+      const res = await fetch("/api/auth/ecosystem-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ identifier, credential }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        trackAuthEvent("ecosystem_login_success", { identifier: identifier.includes("@") ? identifier : "tlid" });
+        toast({ title: "Welcome back!", description: "Signed in via Trust Layer ecosystem." });
+        window.location.href = "/";
+      } else {
+        trackAuthEvent("ecosystem_login_failed", { error: data.message });
+        toast({ title: "Sign In Failed", description: data.message || "Could not verify your ecosystem credentials.", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Connection Error", description: "Could not connect to the server. Please try again.", variant: "destructive" });
+    } finally {
+      setEcosystemLoading(false);
+    }
+  }
+
   if (ssoLoading) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
@@ -274,12 +314,14 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
             </div>
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-foreground" data-testid="text-auth-title">
-                {mode === "login" ? "Welcome back" : "Create your account"}
+                {mode === "login" ? "Welcome back" : mode === "register" ? "Create your account" : "Trust Layer Sign In"}
               </h2>
               <p className="text-muted-foreground mt-1">
                 {mode === "login"
                   ? "Sign in to continue your adventure"
-                  : "Join the Verdara ecosystem"}
+                  : mode === "register"
+                  ? "Join the Verdara ecosystem"
+                  : "Use your ecosystem credentials to access Verdara"}
               </p>
             </div>
 
@@ -354,7 +396,7 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
                   </Button>
                 </form>
               </Form>
-            ) : (
+            ) : mode === "register" ? (
               <Form {...registerForm}>
                 <form onSubmit={registerForm.handleSubmit(onRegister)} className="space-y-4">
                   <div className="grid grid-cols-2 gap-3">
@@ -495,25 +537,92 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
                   </Button>
                 </form>
               </Form>
-            )}
-
-            <div className="mt-6 text-center">
-              <p className="text-sm text-muted-foreground">
-                {mode === "login" ? "Don't have an account?" : "Already have an account?"}{" "}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMode(mode === "login" ? "register" : "login");
-                    setShowPassword(false);
-                    setShowConfirmPassword(false);
-                  }}
-                  className="text-emerald-500 font-medium"
-                  data-testid="button-toggle-auth-mode"
+            ) : mode === "ecosystem" ? (
+              <form onSubmit={onEcosystemLogin} className="space-y-4">
+                <div className="p-3 rounded-lg border border-emerald-500/20 bg-emerald-500/5 mb-4">
+                  <p className="text-xs text-muted-foreground">
+                    Sign in with your Trust Layer ID or the email from any DarkWave ecosystem app (Happy Eats, TrustHome, Signal, etc.)
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground" htmlFor="eco-identifier">
+                    Trust Layer ID or Email
+                  </label>
+                  <Input
+                    id="eco-identifier"
+                    name="identifier"
+                    type="text"
+                    autoComplete="username"
+                    autoCapitalize="off"
+                    autoCorrect="off"
+                    placeholder="tl-xxxx-xxxx or you@example.com"
+                    required
+                    data-testid="input-ecosystem-identifier"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground" htmlFor="eco-credential">
+                    Password or Ecosystem PIN
+                  </label>
+                  <div className="relative">
+                    <Input
+                      id="eco-credential"
+                      name="credential"
+                      type={showPassword ? "text" : "password"}
+                      autoComplete="current-password"
+                      placeholder="Password or PIN"
+                      className="pr-10"
+                      required
+                      data-testid="input-ecosystem-credential"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                      data-testid="button-toggle-ecosystem-password"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground/70">
+                    Use your full password or your ecosystem PIN if you've been whitelisted
+                  </p>
+                </div>
+                <Button
+                  type="submit"
+                  className="w-full bg-emerald-600 text-white"
+                  disabled={ecosystemLoading}
+                  data-testid="button-ecosystem-submit"
                 >
-                  {mode === "login" ? "Sign up" : "Sign in"}
-                </button>
-              </p>
-            </div>
+                  {ecosystemLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : (
+                    <Shield className="w-4 h-4 mr-2" />
+                  )}
+                  Sign In with Trust Layer
+                </Button>
+              </form>
+            ) : null}
+
+            {mode !== "ecosystem" && (
+              <div className="mt-6 text-center">
+                <p className="text-sm text-muted-foreground">
+                  {mode === "login" ? "Don't have an account?" : "Already have an account?"}{" "}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMode(mode === "login" ? "register" : "login");
+                      setShowPassword(false);
+                      setShowConfirmPassword(false);
+                    }}
+                    className="text-emerald-500 font-medium"
+                    data-testid="button-toggle-auth-mode"
+                  >
+                    {mode === "login" ? "Sign up" : "Sign in"}
+                  </button>
+                </p>
+              </div>
+            )}
 
             <div className="mt-6 relative">
               <div className="absolute inset-0 flex items-center">
@@ -524,18 +633,41 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
               </div>
             </div>
 
-            <div className="mt-4 p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5">
-              <div className="flex items-center gap-2 mb-2">
-                <Shield className="w-4 h-4 text-emerald-400" />
-                <p className="text-sm font-medium text-foreground">DarkWave Ecosystem Member?</p>
-              </div>
-              <p className="text-xs text-muted-foreground mb-3">
-                If you have an account on any DarkWave Trust Layer app, you can sign in directly from that app. Your account will be automatically linked.
+            {mode !== "ecosystem" ? (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full mt-4 border-emerald-500/30 hover:bg-emerald-500/10 hover:border-emerald-500/50 transition-all"
+                onClick={() => {
+                  setMode("ecosystem");
+                  setShowPassword(false);
+                }}
+                data-testid="button-switch-ecosystem"
+              >
+                <Shield className="w-4 h-4 mr-2 text-emerald-400" />
+                Sign in with Trust Layer
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full mt-4"
+                onClick={() => {
+                  setMode("login");
+                  setShowPassword(false);
+                }}
+                data-testid="button-switch-email"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Sign in with email instead
+              </Button>
+            )}
+
+            {mode === "ecosystem" && (
+              <p className="text-[10px] text-center text-muted-foreground/60 mt-3">
+                Supported: Happy Eats, TrustHome, Signal, TrustVault, and all Trust Layer ecosystem apps
               </p>
-              <p className="text-[10px] text-muted-foreground/60">
-                Supported apps: TrustHome, Signal, TrustVault, and all Trust Layer ecosystem apps
-              </p>
-            </div>
+            )}
           </div>
         </div>
       </div>

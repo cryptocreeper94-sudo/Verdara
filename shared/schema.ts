@@ -22,6 +22,8 @@ export const users = pgTable("users", {
   conservationDonated: real("conservation_donated").default(0),
   equipmentTracked: integer("equipment_tracked").default(0),
   trustLayerId: text("trust_layer_id").unique(),
+  ecosystemPinHash: text("ecosystem_pin_hash"),
+  ecosystemApp: text("ecosystem_app"),
   memberSince: timestamp("member_since").defaultNow(),
 });
 

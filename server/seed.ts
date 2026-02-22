@@ -1369,12 +1369,85 @@ async function seedActivityLocations() {
 }
 
 import { seedCatalogLocations } from "./catalog-seed";
+import { eq } from "drizzle-orm";
+
+async function seedEcosystemMembers() {
+  console.log("Checking ecosystem members...");
+
+  const ecosystemMembers = [
+    {
+      firstName: "Kathy",
+      lastName: "Nguyen",
+      email: "kathy@happyeats.io",
+      password: "HappyEats@2025",
+      pin: "7724",
+      trustLayerId: "tl-kathy-he01",
+      ecosystemApp: "Happy Eats",
+      tier: "Outdoor Explorer",
+    },
+    {
+      firstName: "Marcus",
+      lastName: "Chen",
+      email: "marcus@trusthome.io",
+      password: "TrustHome@2025",
+      pin: "4419",
+      trustLayerId: "tl-marc-th01",
+      ecosystemApp: "TrustHome",
+      tier: "Free Explorer",
+    },
+    {
+      firstName: "Devon",
+      lastName: "Park",
+      email: "devon@signal.dw",
+      password: "Signal@2025",
+      pin: "8832",
+      trustLayerId: "tl-devn-sg01",
+      ecosystemApp: "Signal",
+      tier: "Free Explorer",
+    },
+  ];
+
+  for (const member of ecosystemMembers) {
+    const [existing] = await db.select().from(users).where(eq(users.email, member.email)).limit(1);
+    if (existing) {
+      if (!existing.ecosystemPinHash && member.pin) {
+        const pinHash = await bcrypt.hash(member.pin, 12);
+        await db.update(users).set({
+          ecosystemPinHash: pinHash,
+          ecosystemApp: member.ecosystemApp,
+          trustLayerId: existing.trustLayerId || member.trustLayerId,
+        }).where(eq(users.id, existing.id));
+        console.log(`  Updated ${member.email} with ecosystem PIN`);
+      }
+      continue;
+    }
+
+    const passwordHash = await bcrypt.hash(member.password, 12);
+    const pinHash = await bcrypt.hash(member.pin, 12);
+
+    await db.insert(users).values({
+      firstName: member.firstName,
+      lastName: member.lastName,
+      email: member.email,
+      passwordHash,
+      emailVerified: true,
+      tier: member.tier,
+      trustLayerId: member.trustLayerId,
+      ecosystemPinHash: pinHash,
+      ecosystemApp: member.ecosystemApp,
+    });
+    console.log(`  Created ecosystem member: ${member.firstName} ${member.lastName} (${member.ecosystemApp})`);
+  }
+
+  console.log("Ecosystem members seeded!");
+}
 
 export async function runAllSeeds() {
   try {
     await seed();
     await seedActivityLocations();
     await seedCatalogLocations();
+    await seedEcosystemMembers();
     console.log("All seeding complete!");
   } catch (err) {
     console.error("Seed error:", err);
