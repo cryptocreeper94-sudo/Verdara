@@ -94,35 +94,23 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <div className="flex-1 flex flex-col lg:flex-row">
-        <div className="lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-emerald-900 via-emerald-800 to-slate-900 flex flex-col justify-between p-8 lg:p-12">
-          <div className="absolute inset-0 opacity-20">
+    <div className="min-h-screen bg-background overflow-y-auto">
+      <div className="flex flex-col lg:flex-row min-h-screen">
+        <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-emerald-900 via-emerald-800 to-slate-900 flex-col justify-between p-12">
+          <div className="absolute inset-0 opacity-20 pointer-events-none">
             <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-500/30 rounded-full blur-3xl" />
             <div className="absolute bottom-20 right-10 w-96 h-96 bg-amber-500/20 rounded-full blur-3xl" />
           </div>
 
           <div className="relative z-10">
-            <div className="flex items-center justify-between gap-3 mb-12 flex-wrap">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center">
-                  <TreePine className="w-6 h-6 text-white" />
-                </div>
-                <span className="text-2xl font-bold text-white tracking-tight">Verdara</span>
+            <div className="flex items-center gap-3 mb-12">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center">
+                <TreePine className="w-6 h-6 text-white" />
               </div>
-              {onBack && (
-                <Button
-                  variant="ghost"
-                  className="text-white/70 gap-2 text-sm"
-                  onClick={onBack}
-                  data-testid="button-back-to-landing"
-                >
-                  <ArrowLeft className="w-4 h-4" /> Back
-                </Button>
-              )}
+              <span className="text-2xl font-bold text-white tracking-tight">Verdara</span>
             </div>
 
-            <h1 className="text-3xl lg:text-5xl font-bold text-white leading-tight mb-6">
+            <h1 className="text-5xl font-bold text-white leading-tight mb-6">
               Your Complete
               <br />
               <span className="text-emerald-400">Outdoor Adventure</span>
@@ -130,12 +118,12 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
               Platform
             </h1>
             <p className="text-lg text-white/70 max-w-md leading-relaxed">
-              AI-powered nature identification, trail discovery, trip planning,
-              and a trusted marketplace - all in one ecosystem.
+              Discover trails, identify species, plan trips,
+              and explore a trusted marketplace — all in one place.
             </p>
           </div>
 
-          <div className="relative z-10 hidden lg:flex flex-col gap-4 mt-auto">
+          <div className="relative z-10 flex flex-col gap-4 mt-auto">
             <div className="flex items-center gap-3 text-white/60">
               <Shield className="w-5 h-5 text-emerald-400" />
               <span className="text-sm">TrustShield verified marketplace</span>
@@ -147,9 +135,27 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
           </div>
         </div>
 
-        <div className="lg:w-1/2 flex items-center justify-center p-6 lg:p-12">
+        <div className="flex-1 lg:w-1/2 flex flex-col items-center justify-start lg:justify-center px-6 py-8 lg:p-12">
           <div className="w-full max-w-md">
-            <div className="mb-8">
+            <div className="flex items-center justify-between gap-3 mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center lg:hidden">
+                  <TreePine className="w-6 h-6 text-white" />
+                </div>
+                <span className="text-2xl font-bold text-foreground tracking-tight lg:hidden">Verdara</span>
+              </div>
+              {onBack && (
+                <Button
+                  variant="ghost"
+                  className="text-muted-foreground gap-2 text-sm"
+                  onClick={onBack}
+                  data-testid="button-back-to-landing"
+                >
+                  <ArrowLeft className="w-4 h-4" /> Back
+                </Button>
+              )}
+            </div>
+            <div className="mb-6">
               <h2 className="text-2xl font-bold text-foreground" data-testid="text-auth-title">
                 {mode === "login" ? "Welcome back" : "Create your account"}
               </h2>
@@ -172,8 +178,11 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
                         <FormControl>
                           <Input
                             {...field}
-                            type="text"
+                            type="email"
+                            inputMode="email"
                             autoComplete="email"
+                            autoCapitalize="off"
+                            autoCorrect="off"
                             placeholder="you@example.com"
                             data-testid="input-login-email"
                           />
@@ -274,8 +283,11 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
                         <FormControl>
                           <Input
                             {...field}
-                            type="text"
+                            type="email"
+                            inputMode="email"
                             autoComplete="email"
+                            autoCapitalize="off"
+                            autoCorrect="off"
                             placeholder="you@example.com"
                             data-testid="input-register-email"
                           />
