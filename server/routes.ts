@@ -5,7 +5,7 @@ import { registerAuthRoutes, requireAuth } from "./auth";
 import { registerChatAuthRoutes } from "./trustlayer-sso";
 import { setupChatWebSocket } from "./chat-ws";
 import { seedChatData } from "./seedChat";
-import { insertTripPlanSchema, insertMarketplaceListingSchema, insertActivityLogSchema, insertArboristClientSchema, insertArboristJobSchema, insertArboristInvoiceSchema, insertCampgroundBookingSchema, insertCatalogLocationSchema, insertLocationSubmissionSchema, insertReviewSchema, insertBlogPostSchema } from "@shared/schema";
+import { insertTripPlanSchema, insertMarketplaceListingSchema, insertActivityLogSchema, insertArboristClientSchema, insertArboristJobSchema, insertArboristInvoiceSchema, insertCampgroundBookingSchema, insertCatalogLocationSchema, insertLocationSubmissionSchema, insertReviewSchema, insertBlogPostSchema, insertErrorLogSchema } from "@shared/schema";
 import { registerGarageBotRoutes } from "./garagebot";
 import { registerEcosystemRoutes, stampToChain } from "./ecosystem";
 import Stripe from "stripe";
@@ -54,6 +54,67 @@ export async function registerRoutes(
   registerEcosystemRoutes(app);
   setupChatWebSocket(httpServer);
   seedChatData().catch(console.error);
+
+  app.post("/api/diagnostics/log", async (req, res) => {
+    try {
+      const { level, message, stack, source, url, userAgent, deviceInfo, metadata, sessionId } = req.body;
+      if (!message || !level) return res.status(400).json({ message: "Missing required fields" });
+      const log = await storage.createErrorLog({
+        level: level || "error",
+        message: message?.substring(0, 2000),
+        stack: stack?.substring(0, 5000) || null,
+        source: source || "frontend",
+        url: url || null,
+        userAgent: userAgent || null,
+        userId: req.userId || null,
+        deviceInfo: deviceInfo || null,
+        metadata: metadata || null,
+        sessionId: sessionId || null,
+      });
+      res.status(201).json({ id: log.id });
+    } catch (error) {
+      console.error("Error logging diagnostic:", error);
+      res.status(500).json({ message: "Failed to log error" });
+    }
+  });
+
+  const requireAdmin = async (req: Request, res: Response, next: NextFunction) => {
+    if (!req.userId || req.userId !== 1) {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+    next();
+  };
+
+  app.get("/api/diagnostics/logs", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { level, source, limit, offset } = req.query;
+      const logs = await storage.getErrorLogs({
+        level: level as string | undefined,
+        source: source as string | undefined,
+        limit: limit ? parseInt(limit as string) : 100,
+        offset: offset ? parseInt(offset as string) : 0,
+      });
+      const total = await storage.getErrorLogCount({
+        level: level as string | undefined,
+        source: source as string | undefined,
+      });
+      res.json({ logs, total });
+    } catch (error) {
+      console.error("Error fetching diagnostics:", error);
+      res.status(500).json({ message: "Failed to fetch logs" });
+    }
+  });
+
+  app.delete("/api/diagnostics/logs", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { before } = req.query;
+      const deleted = await storage.clearErrorLogs(before ? new Date(before as string) : undefined);
+      res.json({ deleted });
+    } catch (error) {
+      console.error("Error clearing diagnostics:", error);
+      res.status(500).json({ message: "Failed to clear logs" });
+    }
+  });
 
   app.get("/api/trails", async (req, res) => {
     try {

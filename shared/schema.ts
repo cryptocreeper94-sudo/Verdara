@@ -499,6 +499,25 @@ export type CampgroundBooking = typeof campgroundBookings.$inferSelect;
 export type InsertReview = z.infer<typeof insertReviewSchema>;
 export type Review = typeof reviews.$inferSelect;
 
+export const errorLogs = pgTable("error_logs", {
+  id: serial("id").primaryKey(),
+  level: text("level").notNull(),
+  message: text("message").notNull(),
+  stack: text("stack"),
+  source: text("source").notNull(),
+  url: text("url"),
+  userAgent: text("user_agent"),
+  userId: integer("user_id"),
+  deviceInfo: jsonb("device_info"),
+  metadata: jsonb("metadata"),
+  sessionId: text("session_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const insertBlogPostSchema = createInsertSchema(blogPosts).omit({ id: true, createdAt: true, updatedAt: true });
 export type InsertBlogPost = z.infer<typeof insertBlogPostSchema>;
 export type BlogPost = typeof blogPosts.$inferSelect;
+
+export const insertErrorLogSchema = createInsertSchema(errorLogs).omit({ id: true, createdAt: true });
+export type InsertErrorLog = z.infer<typeof insertErrorLogSchema>;
+export type ErrorLog = typeof errorLogs.$inferSelect;

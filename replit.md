@@ -40,6 +40,7 @@ Verdara is built as part of the DarkWave Trust Layer (DWTL) ecosystem (App #28) 
     - **Developer Portal:** Provides roadmap, affiliate network, and business suite preview.
     - **Evergreen AI Assistant:** Floating AI chatbot (OpenAI GPT-4o-mini) accessible from any page.
     - **Verdara Journal (Blog):** AI-assisted, SEO-optimized blog system with public listing, detail pages, and admin editor.
+    - **Diagnostics System:** Comprehensive error tracking with client-side error capture (JS errors, unhandled rejections, network failures), auth interaction tracking (focus/touch/input events on form fields), device info capture (screen size, touch support, connection type, browser), React error boundary, and admin dashboard at `/admin/diagnostics`. Logs stored in `error_logs` table. Frontend tracker at `client/src/lib/error-tracker.ts`.
 - **Verdara Specific Tech Stack:**
     - Frontend: React 18 + TypeScript, Vite, Tailwind CSS, Shadcn UI, Framer Motion, Wouter, TanStack React Query.
     - Backend: Express.js + TypeScript.

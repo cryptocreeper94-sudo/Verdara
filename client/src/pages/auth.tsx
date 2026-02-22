@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,6 +16,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { TreePine, Eye, EyeOff, ArrowRight, ArrowLeft, Shield, Loader2 } from "lucide-react";
+import { trackAuthEvent } from "@/lib/error-tracker";
+import { useRef, useCallback } from "react";
 
 const loginSchema = z.object({
   email: z.string().email("Valid email is required"),
@@ -58,12 +60,49 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
     defaultValues: { firstName: "", lastName: "", email: "", password: "", confirmPassword: "" },
   });
 
+  const interactionLog = useRef<string[]>([]);
+
+  const trackInput = useCallback((field: string, event: string) => {
+    const entry = `${Date.now()}:${event}:${field}`;
+    interactionLog.current.push(entry);
+    if (interactionLog.current.length > 50) interactionLog.current.shift();
+  }, []);
+
+  const inputTrackingProps = useCallback((fieldName: string) => ({
+    onFocus: () => trackInput(fieldName, "focus"),
+    onBlur: () => trackInput(fieldName, "blur"),
+    onTouchStart: () => trackInput(fieldName, "touch"),
+    onKeyDown: () => trackInput(fieldName, "keydown"),
+    onInput: () => trackInput(fieldName, "input"),
+  }), [trackInput]);
+
+  useEffect(() => {
+    trackAuthEvent('auth_page_viewed', { mode });
+  }, [mode]);
+
+  useEffect(() => {
+    return () => {
+      if (interactionLog.current.length > 0) {
+        trackAuthEvent("auth_interaction_log", {
+          mode,
+          interactions: interactionLog.current.slice(-30),
+        });
+      }
+    };
+  }, [mode]);
+
   async function onLogin(values: LoginValues) {
+    trackAuthEvent("login_attempt", {
+      email: values.email,
+      interactions: interactionLog.current.slice(-20),
+    });
     login.mutate(values, {
       onSuccess: () => {
+        trackAuthEvent('login_success', { email: values.email });
         navigate("/");
       },
       onError: (error: Error) => {
+        trackAuthEvent('login_failed', { email: values.email, error: error.message });
         const msg = error.message.includes("401")
           ? "Invalid email or password"
           : "Login failed. Please try again.";
@@ -73,10 +112,15 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
   }
 
   async function onRegister(values: RegisterValues) {
+    trackAuthEvent("register_attempt", {
+      email: values.email,
+      interactions: interactionLog.current.slice(-20),
+    });
     registerUser.mutate(
       { firstName: values.firstName, lastName: values.lastName, email: values.email, password: values.password },
       {
         onSuccess: () => {
+          trackAuthEvent('register_success', { email: values.email });
           toast({
             title: "Account Created",
             description: "Check your email for a verification link.",
@@ -84,6 +128,7 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
           navigate("/");
         },
         onError: (error: Error) => {
+          trackAuthEvent('register_failed', { email: values.email, error: error.message });
           const msg = error.message.includes("409")
             ? "An account with this email already exists"
             : "Registration failed. Please try again.";
@@ -178,6 +223,7 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
                         <FormControl>
                           <Input
                             {...field}
+                            {...inputTrackingProps("login-email")}
                             type="email"
                             inputMode="email"
                             autoComplete="email"
@@ -201,6 +247,7 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
                           <FormControl>
                             <Input
                               {...field}
+                              {...inputTrackingProps("login-password")}
                               type={showPassword ? "text" : "password"}
                               placeholder="Enter your password"
                               className="pr-10"
@@ -248,6 +295,7 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
                           <FormControl>
                             <Input
                               {...field}
+                              {...inputTrackingProps("register-firstname")}
                               placeholder="First"
                               data-testid="input-register-firstname"
                             />
@@ -265,6 +313,7 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
                           <FormControl>
                             <Input
                               {...field}
+                              {...inputTrackingProps("register-lastname")}
                               placeholder="Last"
                               data-testid="input-register-lastname"
                             />
@@ -283,6 +332,7 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
                         <FormControl>
                           <Input
                             {...field}
+                            {...inputTrackingProps("register-email")}
                             type="email"
                             inputMode="email"
                             autoComplete="email"
@@ -307,6 +357,7 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
                             <Input
                               {...field}
                               type={showPassword ? "text" : "password"}
+                              {...inputTrackingProps("register-password")}
                               placeholder="8+ chars, 1 capital, 1 special"
                               className="pr-10"
                               data-testid="input-register-password"
@@ -335,6 +386,7 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
                             <Input
                               {...field}
                               type={showConfirmPassword ? "text" : "password"}
+                              {...inputTrackingProps("register-confirm")}
                               placeholder="Confirm your password"
                               className="pr-10"
                               data-testid="input-register-confirm-password"

@@ -21,11 +21,12 @@ import {
   type Review, type InsertReview,
   type Session,
   type BlogPost, type InsertBlogPost,
+  type ErrorLog, type InsertErrorLog,
   users, trails, identifications, marketplaceListings,
   tripPlans, campgrounds, activityLog, sessions,
   activityLocations, arboristClients, arboristJobs, arboristInvoices,
   arboristDeals, arboristEstimates, arboristCrewMembers, arboristTimeEntries, arboristInventory,
-  campgroundBookings, catalogLocations, locationSubmissions, reviews, blogPosts
+  campgroundBookings, catalogLocations, locationSubmissions, reviews, blogPosts, errorLogs
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, ilike, or, lt, and, count, sql, asc } from "drizzle-orm";
@@ -161,6 +162,11 @@ export interface IStorage {
   updateBlogPost(id: number, data: Partial<InsertBlogPost>): Promise<BlogPost | undefined>;
   deleteBlogPost(id: number): Promise<boolean>;
   getBlogPostCount(status?: string): Promise<number>;
+
+  createErrorLog(log: InsertErrorLog): Promise<ErrorLog>;
+  getErrorLogs(filters?: { level?: string; source?: string; limit?: number; offset?: number }): Promise<ErrorLog[]>;
+  getErrorLogCount(filters?: { level?: string; source?: string }): Promise<number>;
+  clearErrorLogs(before?: Date): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -836,6 +842,49 @@ export class DatabaseStorage implements IStorage {
     const [result] = await db.select({ count: count() }).from(blogPosts)
       .where(status ? eq(blogPosts.status, status) : undefined);
     return result?.count ?? 0;
+  }
+  async createErrorLog(log: InsertErrorLog): Promise<ErrorLog> {
+    const [created] = await db.insert(errorLogs).values(log as any).returning();
+    return created;
+  }
+
+  async getErrorLogs(filters?: { level?: string; source?: string; limit?: number; offset?: number }): Promise<ErrorLog[]> {
+    const conditions = [];
+    if (filters?.level) conditions.push(eq(errorLogs.level, filters.level));
+    if (filters?.source) conditions.push(eq(errorLogs.source, filters.source));
+    const query = db.select().from(errorLogs);
+    if (conditions.length > 0) {
+      return query
+        .where(and(...conditions))
+        .orderBy(desc(errorLogs.createdAt))
+        .limit(filters?.limit ?? 100)
+        .offset(filters?.offset ?? 0);
+    }
+    return query
+      .orderBy(desc(errorLogs.createdAt))
+      .limit(filters?.limit ?? 100)
+      .offset(filters?.offset ?? 0);
+  }
+
+  async getErrorLogCount(filters?: { level?: string; source?: string }): Promise<number> {
+    const conditions = [];
+    if (filters?.level) conditions.push(eq(errorLogs.level, filters.level));
+    if (filters?.source) conditions.push(eq(errorLogs.source, filters.source));
+    if (conditions.length > 0) {
+      const [result] = await db.select({ count: count() }).from(errorLogs).where(and(...conditions));
+      return result?.count ?? 0;
+    }
+    const [result] = await db.select({ count: count() }).from(errorLogs);
+    return result?.count ?? 0;
+  }
+
+  async clearErrorLogs(before?: Date): Promise<number> {
+    if (before) {
+      const result = await db.delete(errorLogs).where(lt(errorLogs.createdAt, before));
+      return result.rowCount ?? 0;
+    }
+    const result = await db.delete(errorLogs);
+    return result.rowCount ?? 0;
   }
 }
 

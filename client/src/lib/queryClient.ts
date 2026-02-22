@@ -1,8 +1,10 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { trackNetworkError } from "@/lib/error-tracker";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
+    trackNetworkError(res.url, res.status, text);
     throw new Error(`${res.status}: ${text}`);
   }
 }

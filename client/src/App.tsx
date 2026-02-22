@@ -61,6 +61,9 @@ import { Loader2, TreePine } from "lucide-react";
 import { useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { OnboardingModal, useOnboarding } from "@/components/onboarding-modal";
+import { initErrorTracking } from "@/lib/error-tracker";
+import { ErrorBoundary } from "@/components/error-boundary";
+import Diagnostics from "@/pages/diagnostics";
 
 
 function AppContent() {
@@ -69,6 +72,11 @@ function AppContent() {
   const [showAuth, setShowAuth] = useState(false);
   const [browsing, setBrowsing] = useState(false);
   const { showOnboarding, dismissOnboarding } = useOnboarding();
+
+  const [trackingInit] = useState(() => {
+    initErrorTracking();
+    return true;
+  });
 
   if (isLoading) {
     return (
@@ -159,6 +167,7 @@ function AppContent() {
         <Route path="/arborist" component={Arborist} />
         <Route path="/vault" component={Vault} />
         <Route path="/admin" component={Admin} />
+        <Route path="/admin/diagnostics" component={Diagnostics} />
         <Route path="/track/:id" component={Track} />
 
         <Route component={NotFound} />
@@ -169,14 +178,16 @@ function AppContent() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <ThemeProvider>
-          <AppContent />
-          <Toaster />
-        </ThemeProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <ThemeProvider>
+            <AppContent />
+            <Toaster />
+          </ThemeProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

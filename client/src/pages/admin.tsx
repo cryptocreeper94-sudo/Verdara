@@ -289,10 +289,14 @@ export default function Admin() {
             <div className="text-lg font-bold text-emerald-500">{featureCategories.length}</div>
             <div className="text-[11px] text-muted-foreground">User Categories</div>
           </div>
-          <div className="rounded-xl bg-card border border-card-border p-3 text-center">
-            <div className="text-lg font-bold text-slate-400">8</div>
-            <div className="text-[11px] text-muted-foreground">Dev Phases</div>
-          </div>
+          <Link href="/admin/diagnostics">
+            <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-3 text-center cursor-pointer hover:bg-red-500/15 transition-colors" data-testid="link-diagnostics">
+              <div className="text-lg font-bold text-red-400 flex items-center justify-center gap-1">
+                <Database className="w-4 h-4" /> Live
+              </div>
+              <div className="text-[11px] text-muted-foreground">Bug Tracker</div>
+            </div>
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
