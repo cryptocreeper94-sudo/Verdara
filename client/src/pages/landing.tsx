@@ -312,7 +312,7 @@ export default function Landing({ onGetStarted, onBrowse }: LandingProps) {
               className="mt-6"
             >
               <Button
-                variant="link"
+                variant="ghost"
                 onClick={onBrowse}
                 className="text-sm text-white/50 underline underline-offset-4 decoration-white/20"
                 data-testid="button-hero-browse"
