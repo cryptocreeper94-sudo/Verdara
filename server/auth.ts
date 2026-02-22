@@ -81,8 +81,8 @@ export function registerAuthRoutes(app: Express) {
 
       res.cookie("session_token", sessionToken, {
         httpOnly: true,
-        secure: true,
-        sameSite: "strict",
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
         maxAge: SESSION_DURATION_MS,
         path: "/",
       });
@@ -124,8 +124,8 @@ export function registerAuthRoutes(app: Express) {
 
       res.cookie("session_token", sessionToken, {
         httpOnly: true,
-        secure: true,
-        sameSite: "strict",
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
         maxAge: SESSION_DURATION_MS,
         path: "/",
       });
