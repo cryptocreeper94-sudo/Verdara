@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
+import { useLocation } from "wouter";
 import {
   ScanSearch, Mountain, Bike, RockingChair, Tent, Fish, Crosshair,
   Zap, Snowflake, Waves, TreePine, Axe, ShoppingBag, MapPinned,
@@ -544,6 +545,14 @@ const stagger = {
 export default function Explore() {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
+  const [, navigate] = useLocation();
+
+  const handleDevLink = useCallback(() => {
+    const pin = window.prompt("Enter developer PIN:");
+    if (pin === "0424") {
+      navigate("/admin/diagnostics");
+    }
+  }, [navigate]);
 
   const { data: catalogLocations, isLoading: catalogLoading } = useQuery<any[]>({
     queryKey: ["/api/catalog", { limit: 4, featured: true }],
@@ -866,6 +875,17 @@ export default function Explore() {
             ))}
           </motion.div>
         </motion.div>
+
+        <div className="mt-10 pt-4 border-t border-white/5 flex items-center justify-between text-[10px] text-muted-foreground/40 pb-4">
+          <span>Verdara v1.0 — DarkWave Studios</span>
+          <button
+            onClick={handleDevLink}
+            className="hover:text-muted-foreground/60 transition-colors cursor-pointer"
+            data-testid="link-dev-access"
+          >
+            Dev
+          </button>
+        </div>
       </div>
     </div>
   );
