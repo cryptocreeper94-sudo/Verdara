@@ -5,6 +5,7 @@ import { registerAuthRoutes, requireAuth } from "./auth";
 import { registerChatAuthRoutes } from "./trustlayer-sso";
 import { setupChatWebSocket } from "./chat-ws";
 import { seedChatData } from "./seedChat";
+import { runAllSeeds } from "./seed";
 import { insertTripPlanSchema, insertMarketplaceListingSchema, insertActivityLogSchema, insertArboristClientSchema, insertArboristJobSchema, insertArboristInvoiceSchema, insertCampgroundBookingSchema, insertCatalogLocationSchema, insertLocationSubmissionSchema, insertReviewSchema, insertBlogPostSchema, insertErrorLogSchema } from "@shared/schema";
 import { registerGarageBotRoutes } from "./garagebot";
 import { registerEcosystemRoutes, stampToChain } from "./ecosystem";
@@ -54,6 +55,7 @@ export async function registerRoutes(
   registerEcosystemRoutes(app);
   setupChatWebSocket(httpServer);
   seedChatData().catch(console.error);
+  runAllSeeds().catch(console.error);
 
   app.post("/api/diagnostics/log", async (req, res) => {
     try {

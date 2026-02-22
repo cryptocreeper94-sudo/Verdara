@@ -1370,11 +1370,18 @@ async function seedActivityLocations() {
 
 import { seedCatalogLocations } from "./catalog-seed";
 
-seed()
-  .then(() => seedActivityLocations())
-  .then(() => seedCatalogLocations())
-  .then(() => process.exit(0))
-  .catch((err) => {
+export async function runAllSeeds() {
+  try {
+    await seed();
+    await seedActivityLocations();
+    await seedCatalogLocations();
+    console.log("All seeding complete!");
+  } catch (err) {
     console.error("Seed error:", err);
-    process.exit(1);
-  });
+  }
+}
+
+const isDirectRun = process.argv[1]?.endsWith("seed.ts") || process.argv[1]?.endsWith("seed.js");
+if (isDirectRun) {
+  runAllSeeds().then(() => process.exit(0)).catch(() => process.exit(1));
+}
