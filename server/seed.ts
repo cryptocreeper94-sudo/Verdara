@@ -1369,6 +1369,7 @@ async function seedActivityLocations() {
 }
 
 import { seedCatalogLocations } from "./catalog-seed";
+import { seedTennesseeCatalog } from "./tennessee-catalog-seed";
 import { eq } from "drizzle-orm";
 
 async function seedEcosystemMembers() {
@@ -1447,6 +1448,7 @@ export async function runAllSeeds() {
     await seed();
     await seedActivityLocations();
     await seedCatalogLocations();
+    await seedTennesseeCatalog();
     await seedEcosystemMembers();
     console.log("All seeding complete!");
   } catch (err) {
