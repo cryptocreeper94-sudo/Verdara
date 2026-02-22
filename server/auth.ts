@@ -1,6 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
+import jwt from "jsonwebtoken";
 import { storage } from "./storage";
 import { registerSchema, loginSchema } from "@shared/schema";
 import { sendVerificationEmail } from "./email";
@@ -8,6 +9,35 @@ import { generateTrustLayerIdPublic } from "./trustlayer-sso";
 
 const SALT_ROUNDS = 12;
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
+
+const TRUSTED_ISSUERS = [
+  "trust-layer-sso",
+  "trustlayer",
+  "trusthome",
+  "trustvault",
+  "signal",
+  "darkwave",
+  "dwtl",
+];
+
+function verifySsoToken(token: string): { trustLayerId: string; email?: string; firstName?: string; lastName?: string } | null {
+  try {
+    const secret = process.env.JWT_SECRET;
+    if (!secret) return null;
+    const decoded = jwt.verify(token, secret, { algorithms: ["HS256"] }) as any;
+    if (decoded.iss && !TRUSTED_ISSUERS.includes(decoded.iss)) return null;
+    const trustLayerId = decoded.sub || decoded.trustLayerId || decoded.tlid;
+    if (!trustLayerId) return null;
+    return {
+      trustLayerId,
+      email: decoded.email,
+      firstName: decoded.firstName || decoded.given_name,
+      lastName: decoded.lastName || decoded.family_name,
+    };
+  } catch {
+    return null;
+  }
+}
 
 declare global {
   namespace Express {
@@ -190,6 +220,127 @@ export function registerAuthRoutes(app: Express) {
     } catch (error) {
       console.error("Verification error:", error);
       return res.redirect("/?verified=error");
+    }
+  });
+
+  // ─── Trust Layer SSO Login ──────────────────────────────────
+  app.post("/api/auth/sso", async (req: Request, res: Response) => {
+    try {
+      const { token } = req.body;
+      if (!token) {
+        return res.status(400).json({ message: "SSO token is required" });
+      }
+
+      const decoded = verifySsoToken(token);
+      if (!decoded) {
+        return res.status(401).json({ message: "Invalid or expired SSO token" });
+      }
+
+      const { trustLayerId } = decoded;
+
+      let user = await storage.getUserByTrustLayerId(trustLayerId);
+
+      if (!user) {
+        const email = req.body.email || decoded.email;
+        if (email) {
+          user = await storage.getUserByEmail(email.toLowerCase()) || undefined;
+          if (user && !user.trustLayerId) {
+            await storage.updateUserTrustLayerId(user.id, trustLayerId);
+            user = await storage.getUser(user.id);
+          }
+        }
+      }
+
+      if (!user) {
+        const randomPassword = crypto.randomBytes(32).toString("hex");
+        const passwordHash = await bcrypt.hash(randomPassword, SALT_ROUNDS);
+
+        user = await storage.createUser({
+          firstName: req.body.firstName || decoded.firstName || req.body.displayName || "Explorer",
+          lastName: req.body.lastName || decoded.lastName || "",
+          email: req.body.email || decoded.email || `${trustLayerId}@trustlayer.ecosystem`,
+          passwordHash,
+          emailVerified: true,
+          trustLayerId,
+        });
+        console.log(`[SSO] Auto-created Verdara account for Trust Layer member: ${trustLayerId}`);
+      }
+
+      const sessionToken = generateToken();
+      const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
+      await storage.createSession(user!.id, sessionToken, expiresAt);
+
+      res.cookie("session_token", sessionToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: SESSION_DURATION_MS,
+        path: "/",
+      });
+
+      return res.json({ user: sanitizeUser(user!) });
+    } catch (error) {
+      console.error("SSO login error:", error);
+      return res.status(500).json({ message: "SSO login failed" });
+    }
+  });
+
+  app.get("/api/auth/sso/redirect", async (req: Request, res: Response) => {
+    try {
+      const { token, email, firstName, lastName, displayName } = req.query;
+      if (!token || typeof token !== "string") {
+        return res.redirect("/auth?sso_error=missing_token");
+      }
+
+      const decoded = verifySsoToken(token);
+      if (!decoded) {
+        return res.redirect("/auth?sso_error=invalid_token");
+      }
+
+      const { trustLayerId } = decoded;
+
+      let user = await storage.getUserByTrustLayerId(trustLayerId);
+
+      if (!user && (email || decoded.email)) {
+        const lookupEmail = ((email as string) || decoded.email!).toLowerCase();
+        user = await storage.getUserByEmail(lookupEmail) || undefined;
+        if (user && !user.trustLayerId) {
+          await storage.updateUserTrustLayerId(user.id, trustLayerId);
+          user = await storage.getUser(user.id);
+        }
+      }
+
+      if (!user) {
+        const randomPassword = crypto.randomBytes(32).toString("hex");
+        const passwordHash = await bcrypt.hash(randomPassword, SALT_ROUNDS);
+
+        user = await storage.createUser({
+          firstName: (firstName as string) || decoded.firstName || (displayName as string) || "Explorer",
+          lastName: (lastName as string) || decoded.lastName || "",
+          email: (email as string) || decoded.email || `${trustLayerId}@trustlayer.ecosystem`,
+          passwordHash,
+          emailVerified: true,
+          trustLayerId,
+        });
+        console.log(`[SSO] Auto-created Verdara account via redirect for: ${trustLayerId}`);
+      }
+
+      const sessionToken = generateToken();
+      const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
+      await storage.createSession(user!.id, sessionToken, expiresAt);
+
+      res.cookie("session_token", sessionToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: SESSION_DURATION_MS,
+        path: "/",
+      });
+
+      return res.redirect("/?sso=success");
+    } catch (error) {
+      console.error("SSO redirect error:", error);
+      return res.redirect("/auth?sso_error=failed");
     }
   });
 

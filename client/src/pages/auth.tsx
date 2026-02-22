@@ -46,6 +46,7 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [ssoLoading, setSsoLoading] = useState(false);
   const { login, register: registerUser } = useAuth();
   const { toast } = useToast();
   const [, navigate] = useLocation();
@@ -91,6 +92,64 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
     };
   }, [mode]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ssoToken = params.get("sso_token");
+    const ssoError = params.get("sso_error");
+
+    if (ssoError) {
+      const messages: Record<string, string> = {
+        missing_token: "SSO token was not provided. Please try again from the other app.",
+        invalid_token: "SSO token is invalid or expired. Please try logging in again.",
+        failed: "SSO login failed. Please try logging in with your email and password.",
+      };
+      toast({
+        title: "Ecosystem Login Failed",
+        description: messages[ssoError] || "SSO login failed. Please try again.",
+        variant: "destructive",
+      });
+      window.history.replaceState({}, "", "/auth");
+      return;
+    }
+
+    if (ssoToken) {
+      setSsoLoading(true);
+      const email = params.get("email") || undefined;
+      const firstName = params.get("firstName") || undefined;
+      const lastName = params.get("lastName") || undefined;
+
+      fetch("/api/auth/sso", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ token: ssoToken, email, firstName, lastName }),
+      })
+        .then(async (res) => {
+          if (res.ok) {
+            window.history.replaceState({}, "", "/");
+            window.location.href = "/";
+          } else {
+            const data = await res.json().catch(() => ({}));
+            toast({
+              title: "Ecosystem Login Failed",
+              description: data.message || "Could not verify your ecosystem credentials.",
+              variant: "destructive",
+            });
+            window.history.replaceState({}, "", "/auth");
+          }
+        })
+        .catch(() => {
+          toast({
+            title: "Connection Error",
+            description: "Could not connect to the server. Please try again.",
+            variant: "destructive",
+          });
+          window.history.replaceState({}, "", "/auth");
+        })
+        .finally(() => setSsoLoading(false));
+    }
+  }, [toast]);
+
   async function onLogin(values: LoginValues) {
     trackAuthEvent("login_attempt", {
       email: values.email,
@@ -135,6 +194,19 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
           toast({ title: "Registration Failed", description: msg, variant: "destructive" });
         },
       }
+    );
+  }
+
+  if (ssoLoading) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+        <div className="w-16 h-16 rounded-2xl bg-emerald-500 flex items-center justify-center">
+          <TreePine className="w-10 h-10 text-white" />
+        </div>
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+        <p className="text-lg font-medium text-foreground">Signing you in via Trust Layer...</p>
+        <p className="text-sm text-muted-foreground">Connecting your ecosystem account to Verdara</p>
+      </div>
     );
   }
 
@@ -443,9 +515,25 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
               </p>
             </div>
 
-            <div className="mt-4 text-center">
-              <p className="text-xs text-muted-foreground/50">
-                SSO connection to Trust Layer ecosystem coming soon
+            <div className="mt-6 relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-background px-3 text-muted-foreground">or</span>
+              </div>
+            </div>
+
+            <div className="mt-4 p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5">
+              <div className="flex items-center gap-2 mb-2">
+                <Shield className="w-4 h-4 text-emerald-400" />
+                <p className="text-sm font-medium text-foreground">DarkWave Ecosystem Member?</p>
+              </div>
+              <p className="text-xs text-muted-foreground mb-3">
+                If you have an account on any DarkWave Trust Layer app, you can sign in directly from that app. Your account will be automatically linked.
+              </p>
+              <p className="text-[10px] text-muted-foreground/60">
+                Supported apps: TrustHome, Signal, TrustVault, and all Trust Layer ecosystem apps
               </p>
             </div>
           </div>

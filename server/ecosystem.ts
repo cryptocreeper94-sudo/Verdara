@@ -552,7 +552,15 @@ function registerTrustHomeRoutes(app: Express) {
       appId: "dw_app_verdara",
       ecosystem: "DarkWave Trust Layer",
       version: "1.0.0",
-      capabilities: ["identify", "removal-plan", "assess", "species", "sync-user"],
+      capabilities: ["identify", "removal-plan", "assess", "species", "sync-user", "sso"],
+      sso: {
+        enabled: true,
+        endpoints: {
+          redirect: "/api/auth/sso/redirect",
+          api: "/api/auth/sso",
+        },
+        description: "Pass JWT token as ?token= param to redirect endpoint, or POST { token } to API endpoint",
+      },
     });
   });
 
