@@ -23,7 +23,7 @@ Verdara is built as part of the DarkWave Trust Layer (DWTL) ecosystem (App #28) 
 - Command Center features rotating cinematic aerial flyover videos as hero content.
 
 **Technical Implementations:**
-- **Authentication:** Custom email/password authentication with bcrypt hashing, cookie-based sessions, and Resend for email verification. Trust Layer SSO integrated with JWT-based cross-app authentication (HS256) and Trust Layer IDs (tl-xxxx-xxxx format).
+- **Authentication:** Custom email/password authentication with bcrypt hashing, cookie-based sessions, and Resend for email verification. Trust Layer SSO integrated with JWT-based cross-app authentication (HS256) and Trust Layer IDs (tl-xxxx-xxxx format). Live Trust Layer Hub at `orbitstaffing.io` with ecosystem registration, cross-app SSO login, and federated user registration. Hub credentials stored in `TRUST_LAYER_HUB_API_KEY`, `TRUST_LAYER_HUB_API_SECRET`, and `TRUST_LAYER_HUB_APP_ID` env vars.
 - **Data & Storage:** PostgreSQL database managed with Drizzle ORM, including seeding scripts and a living catalog of 167+ US outdoor locations (including 25 Tennessee state parks and national park sites with coffee-table-book quality descriptions, foraging guides, and species data). Tennessee catalog seed in `server/tennessee-catalog-seed.ts`. Catalog content is designed to be print-publish ready for a future outdoor coffee table book.
 - **Core Modules:**
     - **Command Center:** Personalized bento grid dashboard.

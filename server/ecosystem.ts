@@ -6,6 +6,7 @@ import crypto from "crypto";
 import { openai } from "./replit_integrations/image/client";
 
 const DWSC_BASE = "https://dwsc.io";
+const TRUST_LAYER_HUB = "https://orbitstaffing.io";
 
 async function getOrCreateTrustLayerId(userId: number): Promise<{ trustLayerId: string; jwt: string }> {
   const user = await storage.getUser(userId);
@@ -83,7 +84,142 @@ export async function stampToChain(userId: number, category: string, data: strin
   }
 }
 
+export async function registerWithTrustLayerHub(): Promise<void> {
+  try {
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      console.warn("[Trust Layer Hub] JWT_SECRET not set, skipping ecosystem registration");
+      return;
+    }
+
+    const appHost = process.env.REPLIT_DEV_DOMAIN
+      ? `https://${process.env.REPLIT_DEV_DOMAIN}`
+      : process.env.REPL_SLUG
+        ? `https://${process.env.REPL_SLUG}.replit.app`
+        : "https://verdara.replit.app";
+
+    const payload = {
+      appName: "Verdara",
+      appSlug: "verdara",
+      appId: "dw_app_verdara",
+      appNumber: 28,
+      description: "AI-Powered Outdoor Recreation Super-App",
+      baseUrl: appHost,
+      capabilities: ["identify", "removal-plan", "assess", "species", "sync-user", "sso", "marketplace", "catalog", "trip-planner"],
+      sso: {
+        enabled: true,
+        endpoints: {
+          login: `${appHost}/api/auth/sso`,
+          redirect: `${appHost}/api/auth/sso/redirect`,
+          ecosystemLogin: `${appHost}/api/auth/ecosystem-login`,
+          status: `${appHost}/api/ecosystem/status`,
+        },
+      },
+      version: "1.0.0",
+    };
+
+    const hubApiKey = process.env.TRUST_LAYER_HUB_API_KEY;
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (hubApiKey) {
+      headers["x-api-key"] = hubApiKey;
+    }
+
+    const res = await fetch(`${TRUST_LAYER_HUB}/api/admin/ecosystem/register-app`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(payload),
+    });
+
+    if (res.ok) {
+      const data = await res.json().catch(() => ({}));
+      console.log(`[Trust Layer Hub] Verdara registered with ecosystem (id: ${data.id || "existing"})`);
+    } else {
+      const errData = await res.json().catch(() => ({}));
+      if (res.status === 409 || res.status === 500) {
+        console.log("[Trust Layer Hub] Verdara already registered in ecosystem (re-registration skipped)");
+      } else {
+        console.warn(`[Trust Layer Hub] Registration returned ${res.status}:`, errData?.error || errData?.message || "unknown");
+      }
+    }
+  } catch (error: any) {
+    console.warn(`[Trust Layer Hub] Registration failed (non-fatal): ${error?.message || "unknown error"}`);
+  }
+}
+
+function hubHeaders(): Record<string, string> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const apiKey = process.env.TRUST_LAYER_HUB_API_KEY;
+  if (apiKey) headers["x-api-key"] = apiKey;
+  return headers;
+}
+
+async function crossAppSsoLogin(identifier: string, credential: string): Promise<any> {
+  const res = await fetch(`${TRUST_LAYER_HUB}/api/auth/ecosystem-login`, {
+    method: "POST",
+    headers: hubHeaders(),
+    body: JSON.stringify({ identifier, credential, appSlug: "verdara" }),
+  });
+  const data = await res.json().catch(() => ({ error: "Invalid response" }));
+  if (!res.ok) throw { status: res.status, data };
+  return data;
+}
+
+async function crossAppRegister(userData: { username: string; email: string; password: string; displayName?: string }): Promise<any> {
+  const res = await fetch(`${TRUST_LAYER_HUB}/api/chat/auth/register`, {
+    method: "POST",
+    headers: hubHeaders(),
+    body: JSON.stringify({ ...userData, appSlug: "verdara" }),
+  });
+  const data = await res.json().catch(() => ({ error: "Invalid response" }));
+  if (!res.ok) throw { status: res.status, data };
+  return data;
+}
+
 export function registerEcosystemRoutes(app: Express) {
+
+  // ─── Trust Layer Hub SSO (Cross-App Authentication) ─────────
+  app.post("/api/ecosystem/hub/sso-login", async (req: Request, res: Response) => {
+    try {
+      const { identifier, credential } = req.body;
+      if (!identifier || !credential) {
+        return res.status(400).json({ message: "Identifier and credential are required" });
+      }
+      const hubResponse = await crossAppSsoLogin(identifier, credential);
+      res.json({ success: true, hub: hubResponse });
+    } catch (error: any) {
+      res.status(error?.status || 502).json(error?.data || { message: "Trust Layer Hub SSO unavailable" });
+    }
+  });
+
+  app.post("/api/ecosystem/hub/register", async (req: Request, res: Response) => {
+    try {
+      const { username, email, password, displayName } = req.body;
+      if (!username || !email || !password) {
+        return res.status(400).json({ message: "Username, email, and password are required" });
+      }
+      const hubResponse = await crossAppRegister({ username, email, password, displayName });
+      res.json({ success: true, hub: hubResponse });
+    } catch (error: any) {
+      res.status(error?.status || 502).json(error?.data || { message: "Trust Layer Hub registration unavailable" });
+    }
+  });
+
+  app.get("/api/ecosystem/hub/status", async (_req: Request, res: Response) => {
+    res.json({
+      trustLayerHub: TRUST_LAYER_HUB,
+      endpoints: {
+        registerApp: `${TRUST_LAYER_HUB}/api/admin/ecosystem/register-app`,
+        ssoLogin: `${TRUST_LAYER_HUB}/api/auth/ecosystem-login`,
+        register: `${TRUST_LAYER_HUB}/api/chat/auth/register`,
+      },
+      connectedApps: ["THE VOID", "Happy Eats", "TL Driver Connect", "TrustHome", "Trust Vault"],
+      verdara: {
+        appId: "dw_app_verdara",
+        appNumber: 28,
+        ssoEnabled: true,
+      },
+    });
+  });
 
   // ─── TrustShield (Vendor Verification) ───────────────────────
   app.get("/api/ecosystem/trustshield/score/:projectId", async (req: Request, res: Response) => {
@@ -550,17 +686,24 @@ function registerTrustHomeRoutes(app: Express) {
       status: "ok",
       app: "Verdara",
       appId: "dw_app_verdara",
+      appNumber: 28,
       ecosystem: "DarkWave Trust Layer",
+      trustLayerHub: TRUST_LAYER_HUB,
       version: "1.0.0",
-      capabilities: ["identify", "removal-plan", "assess", "species", "sync-user", "sso"],
+      capabilities: ["identify", "removal-plan", "assess", "species", "sync-user", "sso", "marketplace", "catalog", "trip-planner"],
       sso: {
         enabled: true,
         endpoints: {
           redirect: "/api/auth/sso/redirect",
           api: "/api/auth/sso",
+          ecosystemLogin: "/api/auth/ecosystem-login",
+          hubSsoLogin: "/api/ecosystem/hub/sso-login",
+          hubRegister: "/api/ecosystem/hub/register",
+          hubStatus: "/api/ecosystem/hub/status",
         },
-        description: "Pass JWT token as ?token= param to redirect endpoint, or POST { token } to API endpoint",
+        description: "Pass JWT token as ?token= param to redirect endpoint, or POST { token } to API endpoint. Cross-app SSO available via Trust Layer Hub.",
       },
+      connectedApps: ["THE VOID", "Happy Eats", "TL Driver Connect", "TrustHome", "Trust Vault"],
     });
   });
 

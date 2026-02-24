@@ -48,3 +48,6 @@ integrations = ["javascript_log_in_with_replit:2.0.0", "resend:1.0.0", "javascri
 VERDARA_API_KEY = "verdara_live_65f78d2c009bca0f34532cbe67c34a31"
 VERDARA_API_SECRET = "432d7f9eb6d70caa80bf9cc383428b12efc320fcb9acbdc6861ae4ec2d5da43a"
 TRUSTHOME_BASE_URL = "https://trusthome.replit.app"
+TRUST_LAYER_HUB_API_KEY = "dw_app_db1045c06ca55253ee96eabee71293e1365892fa3ccdd63d"
+TRUST_LAYER_HUB_API_SECRET = "dw_secret_1abd64c2e1d1198c791cd8302a170a383698e9f21eb4c7b420891effb8bf6389"
+TRUST_LAYER_HUB_APP_ID = "ac4f66a4-8f1d-4ff9-9019-45316afc53fc"
