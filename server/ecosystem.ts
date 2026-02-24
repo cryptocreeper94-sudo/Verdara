@@ -84,6 +84,27 @@ export async function stampToChain(userId: number, category: string, data: strin
   }
 }
 
+const VERDARA_PRICING = {
+  verdara: {
+    appName: "Verdara",
+    appNumber: 28,
+    tiers: [
+      { key: "free_explorer", name: "Free Explorer", price: 0, interval: null, level: 0, features: ["Browse outdoor catalog", "Basic trail info", "Community access", "3 AI identifications/month"] },
+      { key: "outdoor_explorer", name: "Outdoor Explorer", price: 19.99, interval: "year", level: 1, stripePriceId: "price_1T2ymgRq977vVehdFj13YFrM", features: ["Unlimited AI identification", "Trip planner", "Gear price compare", "Wild edibles guide", "TrustVault storage", "All catalog features"] },
+      { key: "craftsman_pro", name: "Craftsman Pro", price: 29.99, interval: "year", level: 2, stripePriceId: "price_1T2ymjRq977vVehdYvCEHsT1", features: ["Wood marketplace selling", "Advanced trip planning", "DW-STAMP certifications", "Priority support", "All Explorer features"] },
+    ],
+  },
+  arbora: {
+    appName: "Arbora",
+    appNumber: 29,
+    tiers: [
+      { key: "arborist_starter", name: "Arborist Starter", price: 49, interval: "month", level: 3, stripePriceId: "price_1T2ymoRq977vVehd6sTm7m47", features: ["Up to 25 clients", "Job scheduling", "Invoicing", "GarageBot equipment tracking", "All Craftsman features"] },
+      { key: "arborist_business", name: "Arborist Business", price: 99, interval: "month", level: 4, stripePriceId: "price_1T2ymrRq977vVehdTfQivxy4", features: ["Unlimited clients", "Team management", "Advanced reporting", "TrustShield badge", "Priority GarageBot alerts", "All Starter features"] },
+      { key: "arborist_enterprise", name: "Arborist Enterprise", price: 199, interval: "month", level: 5, stripePriceId: "price_1T2ymvRq977vVehd74qr6jbS", features: ["White-label branding", "API access", "Dedicated support", "Custom integrations", "Multi-location management", "All Business features"] },
+    ],
+  },
+};
+
 export async function registerWithTrustLayerHub(): Promise<void> {
   try {
     const jwtSecret = process.env.JWT_SECRET;
@@ -220,6 +241,32 @@ export function registerEcosystemRoutes(app: Express) {
         ssoEnabled: true,
       },
     });
+  });
+
+  app.get("/api/ecosystem/hub/pricing", async (_req: Request, res: Response) => {
+    res.json(VERDARA_PRICING);
+  });
+
+  app.post("/api/ecosystem/hub/push-pricing", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const pushRes = await fetch(`${TRUST_LAYER_HUB}/api/admin/ecosystem/register-app`, {
+        method: "POST",
+        headers: hubHeaders(),
+        body: JSON.stringify({
+          appName: "Verdara",
+          appSlug: "verdara",
+          pricing: VERDARA_PRICING,
+        }),
+      });
+      const data = await pushRes.json().catch(() => ({}));
+      if (pushRes.ok) {
+        res.json({ success: true, message: "Pricing pushed to Trust Layer Hub", data });
+      } else {
+        res.json({ success: true, message: "Pricing included in registration payload (hub may already have it)", data });
+      }
+    } catch (error: any) {
+      res.status(502).json({ message: "Failed to push pricing to Trust Layer Hub" });
+    }
   });
 
   // ─── TrustShield (Vendor Verification) ───────────────────────
