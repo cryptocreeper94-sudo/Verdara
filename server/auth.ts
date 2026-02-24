@@ -138,14 +138,46 @@ export function registerAuthRoutes(app: Express) {
       }
 
       const { email, password } = parsed.data;
-      const user = await storage.getUserByEmail(email);
-      if (!user) {
-        return res.status(401).json({ message: "Invalid email or password" });
-      }
+      let user = await storage.getUserByEmail(email);
 
-      const passwordMatch = await bcrypt.compare(password, user.passwordHash);
-      if (!passwordMatch) {
-        return res.status(401).json({ message: "Invalid email or password" });
+      if (!user) {
+        try {
+          const hubRes = await fetch("https://orbitstaffing.io/api/auth/ecosystem-login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(process.env.TRUST_LAYER_HUB_API_KEY ? { "x-api-key": process.env.TRUST_LAYER_HUB_API_KEY } : {}),
+            },
+            body: JSON.stringify({ identifier: email, credential: password, appSlug: "verdara" }),
+          });
+
+          if (hubRes.ok) {
+            const hubData = await hubRes.json();
+            const hubUser = hubData.user || hubData;
+            const trustLayerId = hubUser.trustLayerId || hubUser.trust_layer_id || generateTrustLayerIdPublic();
+            const displayName = hubUser.displayName || hubUser.display_name || hubUser.username || "Explorer";
+
+            const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+            user = await storage.createUser({
+              firstName: displayName.split(" ")[0] || "Explorer",
+              lastName: displayName.split(" ").slice(1).join(" ") || "",
+              email: email.toLowerCase(),
+              passwordHash,
+              emailVerified: true,
+              trustLayerId,
+            });
+            console.log(`[Login] Auto-created Verdara account for Trust Layer member: ${email} (${trustLayerId})`);
+          } else {
+            return res.status(401).json({ message: "Invalid email or password" });
+          }
+        } catch {
+          return res.status(401).json({ message: "Invalid email or password" });
+        }
+      } else {
+        const passwordMatch = await bcrypt.compare(password, user.passwordHash);
+        if (!passwordMatch) {
+          return res.status(401).json({ message: "Invalid email or password" });
+        }
       }
 
       const sessionToken = generateToken();
@@ -248,25 +280,58 @@ export function registerAuthRoutes(app: Express) {
       }
 
       if (!user) {
-        return res.status(401).json({ message: "No ecosystem account found. Check your Trust Layer ID or email." });
-      }
+        try {
+          const hubRes = await fetch("https://orbitstaffing.io/api/auth/ecosystem-login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(process.env.TRUST_LAYER_HUB_API_KEY ? { "x-api-key": process.env.TRUST_LAYER_HUB_API_KEY } : {}),
+            },
+            body: JSON.stringify({ identifier: trimmedId, credential: trimmedCred, appSlug: "verdara" }),
+          });
 
-      if (!user.trustLayerId) {
-        return res.status(401).json({ message: "This account is not linked to the Trust Layer ecosystem. Please sign in with your email and password instead." });
-      }
+          if (hubRes.ok) {
+            const hubData = await hubRes.json();
+            const hubUser = hubData.user || hubData;
+            const trustLayerId = hubUser.trustLayerId || hubUser.trust_layer_id || generateTrustLayerIdPublic();
+            const hubEmail = hubUser.email || (trimmedId.includes("@") ? trimmedId.toLowerCase() : `${trustLayerId}@trustlayer.ecosystem`);
+            const displayName = hubUser.displayName || hubUser.display_name || hubUser.username || "Explorer";
 
-      let authenticated = false;
+            const passwordHash = await bcrypt.hash(trimmedCred, SALT_ROUNDS);
+            user = await storage.createUser({
+              firstName: displayName.split(" ")[0] || "Explorer",
+              lastName: displayName.split(" ").slice(1).join(" ") || "",
+              email: hubEmail,
+              passwordHash,
+              emailVerified: true,
+              trustLayerId,
+            });
+            console.log(`[Ecosystem Login] Auto-created Verdara account for Trust Layer member: ${hubEmail} (${trustLayerId})`);
+          } else {
+            return res.status(401).json({ message: "No ecosystem account found. Please register first or check your credentials." });
+          }
+        } catch (hubError: any) {
+          console.warn("[Ecosystem Login] Hub verification failed:", hubError?.message || "unknown");
+          return res.status(401).json({ message: "No ecosystem account found. Check your Trust Layer ID or email." });
+        }
+      } else {
+        if (!user.trustLayerId) {
+          return res.status(401).json({ message: "This account is not linked to the Trust Layer ecosystem. Please sign in with your email and password instead." });
+        }
 
-      if (user.ecosystemPinHash && trimmedCred.length <= 8 && /^\d+$/.test(trimmedCred)) {
-        authenticated = await bcrypt.compare(trimmedCred, user.ecosystemPinHash);
-      }
+        let authenticated = false;
 
-      if (!authenticated) {
-        authenticated = await bcrypt.compare(trimmedCred, user.passwordHash);
-      }
+        if (user.ecosystemPinHash && trimmedCred.length <= 8 && /^\d+$/.test(trimmedCred)) {
+          authenticated = await bcrypt.compare(trimmedCred, user.ecosystemPinHash);
+        }
 
-      if (!authenticated) {
-        return res.status(401).json({ message: "Invalid credential. Please check your password or ecosystem PIN." });
+        if (!authenticated) {
+          authenticated = await bcrypt.compare(trimmedCred, user.passwordHash);
+        }
+
+        if (!authenticated) {
+          return res.status(401).json({ message: "Invalid credential. Please check your password or ecosystem PIN." });
+        }
       }
 
       const sessionToken = generateToken();
