@@ -115,6 +115,7 @@ export async function registerWithTrustLayerHub(): Promise<void> {
           status: `${appHost}/api/ecosystem/status`,
         },
       },
+      pricing: VERDARA_PRICING,
       version: "1.0.0",
     };
 
