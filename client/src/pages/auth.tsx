@@ -48,6 +48,7 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [ssoLoading, setSsoLoading] = useState(false);
   const [ecosystemLoading, setEcosystemLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const { login, register: registerUser } = useAuth();
   const { toast } = useToast();
   const [, navigate] = useLocation();
@@ -154,7 +155,7 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
       email: values.email,
       interactions: interactionLog.current.slice(-20),
     });
-    login.mutate(values, {
+    login.mutate({ ...values, rememberMe }, {
       onSuccess: () => {
         trackAuthEvent('login_success', { email: values.email });
         navigate("/");
@@ -373,6 +374,16 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
                       </FormItem>
                     )}
                   />
+                  <label className="flex items-center gap-2 cursor-pointer select-none" data-testid="label-remember-me">
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="w-4 h-4 rounded border-input accent-emerald-500"
+                      data-testid="checkbox-remember-me"
+                    />
+                    <span className="text-sm text-muted-foreground">Keep me signed in for 30 days</span>
+                  </label>
                   <Button
                     type="submit"
                     className="w-full bg-emerald-600 text-white"

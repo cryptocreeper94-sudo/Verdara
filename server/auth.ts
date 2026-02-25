@@ -8,7 +8,8 @@ import { sendVerificationEmail } from "./email";
 import { generateTrustLayerIdPublic } from "./trustlayer-sso";
 
 const SALT_ROUNDS = 12;
-const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
+const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
+const SHORT_SESSION_MS = 24 * 60 * 60 * 1000;
 const TRUST_LAYER_HUB = "https://orbitstaffing.io";
 
 async function verifyWithTrustLayerHub(identifier: string, credential: string): Promise<{ verified: boolean; user?: any }> {
@@ -163,6 +164,7 @@ export function registerAuthRoutes(app: Express) {
       }
 
       const { email, password } = parsed.data;
+      const rememberMe = req.body.rememberMe !== false;
       let user = await storage.getUserByEmail(email);
 
       if (!user) {
@@ -196,15 +198,16 @@ export function registerAuthRoutes(app: Express) {
         }
       }
 
+      const duration = rememberMe ? SESSION_DURATION_MS : SHORT_SESSION_MS;
       const sessionToken = generateToken();
-      const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
+      const expiresAt = new Date(Date.now() + duration);
       await storage.createSession(user.id, sessionToken, expiresAt);
 
       res.cookie("session_token", sessionToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
-        maxAge: SESSION_DURATION_MS,
+        maxAge: duration,
         path: "/",
       });
 
