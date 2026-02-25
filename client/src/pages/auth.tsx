@@ -336,7 +336,8 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
                           <Input
                             {...field}
                             {...inputTrackingProps("login-email", field.onBlur)}
-                            type="email"
+                            type="text"
+                            inputMode="text"
                             autoComplete="email"
                             placeholder="you@example.com"
                             data-testid="input-login-email"
@@ -442,7 +443,8 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
                           <Input
                             {...field}
                             {...inputTrackingProps("register-email", field.onBlur)}
-                            type="email"
+                            type="text"
+                            inputMode="text"
                             autoComplete="email"
                             placeholder="you@example.com"
                             data-testid="input-register-email"
