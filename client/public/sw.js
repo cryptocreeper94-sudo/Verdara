@@ -1,8 +1,6 @@
-const CACHE_NAME = 'verdara-v5';
+const CACHE_NAME = 'verdara-v6';
 const MAX_API_ENTRIES = 50;
 const MAX_IMAGE_ENTRIES = 100;
-
-const PRECACHE_URLS = [];
 
 const STALE_WHILE_REVALIDATE_URLS = [
   '/api/trails',
@@ -18,7 +16,7 @@ const NETWORK_FIRST_PATTERNS = [
   /^\/api\/arborist\//,
 ];
 
-self.addEventListener('install', (event) => {
+self.addEventListener('install', () => {
   self.skipWaiting();
 });
 
@@ -26,9 +24,7 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
-        keys
-          .filter((key) => key !== CACHE_NAME)
-          .map((key) => caches.delete(key))
+        keys.map((key) => caches.delete(key))
       )
     ).then(() => self.clients.claim())
      .then(() => self.clients.matchAll().then((clients) => {
@@ -114,6 +110,13 @@ self.addEventListener('fetch', (event) => {
 
   if (event.request.method !== 'GET') return;
   if (url.origin !== self.location.origin) return;
+
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match(event.request))
+    );
+    return;
+  }
 
   if (isNetworkFirst(url)) {
     event.respondWith(networkFirst(event.request));
