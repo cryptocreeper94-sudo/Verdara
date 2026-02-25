@@ -9,6 +9,31 @@ import { generateTrustLayerIdPublic } from "./trustlayer-sso";
 
 const SALT_ROUNDS = 12;
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
+const TRUST_LAYER_HUB = "https://orbitstaffing.io";
+
+async function verifyWithTrustLayerHub(identifier: string, credential: string): Promise<{ verified: boolean; user?: any }> {
+  const apiKey = process.env.TRUST_LAYER_HUB_API_KEY;
+  const apiSecret = process.env.TRUST_LAYER_HUB_API_SECRET;
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (apiKey) headers["x-api-key"] = apiKey;
+  if (apiSecret) headers["x-api-secret"] = apiSecret;
+
+  const endpoints = [
+    { url: `${TRUST_LAYER_HUB}/api/auth/ecosystem-login`, body: { identifier, credential, appSlug: "verdara" } },
+    { url: `${TRUST_LAYER_HUB}/api/chat/auth/login`, body: { username: identifier, password: credential } },
+  ];
+
+  for (const ep of endpoints) {
+    try {
+      const res = await fetch(ep.url, { method: "POST", headers, body: JSON.stringify(ep.body) });
+      if (res.ok) {
+        const data = await res.json();
+        return { verified: true, user: data.user || data };
+      }
+    } catch {}
+  }
+  return { verified: false };
+}
 
 const TRUSTED_ISSUERS = [
   "trust-layer-sso",
@@ -142,19 +167,10 @@ export function registerAuthRoutes(app: Express) {
 
       if (!user) {
         try {
-          const hubRes = await fetch("https://orbitstaffing.io/api/auth/ecosystem-login", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              ...(process.env.TRUST_LAYER_HUB_API_KEY ? { "x-api-key": process.env.TRUST_LAYER_HUB_API_KEY } : {}),
-            },
-            body: JSON.stringify({ identifier: email, credential: password, appSlug: "verdara" }),
-          });
-
-          if (hubRes.ok) {
-            const hubData = await hubRes.json();
-            const hubUser = hubData.user || hubData;
-            const trustLayerId = hubUser.trustLayerId || hubUser.trust_layer_id || generateTrustLayerIdPublic();
+          const hubResult = await verifyWithTrustLayerHub(email, password);
+          if (hubResult.verified) {
+            const hubUser = hubResult.user || {};
+            const trustLayerId = hubUser.trustLayerId || hubUser.trust_layer_id || hubUser.id || generateTrustLayerIdPublic();
             const displayName = hubUser.displayName || hubUser.display_name || hubUser.username || "Explorer";
 
             const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
@@ -164,9 +180,9 @@ export function registerAuthRoutes(app: Express) {
               email: email.toLowerCase(),
               passwordHash,
               emailVerified: true,
-              trustLayerId,
+              trustLayerId: String(trustLayerId).startsWith("tl-") ? trustLayerId : generateTrustLayerIdPublic(),
             });
-            console.log(`[Login] Auto-created Verdara account for Trust Layer member: ${email} (${trustLayerId})`);
+            console.log(`[Login] Auto-created Verdara account for Trust Layer member: ${email} (${user.trustLayerId})`);
           } else {
             return res.status(401).json({ message: "Invalid email or password" });
           }
@@ -281,19 +297,11 @@ export function registerAuthRoutes(app: Express) {
 
       if (!user) {
         try {
-          const hubRes = await fetch("https://orbitstaffing.io/api/auth/ecosystem-login", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              ...(process.env.TRUST_LAYER_HUB_API_KEY ? { "x-api-key": process.env.TRUST_LAYER_HUB_API_KEY } : {}),
-            },
-            body: JSON.stringify({ identifier: trimmedId, credential: trimmedCred, appSlug: "verdara" }),
-          });
-
-          if (hubRes.ok) {
-            const hubData = await hubRes.json();
-            const hubUser = hubData.user || hubData;
-            const trustLayerId = hubUser.trustLayerId || hubUser.trust_layer_id || generateTrustLayerIdPublic();
+          const hubResult = await verifyWithTrustLayerHub(trimmedId, trimmedCred);
+          if (hubResult.verified) {
+            const hubUser = hubResult.user || {};
+            const rawTlId = hubUser.trustLayerId || hubUser.trust_layer_id || hubUser.id;
+            const trustLayerId = rawTlId && String(rawTlId).startsWith("tl-") ? rawTlId : generateTrustLayerIdPublic();
             const hubEmail = hubUser.email || (trimmedId.includes("@") ? trimmedId.toLowerCase() : `${trustLayerId}@trustlayer.ecosystem`);
             const displayName = hubUser.displayName || hubUser.display_name || hubUser.username || "Explorer";
 
