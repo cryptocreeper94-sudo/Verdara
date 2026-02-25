@@ -326,27 +326,23 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
             {mode === "login" ? (
               <Form {...loginForm}>
                 <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-4">
-                  <FormField
-                    control={loginForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            {...inputTrackingProps("login-email", field.onBlur)}
-                            type="text"
-                            inputMode="text"
-                            autoComplete="email"
-                            placeholder="you@example.com"
-                            data-testid="input-login-email"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground" htmlFor="login-email-input">Email</label>
+                    <input
+                      id="login-email-input"
+                      name="email"
+                      type="text"
+                      autoComplete="email"
+                      placeholder="you@example.com"
+                      className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 md:text-sm"
+                      defaultValue={loginForm.getValues("email")}
+                      onChange={(e) => loginForm.setValue("email", e.target.value, { shouldValidate: true })}
+                      data-testid="input-login-email"
+                    />
+                    {loginForm.formState.errors.email && (
+                      <p className="text-sm font-medium text-destructive">{loginForm.formState.errors.email.message}</p>
                     )}
-                  />
+                  </div>
                   <FormField
                     control={loginForm.control}
                     name="password"
@@ -433,27 +429,23 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
                       )}
                     />
                   </div>
-                  <FormField
-                    control={registerForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            {...inputTrackingProps("register-email", field.onBlur)}
-                            type="text"
-                            inputMode="text"
-                            autoComplete="email"
-                            placeholder="you@example.com"
-                            data-testid="input-register-email"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground" htmlFor="register-email-input">Email</label>
+                    <input
+                      id="register-email-input"
+                      name="email"
+                      type="text"
+                      autoComplete="email"
+                      placeholder="you@example.com"
+                      className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 md:text-sm"
+                      defaultValue={registerForm.getValues("email")}
+                      onChange={(e) => registerForm.setValue("email", e.target.value, { shouldValidate: true })}
+                      data-testid="input-register-email"
+                    />
+                    {registerForm.formState.errors.email && (
+                      <p className="text-sm font-medium text-destructive">{registerForm.formState.errors.email.message}</p>
                     )}
-                  />
+                  </div>
                   <FormField
                     control={registerForm.control}
                     name="password"
