@@ -2,9 +2,7 @@ const CACHE_NAME = 'verdara-v5';
 const MAX_API_ENTRIES = 50;
 const MAX_IMAGE_ENTRIES = 100;
 
-const PRECACHE_URLS = [
-  '/',
-];
+const PRECACHE_URLS = [];
 
 const STALE_WHILE_REVALIDATE_URLS = [
   '/api/trails',
@@ -21,11 +19,6 @@ const NETWORK_FIRST_PATTERNS = [
 ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(PRECACHE_URLS))
-      .catch(() => {})
-  );
   self.skipWaiting();
 });
 
@@ -37,9 +30,11 @@ self.addEventListener('activate', (event) => {
           .filter((key) => key !== CACHE_NAME)
           .map((key) => caches.delete(key))
       )
-    )
+    ).then(() => self.clients.claim())
+     .then(() => self.clients.matchAll().then((clients) => {
+       clients.forEach((client) => client.postMessage({ type: 'SW_UPDATED' }));
+     }))
   );
-  self.clients.claim();
 });
 
 function isImageRequest(url) {
