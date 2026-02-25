@@ -70,12 +70,10 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
     if (interactionLog.current.length > 50) interactionLog.current.shift();
   }, []);
 
-  const inputTrackingProps = useCallback((fieldName: string) => ({
+  const inputTrackingProps = useCallback((fieldName: string, fieldOnBlur?: () => void) => ({
     onFocus: () => trackInput(fieldName, "focus"),
-    onBlur: () => trackInput(fieldName, "blur"),
+    onBlur: () => { trackInput(fieldName, "blur"); fieldOnBlur?.(); },
     onTouchStart: () => trackInput(fieldName, "touch"),
-    onKeyDown: () => trackInput(fieldName, "keydown"),
-    onInput: () => trackInput(fieldName, "input"),
   }), [trackInput]);
 
   useEffect(() => {
@@ -337,12 +335,9 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
                         <FormControl>
                           <Input
                             {...field}
-                            {...inputTrackingProps("login-email")}
+                            {...inputTrackingProps("login-email", field.onBlur)}
                             type="email"
-                            inputMode="email"
                             autoComplete="email"
-                            autoCapitalize="off"
-                            autoCorrect="off"
                             placeholder="you@example.com"
                             data-testid="input-login-email"
                           />
@@ -361,7 +356,7 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
                           <FormControl>
                             <Input
                               {...field}
-                              {...inputTrackingProps("login-password")}
+                              {...inputTrackingProps("login-password", field.onBlur)}
                               type={showPassword ? "text" : "password"}
                               placeholder="Enter your password"
                               className="pr-10"
@@ -409,7 +404,7 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
                           <FormControl>
                             <Input
                               {...field}
-                              {...inputTrackingProps("register-firstname")}
+                              {...inputTrackingProps("register-firstname", field.onBlur)}
                               placeholder="First"
                               data-testid="input-register-firstname"
                             />
@@ -427,7 +422,7 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
                           <FormControl>
                             <Input
                               {...field}
-                              {...inputTrackingProps("register-lastname")}
+                              {...inputTrackingProps("register-lastname", field.onBlur)}
                               placeholder="Last"
                               data-testid="input-register-lastname"
                             />
@@ -446,12 +441,9 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
                         <FormControl>
                           <Input
                             {...field}
-                            {...inputTrackingProps("register-email")}
+                            {...inputTrackingProps("register-email", field.onBlur)}
                             type="email"
-                            inputMode="email"
                             autoComplete="email"
-                            autoCapitalize="off"
-                            autoCorrect="off"
                             placeholder="you@example.com"
                             data-testid="input-register-email"
                           />
@@ -470,8 +462,8 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
                           <FormControl>
                             <Input
                               {...field}
+                              {...inputTrackingProps("register-password", field.onBlur)}
                               type={showPassword ? "text" : "password"}
-                              {...inputTrackingProps("register-password")}
                               placeholder="8+ chars, 1 capital, 1 special"
                               className="pr-10"
                               data-testid="input-register-password"
@@ -499,8 +491,8 @@ export default function AuthPage({ onBack }: { onBack?: () => void }) {
                           <FormControl>
                             <Input
                               {...field}
+                              {...inputTrackingProps("register-confirm", field.onBlur)}
                               type={showConfirmPassword ? "text" : "password"}
-                              {...inputTrackingProps("register-confirm")}
                               placeholder="Confirm your password"
                               className="pr-10"
                               data-testid="input-register-confirm-password"
