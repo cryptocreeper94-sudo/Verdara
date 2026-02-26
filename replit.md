@@ -34,7 +34,7 @@ Verdara is built as part of the DarkWave Trust Layer (DWTL) ecosystem (App #28) 
     - **Arborist Pro:** Client management, job scheduling, and invoicing.
     - **Arbora (App #29):** Standalone PWA at `/arbora/*` for arborist business management, featuring CRM, estimates, job management, invoicing, calendar, crew, and inventory.
     - **Trip Planner:** Route builder, gear checklists, and weather forecasts.
-    - **Price Compare:** Template-driven universal comparison engine across 90+ affiliate retailers in 18 categories. Amazon Associates affiliate tag `verdara-20` is embedded in all Amazon links (search and browse). Amazon is listed first among retailers. eBay Partner Network integrated (campaign ID pending). Customer service routed to Team@dwsc.io across all contact points (sidebar, pricing, developer portal).
+    - **Price Compare:** Template-driven universal comparison engine across 90+ affiliate retailers in 18 categories. Amazon Associates affiliate tag `verdara-20` is embedded in all Amazon links (search and browse). Amazon is listed first among retailers. eBay Partner Network integrated (campaign ID 5339140935). Customer service routed to Team@dwsc.io across all contact points (sidebar, pricing, developer portal).
     - **Wild Edibles & Natural Medicine:** Database of wild plants with identification integration.
     - **Signal Chat:** Real-time WebSocket chat with Trust Layer SSO, supporting channel-based messaging and presence.
     - **Developer Portal:** Provides roadmap, affiliate network, and business suite preview.
