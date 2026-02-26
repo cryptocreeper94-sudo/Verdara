@@ -116,6 +116,15 @@ export function AppLayout({ children, onShowAuth }: { children: React.ReactNode;
               {sidebarOpen && <span>Log In / Sign Up</span>}
             </Button>
           )}
+          <Link href="/ecosystem">
+            <div className={cn(
+              "flex items-center gap-2 px-2 py-1.5 rounded-md text-sidebar-foreground/50 hover:text-emerald-400 transition-colors cursor-pointer text-xs",
+              !sidebarOpen && "justify-center"
+            )} data-testid="link-trust-layer">
+              <Shield className="w-3.5 h-3.5 flex-shrink-0" />
+              {sidebarOpen && <span>Trust Layer</span>}
+            </div>
+          </Link>
           <div className={cn("flex gap-2", !sidebarOpen ? "flex-col items-center" : "items-center")}>
             <Button
               size="icon"

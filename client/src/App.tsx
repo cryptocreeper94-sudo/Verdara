@@ -64,6 +64,7 @@ import { OnboardingModal, useOnboarding } from "@/components/onboarding-modal";
 import { initErrorTracking } from "@/lib/error-tracker";
 import { ErrorBoundary } from "@/components/error-boundary";
 import Diagnostics from "@/pages/diagnostics";
+import Ecosystem from "@/pages/ecosystem";
 
 
 function AppContent() {
@@ -97,6 +98,10 @@ function AppContent() {
 
   if (!isAuthenticated && location === "/" && !browsing) {
     return <Landing onGetStarted={() => setShowAuth(true)} onBrowse={() => { setBrowsing(true); }} />;
+  }
+
+  if (location === "/ecosystem") {
+    return <Ecosystem />;
   }
 
   if (location === "/signal-chat") {
