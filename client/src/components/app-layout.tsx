@@ -3,7 +3,7 @@ import { useTheme } from "./theme-provider";
 import { useAuth } from "@/hooks/use-auth";
 import {
   Home, ScanSearch, Map, CalendarDays, Store, User,
-  Sun, Moon, TreePine, Menu, Compass, Gauge, Axe, MapPinned, Code, LogIn, DollarSign, Radio, Shield, Crown, BookOpen
+  Sun, Moon, TreePine, Menu, Compass, Gauge, Axe, MapPinned, Code, LogIn, DollarSign, Radio, Shield, Crown, BookOpen, Mail
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -125,6 +125,15 @@ export function AppLayout({ children, onShowAuth }: { children: React.ReactNode;
               {sidebarOpen && <span>Trust Layer</span>}
             </div>
           </Link>
+          <a href="mailto:Team@dwsc.io">
+            <div className={cn(
+              "flex items-center gap-2 px-2 py-1.5 rounded-md text-sidebar-foreground/50 hover:text-emerald-400 transition-colors cursor-pointer text-xs",
+              !sidebarOpen && "justify-center"
+            )} data-testid="link-support">
+              <Mail className="w-3.5 h-3.5 flex-shrink-0" />
+              {sidebarOpen && <span>Support</span>}
+            </div>
+          </a>
           <div className={cn("flex gap-2", !sidebarOpen ? "flex-col items-center" : "items-center")}>
             <Button
               size="icon"

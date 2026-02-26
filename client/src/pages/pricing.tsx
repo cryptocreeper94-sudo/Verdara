@@ -240,9 +240,11 @@ export default function Pricing() {
           <p className="text-muted-foreground mb-4 max-w-xl mx-auto">
             For large arborist operations, municipal contracts, or enterprise deployments — reach out and we'll build a plan tailored to your needs.
           </p>
-          <Button variant="outline" data-testid="button-contact-sales">
-            Contact Sales <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
+          <a href="mailto:Team@dwsc.io">
+            <Button variant="outline" data-testid="button-contact-sales">
+              Contact Sales <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          </a>
         </motion.div>
       </div>
     </div>

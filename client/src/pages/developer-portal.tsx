@@ -287,7 +287,7 @@ const quickLinks = [
   { title: "Affiliate Research Doc", description: "Download the full affiliate program directory", href: "#", available: true },
   { title: "API Documentation", description: "RESTful API reference and guides", href: "#", available: false },
   { title: "Brand Guidelines", description: "Verdara brand assets and usage rules", href: "#", available: false },
-  { title: "Contact DarkWave", description: "Reach the development team", href: "mailto:contact@darkwavestudios.dev", available: true },
+  { title: "Contact DarkWave", description: "Reach the development team", href: "mailto:Team@dwsc.io", available: true },
 ];
 
 const statusConfig: Record<PhaseStatus, { label: string; badgeClass: string; icon: typeof CheckCircle2; borderClass: string }> = {
