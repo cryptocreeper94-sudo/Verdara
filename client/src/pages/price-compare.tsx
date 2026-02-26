@@ -22,6 +22,7 @@ interface Retailer {
 }
 
 const retailers: Retailer[] = [
+  { name: "Amazon Outdoors", url: "https://www.amazon.com/?tag=verdara-20", searchUrl: "https://www.amazon.com/s?k={q}&tag=verdara-20", categories: ["Camping", "Hiking", "Fishing", "Hunting", "Knives & Blades", "Firearms & Ammo"], status: "active", network: "Amazon Associates", commission: "1-4%", cookie: "24 hours" },
   { name: "REI", url: "https://www.rei.com", searchUrl: "https://www.rei.com/search?q={q}", categories: ["Camping", "Hiking", "Climbing", "Cycling", "Water Sports", "Winter"], status: "active", network: "Impact", commission: "5%", cookie: "15 days" },
   { name: "Bass Pro Shops", url: "https://www.basspro.com", searchUrl: "https://www.basspro.com/shop/en/search?q={q}", categories: ["Fishing", "Hunting", "Camping", "Boating", "Firearms & Ammo"], status: "active", network: "Impact", commission: "1-5%", cookie: "14 days" },
   { name: "Cabela's", url: "https://www.cabelas.com", searchUrl: "https://www.cabelas.com/shop/en/search?q={q}", categories: ["Hunting", "Fishing", "Camping", "Shooting", "Firearms & Ammo"], status: "active", network: "Impact", commission: "1-5%", cookie: "14 days" },
@@ -31,7 +32,6 @@ const retailers: Retailer[] = [
   { name: "Sportsman's Warehouse", url: "https://www.sportsmans.com", searchUrl: "https://www.sportsmans.com/search?q={q}", categories: ["Hunting", "Fishing", "Camping", "Shooting", "Firearms & Ammo", "Knives & Blades"], status: "active", network: "AvantLink", commission: "3-5%", cookie: "14 days" },
   { name: "Academy Sports", url: "https://www.academy.com", searchUrl: "https://www.academy.com/search?query={q}", categories: ["Camping", "Fishing", "Hunting", "Cycling"], status: "active", network: "CJ", commission: "4%", cookie: "7 days" },
   { name: "Dick's Sporting Goods", url: "https://www.dickssportinggoods.com", searchUrl: "https://www.dickssportinggoods.com/search?searchTerm={q}", categories: ["Camping", "Hiking", "Cycling", "Water Sports"], status: "active", network: "Impact", commission: "2-5%", cookie: "3-14 days" },
-  { name: "Amazon Outdoors", url: "https://www.amazon.com", searchUrl: "https://www.amazon.com/s?k={q}", categories: ["Camping", "Hiking", "Fishing", "Hunting", "Knives & Blades", "Firearms & Ammo"], status: "active", network: "Direct", commission: "3%", cookie: "24 hours" },
 
   { name: "Kelty", url: "https://www.kelty.com", searchUrl: "https://www.kelty.com/search/?q={q}", categories: ["Camping", "Hiking"], status: "active", network: "AvantLink", commission: "8-10%", cookie: "30 days" },
   { name: "Big Agnes", url: "https://www.bigagnes.com", searchUrl: "https://www.bigagnes.com/search?q={q}", categories: ["Camping", "Hiking"], status: "active", network: "AvantLink", commission: "8%", cookie: "30 days" },
