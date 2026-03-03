@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { Settings, TreePine, Leaf, DollarSign, Wrench, TrendingUp, Heart, ScanSearch, Store, ChevronRight, MapPin, Package, Coins, Wallet, Globe, Search } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Settings, TreePine, Leaf, DollarSign, Wrench, TrendingUp, Heart, ScanSearch, Store, ChevronRight, MapPin, Package, Coins, Wallet, Globe, Search, Shield, X, ExternalLink, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,24 @@ const activityColors: Record<string, string> = {
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const [genesisModalOpen, setGenesisModalOpen] = useState(false);
+
+  const { data: genesisRaw } = useQuery({
+    queryKey: ['/api/hallmark/genesis'],
+  });
+  const genesis = (genesisRaw as any)?.hallmark as {
+    thId: string;
+    appId: string;
+    appName: string;
+    productName: string;
+    releaseType: string;
+    metadata: Record<string, any>;
+    dataHash: string;
+    txHash: string;
+    blockHeight: string;
+    createdAt: string;
+  } | undefined;
+
   const { data: trailsData } = useQuery({ queryKey: ['/api/trails/featured'] });
   const featuredTrails = (trailsData || []) as any[];
   const { data: activityData } = useQuery({ queryKey: ['/api/user/activity'] });
@@ -436,6 +454,128 @@ export default function Dashboard() {
           </Accordion>
         </motion.div>
       </div>
+
+      {genesis && (
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.45 }}
+          className="mt-8 pt-6 border-t border-card-border"
+        >
+          <button
+            onClick={() => setGenesisModalOpen(true)}
+            className="flex items-center gap-2.5 mx-auto px-4 py-2.5 rounded-lg bg-emerald-500/10 hover-elevate cursor-pointer"
+            data-testid="button-genesis-hallmark"
+          >
+            <Shield className="w-4 h-4 text-emerald-500" />
+            <span className="text-xs font-medium text-emerald-500">Genesis Hallmark</span>
+            <Badge className="bg-emerald-500/15 text-emerald-500 text-[10px]">{genesis.thId}</Badge>
+          </button>
+        </motion.div>
+      )}
+
+      <AnimatePresence>
+        {genesisModalOpen && genesis && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+            onClick={() => setGenesisModalOpen(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-card border border-card-border rounded-2xl w-full max-w-lg max-h-[85vh] overflow-y-auto p-6"
+              onClick={(e) => e.stopPropagation()}
+              data-testid="modal-genesis-detail"
+            >
+              <div className="flex items-center justify-between gap-3 mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-emerald-500/15 flex items-center justify-center">
+                    <Shield className="w-5 h-5 text-emerald-500" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-bold text-foreground">Genesis Hallmark</h2>
+                    <p className="text-xs text-muted-foreground">{genesis.thId}</p>
+                  </div>
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => setGenesisModalOpen(false)} data-testid="button-close-genesis-modal">
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+
+              <div className="space-y-5">
+                <div>
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Application Info</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-3 py-1.5">
+                      <span className="text-xs text-muted-foreground">App Name</span>
+                      <span className="text-xs font-medium text-foreground" data-testid="text-genesis-app-name">{genesis.appName}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-3 py-1.5">
+                      <span className="text-xs text-muted-foreground">Product</span>
+                      <span className="text-xs font-medium text-foreground">{genesis.productName}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-3 py-1.5">
+                      <span className="text-xs text-muted-foreground">Release Type</span>
+                      <Badge className="bg-emerald-500/15 text-emerald-500 text-[10px]">{genesis.releaseType}</Badge>
+                    </div>
+                    <div className="flex items-center justify-between gap-3 py-1.5">
+                      <span className="text-xs text-muted-foreground">Created</span>
+                      <span className="text-xs font-medium text-foreground">{new Date(genesis.createdAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t border-card-border pt-5">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Blockchain Record</h3>
+                  <div className="space-y-2">
+                    <div className="py-1.5">
+                      <span className="text-xs text-muted-foreground block mb-1">Data Hash</span>
+                      <code className="text-[10px] font-mono text-foreground break-all bg-muted/50 px-2 py-1 rounded" data-testid="text-genesis-data-hash">{genesis.dataHash}</code>
+                    </div>
+                    <div className="py-1.5">
+                      <span className="text-xs text-muted-foreground block mb-1">Transaction Hash</span>
+                      <code className="text-[10px] font-mono text-foreground break-all bg-muted/50 px-2 py-1 rounded" data-testid="text-genesis-tx-hash">{genesis.txHash}</code>
+                    </div>
+                    <div className="flex items-center justify-between gap-3 py-1.5">
+                      <span className="text-xs text-muted-foreground">Block Height</span>
+                      <span className="text-xs font-medium text-foreground" data-testid="text-genesis-block-height">{genesis.blockHeight}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t border-card-border pt-5">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Ecosystem Details</h3>
+                  <div className="space-y-2">
+                    {genesis.metadata && Object.entries(genesis.metadata).map(([key, value]) => (
+                      <div key={key} className="flex items-center justify-between gap-3 py-1.5">
+                        <span className="text-xs text-muted-foreground capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                        <span className="text-xs font-medium text-foreground text-right max-w-[60%] truncate">{String(value)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {genesis.metadata?.parentGenesis && (
+                  <div className="border-t border-card-border pt-5">
+                    <div className="flex items-center gap-2.5 p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/15">
+                      <Link2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-foreground">Parent Genesis</p>
+                        <p className="text-[10px] text-muted-foreground">Trust Layer Hub — {String(genesis.metadata.parentGenesis)}</p>
+                      </div>
+                      <ExternalLink className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

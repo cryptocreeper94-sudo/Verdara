@@ -7,7 +7,7 @@ import {
   Anchor, ShieldAlert, Heart, DollarSign, ChevronRight, ArrowLeft,
   Search, Compass, Layers, Star, Lock, Navigation, Flame, BookOpen, Package,
   Camera, Map, CloudSun, Clock, Activity, TrendingUp,
-  Shell, Sun, Droplets, Wheat, Sprout
+  Shell, Sun, Droplets, Wheat, Sprout, Gift, Coins
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -554,6 +554,12 @@ export default function Explore() {
     }
   }, [navigate]);
 
+  const { data: affiliateData } = useQuery({
+    queryKey: ['/api/affiliate/dashboard'],
+    enabled: !!user,
+  });
+  const affiliateStats = affiliateData as { pendingEarnings?: number; totalReferrals?: number } | undefined;
+
   const { data: catalogLocations, isLoading: catalogLoading } = useQuery<any[]>({
     queryKey: ["/api/catalog", { limit: 4, featured: true }],
     queryFn: async () => {
@@ -817,6 +823,41 @@ export default function Explore() {
             </div>
           </GlassCard>
         </motion.div>
+
+        {user && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.55 }}
+          >
+            <Link href="/affiliate">
+              <GlassCard className="p-5 cursor-pointer hover-elevate" data-testid="card-share-earn">
+                <div className="flex items-center justify-between gap-4 flex-wrap">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                      <Gift className="w-5 h-5 text-amber-400" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-sm font-semibold text-foreground">Share & Earn</h3>
+                        {affiliateStats && (affiliateStats.pendingEarnings || 0) > 0 && (
+                          <Badge className="bg-amber-500/15 text-amber-400 text-[10px]" data-testid="badge-earnings-available">
+                            <Coins className="w-3 h-3 mr-1" />
+                            Earnings Available
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">Earn up to 20% SIG commission across the Trust Layer ecosystem</p>
+                    </div>
+                  </div>
+                  <Button className="bg-amber-500 text-white gap-2 text-xs" data-testid="button-share-earn">
+                    <Gift className="w-3.5 h-3.5" /> Share & Earn
+                  </Button>
+                </div>
+              </GlassCard>
+            </Link>
+          </motion.div>
+        )}
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}

@@ -45,6 +45,7 @@ import Pricing from "@/pages/pricing";
 import Blog from "@/pages/blog";
 import BlogDetail from "@/pages/blog-detail";
 import BlogAdmin from "@/pages/blog-admin";
+import Affiliate from "@/pages/affiliate";
 import { ArboraLayout } from "@/components/arbora-layout";
 import ArboraDashboard from "@/pages/arbora-dashboard";
 import ArboraClients from "@/pages/arbora-clients";
@@ -58,7 +59,7 @@ import ArboraInventory from "@/pages/arbora-inventory";
 import ArboraEquipment from "@/pages/arbora-equipment";
 import NotFound from "@/pages/not-found";
 import { Loader2, TreePine } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import { OnboardingModal, useOnboarding } from "@/components/onboarding-modal";
 import { initErrorTracking } from "@/lib/error-tracker";
@@ -78,6 +79,20 @@ function AppContent() {
     initErrorTracking();
     return true;
   });
+
+  useEffect(() => {
+    if (location.startsWith("/ref/")) {
+      const hash = location.replace("/ref/", "");
+      if (hash) {
+        fetch("/api/affiliate/track", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ referralHash: hash, platform: "verdara" }),
+        }).catch(() => {});
+        setLocation("/");
+      }
+    }
+  }, [location, setLocation]);
 
   if (isLoading) {
     return (
@@ -174,6 +189,7 @@ function AppContent() {
         <Route path="/admin" component={Admin} />
         <Route path="/admin/diagnostics" component={Diagnostics} />
         <Route path="/track/:id" component={Track} />
+        <Route path="/affiliate" component={Affiliate} />
 
         <Route component={NotFound} />
       </Switch>

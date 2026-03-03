@@ -9,6 +9,8 @@ import { runAllSeeds } from "./seed";
 import { insertTripPlanSchema, insertMarketplaceListingSchema, insertActivityLogSchema, insertArboristClientSchema, insertArboristJobSchema, insertArboristInvoiceSchema, insertCampgroundBookingSchema, insertCatalogLocationSchema, insertLocationSubmissionSchema, insertReviewSchema, insertBlogPostSchema, insertErrorLogSchema } from "@shared/schema";
 import { registerGarageBotRoutes } from "./garagebot";
 import { registerEcosystemRoutes, registerWithTrustLayerHub, stampToChain } from "./ecosystem";
+import { registerAffiliateRoutes } from "./affiliate";
+import { registerHallmarkRoutes, seedGenesisHallmark } from "./hallmark";
 import Stripe from "stripe";
 import { openai } from "./replit_integrations/image/client";
 import type { Request, Response, NextFunction } from "express";
@@ -53,10 +55,13 @@ export async function registerRoutes(
   registerChatAuthRoutes(app);
   registerGarageBotRoutes(app);
   registerEcosystemRoutes(app);
+  registerHallmarkRoutes(app);
+  registerAffiliateRoutes(app);
   setupChatWebSocket(httpServer);
   seedChatData().catch(console.error);
   runAllSeeds().catch(console.error);
   registerWithTrustLayerHub().catch(console.error);
+  seedGenesisHallmark().catch(console.error);
 
   app.post("/api/diagnostics/log", async (req, res) => {
     try {

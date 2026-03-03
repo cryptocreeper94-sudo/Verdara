@@ -6,6 +6,7 @@ import { storage } from "./storage";
 import { registerSchema, loginSchema } from "@shared/schema";
 import { sendVerificationEmail } from "./email";
 import { generateTrustLayerIdPublic } from "./trustlayer-sso";
+import { createTrustStamp } from "./hallmark";
 
 const SALT_ROUNDS = 12;
 const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
@@ -118,6 +119,7 @@ export function registerAuthRoutes(app: Express) {
       const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
       const trustLayerId = generateTrustLayerIdPublic();
+      const uniqueHash = crypto.randomBytes(12).toString("hex");
       const user = await storage.createUser({
         firstName,
         lastName,
@@ -127,9 +129,16 @@ export function registerAuthRoutes(app: Express) {
         verificationExpires,
         emailVerified: false,
         trustLayerId,
+        uniqueHash,
       });
 
       await sendVerificationEmail(email, verificationToken, firstName);
+
+      createTrustStamp({
+        userId: user.id,
+        category: "auth-register",
+        data: { email: user.email, username: `${firstName} ${lastName}`, appContext: "verdara", timestamp: new Date().toISOString() },
+      }).catch(err => console.warn("[TrustStamp] auth-register failed:", err?.message));
 
       const sessionToken = generateToken();
       const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
@@ -211,6 +220,12 @@ export function registerAuthRoutes(app: Express) {
         path: "/",
       });
 
+      createTrustStamp({
+        userId: user.id,
+        category: "auth-login",
+        data: { ip: req.ip || "unknown", device: req.headers["user-agent"] || "unknown", appContext: "verdara", timestamp: new Date().toISOString() },
+      }).catch(err => console.warn("[TrustStamp] auth-login failed:", err?.message));
+
       return res.json({ user: sanitizeUser(user) });
     } catch (error) {
       console.error("Login error:", error);
@@ -224,6 +239,13 @@ export function registerAuthRoutes(app: Express) {
       if (token) {
         await storage.deleteSession(token);
       }
+
+      createTrustStamp({
+        userId: req.userId!,
+        category: "auth-logout",
+        data: { sessionDuration: "unknown", appContext: "verdara", timestamp: new Date().toISOString() },
+      }).catch(err => console.warn("[TrustStamp] auth-logout failed:", err?.message));
+
       res.clearCookie("session_token");
       return res.json({ message: "Logged out" });
     } catch (error) {

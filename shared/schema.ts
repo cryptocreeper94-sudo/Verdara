@@ -24,6 +24,7 @@ export const users = pgTable("users", {
   trustLayerId: text("trust_layer_id").unique(),
   ecosystemPinHash: text("ecosystem_pin_hash"),
   ecosystemApp: text("ecosystem_app"),
+  uniqueHash: text("unique_hash").unique(),
   memberSince: timestamp("member_since").defaultNow(),
 });
 
@@ -523,3 +524,76 @@ export type BlogPost = typeof blogPosts.$inferSelect;
 export const insertErrorLogSchema = createInsertSchema(errorLogs).omit({ id: true, createdAt: true });
 export type InsertErrorLog = z.infer<typeof insertErrorLogSchema>;
 export type ErrorLog = typeof errorLogs.$inferSelect;
+
+export const hallmarks = pgTable("hallmarks", {
+  id: serial("id").primaryKey(),
+  thId: text("th_id").notNull().unique(),
+  userId: integer("user_id").references(() => users.id),
+  appId: text("app_id"),
+  appName: text("app_name"),
+  productName: text("product_name"),
+  releaseType: text("release_type"),
+  metadata: jsonb("metadata"),
+  dataHash: text("data_hash").notNull(),
+  txHash: text("tx_hash"),
+  blockHeight: text("block_height"),
+  qrCodeSvg: text("qr_code_svg"),
+  verificationUrl: text("verification_url"),
+  hallmarkId: integer("hallmark_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const trustStamps = pgTable("trust_stamps", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  category: text("category").notNull(),
+  data: jsonb("data"),
+  dataHash: text("data_hash").notNull(),
+  txHash: text("tx_hash"),
+  blockHeight: text("block_height"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const hallmarkCounter = pgTable("hallmark_counter", {
+  id: text("id").primaryKey(),
+  currentSequence: text("current_sequence").notNull().default("0"),
+});
+
+export const affiliateReferrals = pgTable("affiliate_referrals", {
+  id: serial("id").primaryKey(),
+  referrerId: integer("referrer_id").notNull().references(() => users.id),
+  referredUserId: integer("referred_user_id").references(() => users.id),
+  referralHash: text("referral_hash").notNull(),
+  platform: text("platform").notNull().default("verdara"),
+  status: text("status").notNull().default("pending"),
+  convertedAt: timestamp("converted_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const affiliateCommissions = pgTable("affiliate_commissions", {
+  id: serial("id").primaryKey(),
+  referrerId: integer("referrer_id").notNull().references(() => users.id),
+  referralId: integer("referral_id").references(() => affiliateReferrals.id),
+  amount: text("amount").notNull(),
+  currency: text("currency").default("SIG"),
+  tier: text("tier").default("base"),
+  status: text("status").default("pending"),
+  paidAt: timestamp("paid_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertHallmarkSchema = createInsertSchema(hallmarks).omit({ id: true, createdAt: true });
+export type InsertHallmark = z.infer<typeof insertHallmarkSchema>;
+export type Hallmark = typeof hallmarks.$inferSelect;
+
+export const insertTrustStampSchema = createInsertSchema(trustStamps).omit({ id: true, createdAt: true });
+export type InsertTrustStamp = z.infer<typeof insertTrustStampSchema>;
+export type TrustStamp = typeof trustStamps.$inferSelect;
+
+export const insertAffiliateReferralSchema = createInsertSchema(affiliateReferrals).omit({ id: true, createdAt: true, convertedAt: true });
+export type InsertAffiliateReferral = z.infer<typeof insertAffiliateReferralSchema>;
+export type AffiliateReferral = typeof affiliateReferrals.$inferSelect;
+
+export const insertAffiliateCommissionSchema = createInsertSchema(affiliateCommissions).omit({ id: true, createdAt: true, paidAt: true });
+export type InsertAffiliateCommission = z.infer<typeof insertAffiliateCommissionSchema>;
+export type AffiliateCommission = typeof affiliateCommissions.$inferSelect;
