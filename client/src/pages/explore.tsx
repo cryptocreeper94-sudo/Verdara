@@ -831,28 +831,31 @@ export default function Explore() {
             transition={{ duration: 0.5, delay: 0.55 }}
           >
             <Link href="/affiliate">
-              <GlassCard className="p-5 cursor-pointer hover-elevate" data-testid="card-share-earn">
-                <div className="flex items-center justify-between gap-4 flex-wrap">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
-                      <Gift className="w-5 h-5 text-amber-400" />
+              <GlassCard className="relative overflow-hidden p-5 cursor-pointer group transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/10 hover:border-amber-500/20" hover data-testid="card-share-earn">
+                <div className="absolute top-0 right-0 w-40 h-40 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl pointer-events-none" />
+                <div className="relative flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/25 flex-shrink-0">
+                      <Gift className="w-5 h-5 text-white" />
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="text-sm font-semibold text-foreground">Share & Earn</h3>
                         {affiliateStats && (affiliateStats.pendingEarnings || 0) > 0 && (
-                          <Badge className="bg-amber-500/15 text-amber-400 text-[10px]" data-testid="badge-earnings-available">
-                            <Coins className="w-3 h-3 mr-1" />
-                            Earnings Available
+                          <Badge className="bg-amber-500/15 text-amber-400 text-[10px] border border-amber-500/20" data-testid="badge-earnings-available">
+                            <Coins className="w-2.5 h-2.5 mr-1" />
+                            {Number(affiliateStats.pendingEarnings).toFixed(2)} SIG
                           </Badge>
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground">Earn up to 20% SIG commission across the Trust Layer ecosystem</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">Earn up to 20% SIG across the Trust Layer ecosystem</p>
                     </div>
                   </div>
-                  <Button className="bg-amber-500 text-white gap-2 text-xs" data-testid="button-share-earn">
-                    <Gift className="w-3.5 h-3.5" /> Share & Earn
+                  <Button className="bg-amber-500/15 text-amber-400 hover:bg-amber-500 hover:text-white gap-2 text-xs transition-all duration-300 flex-shrink-0 hidden sm:flex min-h-[44px]" data-testid="button-share-earn">
+                    <Gift className="w-3.5 h-3.5" /> Start Earning
                   </Button>
+                  <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-amber-400 transition-colors sm:hidden flex-shrink-0" />
                 </div>
               </GlassCard>
             </Link>

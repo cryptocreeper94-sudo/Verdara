@@ -460,16 +460,29 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.45 }}
-          className="mt-8 pt-6 border-t border-card-border"
+          className="mt-8"
         >
           <button
             onClick={() => setGenesisModalOpen(true)}
-            className="flex items-center gap-2.5 mx-auto px-4 py-2.5 rounded-lg bg-emerald-500/10 hover-elevate cursor-pointer"
+            className="w-full group"
             data-testid="button-genesis-hallmark"
           >
-            <Shield className="w-4 h-4 text-emerald-500" />
-            <span className="text-xs font-medium text-emerald-500">Genesis Hallmark</span>
-            <Badge className="bg-emerald-500/15 text-emerald-500 text-[10px]">{genesis.thId}</Badge>
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-900/40 via-emerald-800/20 to-amber-900/30 border border-emerald-500/20 p-4 transition-all duration-300 hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/10">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl" />
+              <div className="relative flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/25 flex-shrink-0">
+                  <Shield className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1 min-w-0 text-left">
+                  <p className="text-xs font-semibold text-emerald-400">Genesis Hallmark</p>
+                  <p className="text-[10px] text-muted-foreground font-mono">{genesis.thId}</p>
+                </div>
+                <Badge className="bg-emerald-500/15 text-emerald-400 text-[10px] border border-emerald-500/20">
+                  Verified
+                </Badge>
+                <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-emerald-400 transition-colors flex-shrink-0" />
+              </div>
+            </div>
           </button>
         </motion.div>
       )}
@@ -480,97 +493,109 @@ export default function Dashboard() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-md p-0 sm:p-4"
             onClick={() => setGenesisModalOpen(false)}
           >
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-card border border-card-border rounded-2xl w-full max-w-lg max-h-[85vh] overflow-y-auto p-6"
+              initial={{ opacity: 0, y: 40, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 40, scale: 0.97 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="bg-background/95 backdrop-blur-xl border border-white/15 rounded-t-3xl sm:rounded-2xl w-full sm:max-w-lg max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
               data-testid="modal-genesis-detail"
             >
-              <div className="flex items-center justify-between gap-3 mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-emerald-500/15 flex items-center justify-center">
-                    <Shield className="w-5 h-5 text-emerald-500" />
+              <div className="sticky top-0 z-10 bg-background/90 backdrop-blur-xl border-b border-white/10 px-5 py-4">
+                <div className="w-10 h-1 rounded-full bg-white/20 mx-auto mb-4 sm:hidden" />
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/25">
+                      <Shield className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-bold text-foreground">Genesis Hallmark</h2>
+                      <p className="text-[11px] text-muted-foreground font-mono">{genesis.thId}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="text-base font-bold text-foreground">Genesis Hallmark</h2>
-                    <p className="text-xs text-muted-foreground">{genesis.thId}</p>
-                  </div>
+                  <Button variant="ghost" size="icon" className="rounded-xl min-h-[44px] min-w-[44px] h-11 w-11 hover:bg-white/10" onClick={() => setGenesisModalOpen(false)} data-testid="button-close-genesis-modal">
+                    <X className="w-4 h-4" />
+                  </Button>
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => setGenesisModalOpen(false)} data-testid="button-close-genesis-modal">
-                  <X className="w-4 h-4" />
-                </Button>
               </div>
 
-              <div className="space-y-5">
+              <div className="p-5 space-y-5">
                 <div>
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Application Info</h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between gap-3 py-1.5">
-                      <span className="text-xs text-muted-foreground">App Name</span>
-                      <span className="text-xs font-medium text-foreground" data-testid="text-genesis-app-name">{genesis.appName}</span>
+                  <h3 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-3">Application Info</h3>
+                  <div className="rounded-xl bg-white/5 border border-white/10 divide-y divide-white/5">
+                    {[
+                      { label: "App Name", value: genesis.appName, testId: "text-genesis-app-name" },
+                      { label: "Product", value: genesis.productName },
+                      { label: "Release Type", value: genesis.releaseType, isBadge: true },
+                      { label: "Created", value: new Date(genesis.createdAt).toLocaleDateString() },
+                    ].map(row => (
+                      <div key={row.label} className="flex items-center justify-between gap-3 px-3.5 py-2.5">
+                        <span className="text-[11px] text-muted-foreground">{row.label}</span>
+                        {row.isBadge ? (
+                          <Badge className="bg-emerald-500/15 text-emerald-400 text-[10px]">{row.value}</Badge>
+                        ) : (
+                          <span className="text-[11px] font-medium text-foreground" data-testid={row.testId}>{row.value}</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-3">Blockchain Record</h3>
+                  <div className="rounded-xl bg-white/5 border border-white/10 divide-y divide-white/5">
+                    <div className="px-3.5 py-2.5">
+                      <span className="text-[10px] text-muted-foreground block mb-1.5">Data Hash</span>
+                      <code className="text-[10px] font-mono text-emerald-400/80 break-all leading-relaxed" data-testid="text-genesis-data-hash">{genesis.dataHash}</code>
                     </div>
-                    <div className="flex items-center justify-between gap-3 py-1.5">
-                      <span className="text-xs text-muted-foreground">Product</span>
-                      <span className="text-xs font-medium text-foreground">{genesis.productName}</span>
+                    <div className="px-3.5 py-2.5">
+                      <span className="text-[10px] text-muted-foreground block mb-1.5">Transaction Hash</span>
+                      <code className="text-[10px] font-mono text-emerald-400/80 break-all leading-relaxed" data-testid="text-genesis-tx-hash">{genesis.txHash}</code>
                     </div>
-                    <div className="flex items-center justify-between gap-3 py-1.5">
-                      <span className="text-xs text-muted-foreground">Release Type</span>
-                      <Badge className="bg-emerald-500/15 text-emerald-500 text-[10px]">{genesis.releaseType}</Badge>
-                    </div>
-                    <div className="flex items-center justify-between gap-3 py-1.5">
-                      <span className="text-xs text-muted-foreground">Created</span>
-                      <span className="text-xs font-medium text-foreground">{new Date(genesis.createdAt).toLocaleDateString()}</span>
+                    <div className="flex items-center justify-between gap-3 px-3.5 py-2.5">
+                      <span className="text-[11px] text-muted-foreground">Block Height</span>
+                      <span className="text-[11px] font-mono font-medium text-foreground" data-testid="text-genesis-block-height">{genesis.blockHeight}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="border-t border-card-border pt-5">
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Blockchain Record</h3>
-                  <div className="space-y-2">
-                    <div className="py-1.5">
-                      <span className="text-xs text-muted-foreground block mb-1">Data Hash</span>
-                      <code className="text-[10px] font-mono text-foreground break-all bg-muted/50 px-2 py-1 rounded" data-testid="text-genesis-data-hash">{genesis.dataHash}</code>
-                    </div>
-                    <div className="py-1.5">
-                      <span className="text-xs text-muted-foreground block mb-1">Transaction Hash</span>
-                      <code className="text-[10px] font-mono text-foreground break-all bg-muted/50 px-2 py-1 rounded" data-testid="text-genesis-tx-hash">{genesis.txHash}</code>
-                    </div>
-                    <div className="flex items-center justify-between gap-3 py-1.5">
-                      <span className="text-xs text-muted-foreground">Block Height</span>
-                      <span className="text-xs font-medium text-foreground" data-testid="text-genesis-block-height">{genesis.blockHeight}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="border-t border-card-border pt-5">
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Ecosystem Details</h3>
-                  <div className="space-y-2">
-                    {genesis.metadata && Object.entries(genesis.metadata).map(([key, value]) => (
-                      <div key={key} className="flex items-center justify-between gap-3 py-1.5">
-                        <span className="text-xs text-muted-foreground capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
-                        <span className="text-xs font-medium text-foreground text-right max-w-[60%] truncate">{String(value)}</span>
+                <div>
+                  <h3 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-3">Ecosystem Details</h3>
+                  <div className="rounded-xl bg-white/5 border border-white/10 divide-y divide-white/5">
+                    {genesis.metadata && Object.entries(genesis.metadata).filter(([key]) => key !== 'parentGenesis').map(([key, value]) => (
+                      <div key={key} className="flex items-center justify-between gap-3 px-3.5 py-2.5">
+                        <span className="text-[11px] text-muted-foreground capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                        <span className="text-[11px] font-medium text-foreground text-right max-w-[55%] truncate">{String(value)}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 {genesis.metadata?.parentGenesis && (
-                  <div className="border-t border-card-border pt-5">
-                    <div className="flex items-center gap-2.5 p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/15">
-                      <Link2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-foreground">Parent Genesis</p>
-                        <p className="text-[10px] text-muted-foreground">Trust Layer Hub — {String(genesis.metadata.parentGenesis)}</p>
+                  <div className="rounded-xl bg-gradient-to-r from-emerald-500/10 to-amber-500/10 border border-emerald-500/15 p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-lg bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                        <Link2 className="w-4 h-4 text-emerald-400" />
                       </div>
-                      <ExternalLink className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[11px] font-semibold text-foreground">Parent Genesis</p>
+                        <p className="text-[10px] text-muted-foreground font-mono">Trust Layer Hub — {String(genesis.metadata.parentGenesis)}</p>
+                      </div>
+                      <ExternalLink className="w-3.5 h-3.5 text-emerald-400/60 flex-shrink-0" />
                     </div>
                   </div>
                 )}
+
+                <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/15 p-3 text-center">
+                  <div className="flex items-center justify-center gap-2">
+                    <Shield className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="text-[10px] font-medium text-emerald-400">Verified on Trust Layer Blockchain</span>
+                  </div>
+                </div>
               </div>
             </motion.div>
           </motion.div>
