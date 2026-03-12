@@ -1,9 +1,3 @@
-databases:
-  - name: verdara-db
-    plan: free
-    databaseName: verdara
-    user: verdara
-
 services:
   - type: web
     name: verdara
@@ -19,9 +13,7 @@ services:
       - key: APP_DOMAIN
         value: verdara.tlid.io
       - key: DATABASE_URL
-        fromDatabase:
-          name: verdara-db
-          property: connectionString
+        sync: false
       - key: JWT_SECRET
         sync: false
       - key: OPENAI_API_KEY
