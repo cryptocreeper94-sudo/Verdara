@@ -66,6 +66,7 @@ import { initErrorTracking } from "@/lib/error-tracker";
 import { ErrorBoundary } from "@/components/error-boundary";
 import Diagnostics from "@/pages/diagnostics";
 import Ecosystem from "@/pages/ecosystem";
+import { DWSCFooterBadge } from "@/components/DWSCFooterBadge";
 
 
 function AppContent() {
@@ -204,6 +205,7 @@ function App() {
         <TooltipProvider>
           <ThemeProvider>
             <AppContent />
+            <DWSCFooterBadge />
             <Toaster />
           </ThemeProvider>
         </TooltipProvider>
