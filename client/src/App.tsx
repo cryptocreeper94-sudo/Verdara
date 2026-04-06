@@ -67,6 +67,7 @@ import { ErrorBoundary } from "@/components/error-boundary";
 import Diagnostics from "@/pages/diagnostics";
 import Ecosystem from "@/pages/ecosystem";
 import { DWSCFooterBadge } from "@/components/DWSCFooterBadge";
+import { FloatingThemeToggle } from "@/components/theme-toggle";
 
 
 function AppContent() {
@@ -133,6 +134,7 @@ function AppContent() {
     return (
       <ArboraLayout>
         <Switch>
+      <FloatingThemeToggle />
           <Route path="/arbora" component={ArboraDashboard} />
           <Route path="/arbora/clients" component={ArboraClients} />
           <Route path="/arbora/deals" component={ArboraDeals} />
@@ -153,6 +155,7 @@ function AppContent() {
     <AppLayout onShowAuth={() => setShowAuth(true)}>
       <AnimatePresence>{showOnboarding && <OnboardingModal onDismiss={dismissOnboarding} />}</AnimatePresence>
       <Switch>
+      <FloatingThemeToggle />
         <Route path="/" component={Explore} />
         <Route path="/trails" component={Trails} />
         <Route path="/marketplace" component={Marketplace} />
