@@ -233,6 +233,61 @@ export function registerAuthRoutes(app: Express) {
     }
   });
 
+  // ── Firebase Auth (Google/GitHub OAuth) ──
+  app.post("/api/auth/firebase", async (req: Request, res: Response) => {
+    try {
+      const { idToken } = req.body;
+      if (!idToken) return res.status(400).json({ message: "Firebase ID token required" });
+
+      const { verifyFirebaseToken } = await import("./firebase-admin");
+      const decoded = await verifyFirebaseToken(idToken);
+      if (!decoded) return res.status(401).json({ message: "Invalid Firebase token" });
+
+      const email = decoded.email || "";
+      const name = decoded.name || decoded.email?.split("@")[0] || "Explorer";
+      if (!email) return res.status(400).json({ message: "No email associated with this account" });
+
+      let user = await storage.getUserByEmail(email.toLowerCase());
+      if (!user) {
+        const passwordHash = await bcrypt.hash(crypto.randomUUID(), SALT_ROUNDS);
+        const trustLayerId = generateTrustLayerIdPublic();
+        const uniqueHash = crypto.randomBytes(12).toString("hex");
+        user = await storage.createUser({
+          firstName: name.split(" ")[0] || "Explorer",
+          lastName: name.split(" ").slice(1).join(" ") || "",
+          email: email.toLowerCase(),
+          passwordHash,
+          emailVerified: true,
+          trustLayerId,
+          uniqueHash,
+        });
+      }
+
+      const sessionToken = generateToken();
+      const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
+      await storage.createSession(user.id, sessionToken, expiresAt);
+
+      res.cookie("session_token", sessionToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: SESSION_DURATION_MS,
+        path: "/",
+      });
+
+      createTrustStamp({
+        userId: user.id,
+        category: "auth-firebase",
+        data: { email, appContext: "verdara", timestamp: new Date().toISOString() },
+      }).catch(() => {});
+
+      return res.json({ user: sanitizeUser(user) });
+    } catch (error: any) {
+      console.error("[Firebase Auth] Error:", error.message);
+      return res.status(500).json({ message: "Firebase authentication failed" });
+    }
+  });
+
   app.post("/api/auth/logout", requireAuth, async (req: Request, res: Response) => {
     try {
       const token = req.cookies?.session_token;
