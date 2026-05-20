@@ -643,7 +643,7 @@ export function EcosystemAccountHub() {
                     padding:'5px 10px', borderRadius:8, fontSize:11, fontWeight:700,
                     background:'linear-gradient(135deg,#10b981,#059669)', color:'#000',
                     whiteSpace:'nowrap' as const,
-                  }}>$49.99</div>
+                  }}>$29.99</div>
                 </a>
               </div>
     </>
