@@ -885,8 +885,8 @@ export default function Identify() {
                     )}
 
                     <div className="flex items-center gap-3 mt-4 pt-4 border-t border-card-border">
-                      <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center flex-shrink-0">
-                        <Shield className="w-5 h-5 text-purple-500" />
+                      <div className="w-10 h-10 rounded-xl bg-sky-500/10 flex items-center justify-center flex-shrink-0">
+                        <Shield className="w-5 h-5 text-sky-500" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-foreground">Save to TrustVault</p>
@@ -900,7 +900,7 @@ export default function Identify() {
                         <Button
                           onClick={() => vaultSaveMutation.mutate()}
                           disabled={vaultSaveMutation.isPending}
-                          className="bg-purple-600 text-white gap-2 flex-shrink-0"
+                          className="bg-sky-600 text-white gap-2 flex-shrink-0"
                           data-testid="button-save-trustvault"
                         >
                           {vaultSaveMutation.isPending ? (

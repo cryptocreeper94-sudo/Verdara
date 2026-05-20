@@ -267,7 +267,7 @@ const wildPlantsDatabase: WildPlant[] = ([
 
 const plantCategoryColors = {
   edible: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
-  medicinal: "bg-purple-500/15 text-purple-400 border-purple-500/30",
+  medicinal: "bg-sky-500/15 text-sky-400 border-sky-500/30",
   both: "bg-amber-500/15 text-amber-400 border-amber-500/30",
 };
 
@@ -419,7 +419,7 @@ export default function Foraging() {
             </Button>
           </Link>
           <a href="https://vedasolus.io" target="_blank" rel="noopener noreferrer">
-            <Button variant="outline" className="border-purple-500/30 text-purple-400" data-testid="button-vedasolus">
+            <Button variant="outline" className="border-sky-500/30 text-sky-400" data-testid="button-vedasolus">
               <Pill className="w-4 h-4 mr-2" />
               VedaSolus Wellness Hub
               <ExternalLink className="w-3 h-3 ml-1.5" />
@@ -443,18 +443,18 @@ export default function Foraging() {
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="rounded-xl bg-purple-500/10 border border-purple-500/20 p-4 mb-5"
+              className="rounded-xl bg-sky-500/10 border border-sky-500/20 p-4 mb-5"
               data-testid="vedasolus-integration-banner"
             >
               <div className="flex items-start gap-3">
-                <Pill className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" />
+                <Pill className="w-5 h-5 text-sky-400 flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-purple-400">VedaSolus Wellness Integration</p>
-                  <p className="text-xs text-purple-400/70 mt-1">
+                  <p className="text-sm font-semibold text-sky-400">VedaSolus Wellness Integration</p>
+                  <p className="text-xs text-sky-400/70 mt-1">
                     Medicinal plant data integrates with VedaSolus holistic wellness hub for Ayurvedic dosha balancing, TCM, and herbal medicine recommendations.
                   </p>
                   <a href="https://vedasolus.io" target="_blank" rel="noopener noreferrer" className="inline-block mt-2">
-                    <Button variant="outline" size="sm" className="border-purple-500/30 text-purple-400" data-testid="button-vedasolus-banner-link">
+                    <Button variant="outline" size="sm" className="border-sky-500/30 text-sky-400" data-testid="button-vedasolus-banner-link">
                       Explore VedaSolus
                       <ExternalLink className="w-3 h-3 ml-1.5" />
                     </Button>
@@ -567,7 +567,7 @@ export default function Foraging() {
                             className="space-y-3 pt-3 border-t border-card-border"
                           >
                             <div>
-                              <p className="text-xs font-semibold text-purple-400 mb-1 flex items-center gap-1.5">
+                              <p className="text-xs font-semibold text-sky-400 mb-1 flex items-center gap-1.5">
                                 <BookOpen className="w-3.5 h-3.5" />
                                 Historical & Traditional Uses
                               </p>
@@ -600,7 +600,7 @@ export default function Foraging() {
                                   onClick={(e) => e.stopPropagation()}
                                   data-testid={`link-vedasolus-${plant.name.toLowerCase().replace(/\s+/g, "-")}`}
                                 >
-                                  <Button variant="outline" size="sm" className="border-purple-500/30 text-purple-400" data-testid={`button-vedasolus-${plant.name.toLowerCase().replace(/\s+/g, "-")}`}>
+                                  <Button variant="outline" size="sm" className="border-sky-500/30 text-sky-400" data-testid={`button-vedasolus-${plant.name.toLowerCase().replace(/\s+/g, "-")}`}>
                                     <Pill className="w-3.5 h-3.5 mr-1.5" />
                                     View on VedaSolus
                                     <ExternalLink className="w-3 h-3 ml-1.5" />

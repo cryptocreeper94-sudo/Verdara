@@ -89,7 +89,7 @@ function LogEntry({ log }: { log: ErrorLog }) {
                 {log.source}
               </Badge>
               {isMobile && (
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-purple-500/30 text-purple-400">
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-sky-500/30 text-sky-400">
                   Mobile
                 </Badge>
               )}
@@ -247,8 +247,8 @@ export default function Diagnostics() {
             <div className="text-2xl font-bold text-blue-400" data-testid="stat-auth-events">{authCount}</div>
             <div className="text-[11px] text-muted-foreground">Auth Events</div>
           </div>
-          <div className="rounded-xl border border-purple-500/20 bg-purple-500/5 p-3 text-center">
-            <div className="text-2xl font-bold text-purple-400" data-testid="stat-mobile">{mobileCount}</div>
+          <div className="rounded-xl border border-sky-500/20 bg-sky-500/5 p-3 text-center">
+            <div className="text-2xl font-bold text-sky-400" data-testid="stat-mobile">{mobileCount}</div>
             <div className="text-[11px] text-muted-foreground">Mobile</div>
           </div>
         </div>

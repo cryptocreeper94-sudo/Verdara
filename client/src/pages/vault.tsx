@@ -50,7 +50,7 @@ const categoryIcons: Record<string, typeof Image> = {
 
 const categoryColors: Record<string, string> = {
   image: "text-emerald-400 bg-emerald-500/15 border-emerald-500/30",
-  video: "text-purple-400 bg-purple-500/15 border-purple-500/30",
+  video: "text-sky-400 bg-sky-500/15 border-sky-500/30",
   audio: "text-amber-400 bg-amber-500/15 border-amber-500/30",
   document: "text-slate-400 bg-slate-500/15 border-slate-500/30",
 };
@@ -232,8 +232,8 @@ export default function Vault() {
         </Card>
         <Card className="border-card-border bg-card/80 backdrop-blur-sm">
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-purple-500/15 flex items-center justify-center">
-              <Film className="w-5 h-5 text-purple-400" />
+            <div className="w-10 h-10 rounded-lg bg-sky-500/15 flex items-center justify-center">
+              <Film className="w-5 h-5 text-sky-400" />
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Projects</p>
@@ -328,7 +328,7 @@ export default function Vault() {
         <Button
           variant="outline"
           size="sm"
-          className="border-purple-500/30 text-purple-400 text-xs"
+          className="border-sky-500/30 text-sky-400 text-xs"
           onClick={() => embedEditorMutation.mutate({ editorType: "video" })}
           disabled={embedEditorMutation.isPending}
           data-testid="button-open-video-editor"
